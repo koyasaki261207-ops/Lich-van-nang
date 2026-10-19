@@ -1,0 +1,1923 @@
+/* Lịch tháng, timeline 24 giờ, chi tiết ngày và sự kiện lịch riêng */
+
+/* ========================================================
+   TIMELINE NGANG 24 GIỜ TRONG NGÀY (Ở DƯỚI LỊCH THÁNG)
+   ======================================================== */
+.day-h-timeline-section {
+  width: 100%;
+  background: rgba(22, 27, 49, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 20px 24px 20px 24px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), 0 0 24px rgba(59, 130, 246, 0.08);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Header của Timeline Ngang */
+.day-h-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.day-h-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.day-h-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: var(--accent-cyan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+  flex-shrink: 0;
+}
+
+.day-h-title-texts {
+  display: flex;
+  flex-direction: column;
+}
+
+.day-h-sub-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+}
+
+.day-h-main-title {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--color-white);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.day-h-badges-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.day-h-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 5px;
+}
+
+.day-h-badge-lunar {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+}
+
+.day-h-badge-canchi {
+  color: var(--slate-300);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.day-h-badge-count {
+  color: var(--accent-cyan);
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+
+
+/* Sự kiện cả ngày */
+.day-h-allday-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(15, 20, 38, 0.6);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.day-h-allday-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--slate-400);
+  white-space: nowrap;
+}
+
+.day-h-allday-pills {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.day-h-allday-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 5px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--color-white);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.day-h-allday-pill:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.15);
+}
+
+/* Khung thước đo 24 Giờ (Vừa vặn 100% không cuộn ngang) */
+.day-h-scroll-wrap {
+  overflow: hidden;
+  width: 100%;
+  border-radius: 12px;
+  background: rgba(15, 20, 38, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-sizing: border-box;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.day-h-scroll-wrap::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.day-h-track-container {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  height: 135px;
+  box-sizing: border-box;
+}
+
+/* Phân vùng buổi trong ngày */
+.day-h-periods-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  pointer-events: none;
+}
+
+.day-period {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-right: 1px dashed rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: flex-end;
+  padding: 6px 10px;
+  box-sizing: border-box;
+}
+
+.day-period.period-night {
+  background: rgba(15, 23, 42, 0.25);
+}
+
+.day-period.period-morning {
+  background: rgba(56, 189, 248, 0.04);
+}
+
+.day-period.period-afternoon {
+  background: rgba(245, 158, 11, 0.04);
+}
+
+.day-period.period-evening {
+  background: rgba(129, 140, 248, 0.04);
+}
+
+.period-name {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.25);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* Thước đo giờ từ 00:00 đến 24:00 */
+.day-h-ruler-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 32px;
+  display: flex;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-sizing: border-box;
+}
+
+.day-h-ruler-tick {
+  flex: 1;
+  position: relative;
+  height: 100%;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: background 0.15s ease;
+  box-sizing: border-box;
+}
+
+.day-h-ruler-tick:hover {
+  background: rgba(56, 189, 248, 0.12);
+}
+
+.day-h-ruler-tick .tick-label {
+  position: absolute;
+  top: 7px;
+  left: 0;
+  transform: translateX(-50%);
+  font-family: var(--font-timeline-num), monospace;
+  font-size: 10px;
+  font-weight: 700;
+  color: #8fa0c2;
+  user-select: none;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.day-h-ruler-tick:first-child .tick-label {
+  transform: translateX(4px);
+}
+
+.day-h-ruler-tick.tick-last {
+  flex: 0 0 0;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.day-h-ruler-tick.tick-last .tick-label {
+  transform: translateX(calc(-100% - 4px));
+}
+
+@media (max-width: 850px) {
+  .day-h-ruler-tick:nth-child(even) .tick-label {
+    display: none;
+  }
+
+  .period-name {
+    font-size: 9px;
+  }
+}
+
+.day-h-ruler-tick::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  height: 7px;
+  border-left: 1px dashed rgba(255, 255, 255, 0.14);
+  pointer-events: none;
+}
+
+.day-h-ruler-tick.tick-last::after {
+  display: none;
+}
+
+/* Vạch chỉ giờ hiện tại (Now Needle) */
+.day-h-now-needle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 15;
+  pointer-events: none;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.now-needle-badge {
+  background: #ef4444;
+  color: var(--color-white);
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 9.5px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.7);
+  white-space: nowrap;
+}
+
+.now-needle-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-white);
+}
+
+.now-needle-line {
+  width: 2px;
+  flex: 1;
+  background: #ef4444;
+  box-shadow: 0 0 8px #ef4444;
+}
+
+/* Lớp hiển thị các thanh sự kiện 24 giờ */
+.day-h-events-lane {
+  position: absolute;
+  top: 36px;
+  left: 0;
+  right: 0;
+  bottom: 8px;
+}
+
+.day-h-event-bar {
+  position: absolute;
+  border-radius: 8px;
+  padding: 4px 10px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  z-index: 5;
+}
+
+.day-h-event-bar:hover {
+  transform: translateY(-2px) scale(1.02);
+  z-index: 10;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.day-h-event-time {
+  font-family: var(--font-timeline-num), monospace;
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #fef08a;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.day-h-event-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--color-white);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.day-h-event-actions {
+  display: none !important;
+}
+
+/* ========================================================
+   MODAL XEM CHI TIẾT SỰ KIỆN LỊCH (Chỉ xem)
+   ======================================================== */
+.modal-cal-view-card {
+  max-width: 440px;
+  background: linear-gradient(180deg, #182238 0%, #0f172a 100%);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  box-shadow: 0 20px 48px -10px rgba(0, 0, 0, 0.7), 0 0 30px rgba(56, 189, 248, 0.1);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.modal-cal-view-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.cal-view-body {
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cal-view-info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 10px 14px;
+  transition: background 0.15s ease;
+}
+
+.cal-view-info-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.cal-view-info-icon {
+  font-size: 18px;
+  line-height: 1.3;
+  flex-shrink: 0;
+}
+
+.cal-view-info-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.cal-view-info-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--slate-400);
+  margin-bottom: 3px;
+}
+
+.cal-view-info-val {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #f1f5f9;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.cal-view-actions {
+  padding: 14px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  justify-content: flex-end;
+}
+
+
+
+/* Trạng thái ô ngày được chọn trên Lịch tháng */
+.cal-day-cell.is-selected {
+  outline: 2.2px solid var(--accent-cyan) !important;
+  outline-offset: -2.2px;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.45), 0 4px 14px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* Header của Lịch Tháng */
+.monthly-cal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 16px;
+}
+
+.cal-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.cal-title-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: var(--accent-cyan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 12px rgba(56, 189, 248, 0.2);
+}
+
+.cal-nav-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cal-month-title {
+  font-family: var(--font-heading);
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: var(--color-white);
+  min-width: 190px;
+  text-align: center;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.btn-cal-nav {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--slate-300);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-cal-nav:hover {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: rgba(56, 189, 248, 0.5);
+  color: var(--accent-cyan);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.25);
+}
+
+.btn-cal-today {
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  font-weight: 600;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: var(--accent-cyan);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-cal-today:hover {
+  background: var(--accent-cyan);
+  color: #0f172a;
+  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.4);
+  transform: translateY(-1px);
+}
+
+.cal-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cal-select-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cal-select {
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: #19203c;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--color-white);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.cal-select:hover,
+.cal-select:focus {
+  border-color: var(--accent-cyan);
+}
+
+.cal-select option {
+  background: #171c35;
+  color: var(--color-white);
+}
+
+.btn-cal-add-event,
+.btn-cal-view {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: var(--color-white);
+  font-family: var(--font-heading);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+
+.btn-cal-add-event:hover,
+.btn-cal-view:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.5);
+}
+
+.btn-cal-add-event:active,
+.btn-cal-view:active {
+  transform: translateY(0);
+}
+
+/* Hàng tiêu đề 7 thứ trong tuần: Máy tính hiển thị Thứ hai - Chủ nhật, Di động hiển thị T2 - CN */
+.cal-weekday .weekday-full {
+  display: inline !important;
+}
+
+.cal-weekday .weekday-short {
+  display: none !important;
+}
+
+.monthly-cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 6px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.cal-weekday {
+  text-align: center;
+  font-family: var(--font-heading);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--slate-300);
+  padding: 10px 0;
+  background: rgba(38, 52, 86, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  letter-spacing: -0.2px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.cal-weekday.cal-sat {
+  color: #ede9fe;
+  background: rgba(62, 50, 96, 0.85);
+  border-color: rgba(192, 132, 252, 0.35);
+}
+
+.cal-weekday.cal-sun {
+  color: #ffe4e6;
+  background: rgba(78, 42, 64, 0.85);
+  border-color: rgba(251, 113, 133, 0.35);
+}
+
+/* Lưới các ô ngày trong tháng */
+.monthly-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 7px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Từng ô ngày - Sáng rõ, tương phản nổi bật, viền sắc nét */
+.cal-day-cell {
+  min-height: 96px;
+  min-width: 0;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(46, 62, 98, 0.9) 0%, rgba(32, 44, 76, 0.92) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+}
+
+.cal-day-cell:hover {
+  background: linear-gradient(180deg, rgba(62, 84, 132, 0.96) 0%, rgba(44, 60, 102, 0.96) 100%);
+  border-color: rgba(56, 189, 248, 0.7);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45), 0 0 16px rgba(56, 189, 248, 0.25);
+  z-index: 2;
+}
+
+/* Cột Thứ Bảy - Sáng tím thạch anh nổi bật */
+.cal-day-cell.is-sat {
+  background: linear-gradient(180deg, rgba(62, 52, 102, 0.9) 0%, rgba(42, 36, 76, 0.92) 100%);
+  border-color: rgba(192, 132, 252, 0.35);
+}
+
+.cal-day-cell.is-sat:hover {
+  background: linear-gradient(180deg, rgba(82, 68, 134, 0.96) 0%, rgba(56, 46, 100, 0.96) 100%);
+  border-color: rgba(192, 132, 252, 0.8);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45), 0 0 16px rgba(192, 132, 252, 0.3);
+}
+
+.cal-day-cell.is-sat .cal-solar-day {
+  color: #ede9fe;
+  text-shadow: 0 0 10px rgba(192, 132, 252, 0.4);
+}
+
+/* Cột Chủ Nhật - Sáng hồng san hô ấm áp */
+.cal-day-cell.is-sun {
+  background: linear-gradient(180deg, rgba(82, 46, 68, 0.9) 0%, rgba(56, 30, 48, 0.92) 100%);
+  border-color: rgba(251, 113, 133, 0.35);
+}
+
+.cal-day-cell.is-sun:hover {
+  background: linear-gradient(180deg, rgba(106, 58, 86, 0.96) 0%, rgba(72, 38, 62, 0.96) 100%);
+  border-color: rgba(251, 113, 133, 0.8);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45), 0 0 16px rgba(251, 113, 133, 0.3);
+}
+
+.cal-day-cell.is-sun .cal-solar-day {
+  color: #ffe4e6;
+  text-shadow: 0 0 10px rgba(251, 113, 133, 0.4);
+}
+
+/* Ngày thuộc tháng trước hoặc tháng sau */
+.cal-day-cell.other-month {
+  opacity: 0.35;
+  background: rgba(18, 24, 44, 0.6);
+  border-color: rgba(255, 255, 255, 0.05);
+  box-shadow: none;
+}
+
+.cal-day-cell.other-month:hover {
+  opacity: 0.85;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Ngày hôm nay - Huy hiệu Cyan nổi bật rực rỡ */
+.cal-day-cell.is-today {
+  border: 2px solid var(--accent-cyan);
+  background: linear-gradient(135deg, rgba(24, 76, 126, 0.95) 0%, rgba(28, 56, 100, 0.95) 100%);
+  box-shadow: 0 0 24px rgba(56, 189, 248, 0.4), inset 0 0 14px rgba(56, 189, 248, 0.25);
+}
+
+.cal-day-cell.is-today .cal-solar-day {
+  color: var(--color-white);
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  border-radius: 7px;
+  padding: 2px 8px;
+  margin-left: -3px;
+  margin-top: -2px;
+  box-shadow: 0 2px 10px rgba(56, 189, 248, 0.5);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ngày có lễ hội, kỷ niệm */
+.cal-day-cell.is-holiday {
+  border-top: 3px solid #f43f5e;
+}
+
+/* Hàng trên của ô ngày: Số ngày dương */
+.cal-cell-top {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.cal-solar-day {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--color-white);
+  letter-spacing: -0.5px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* Hàng giữa: Ngày lễ / Kỷ niệm */
+.cal-cell-mid {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: 4px 0;
+  min-height: 22px;
+}
+
+.cal-holiday-text {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--color-white);
+  line-height: 1.3;
+  background: rgba(225, 29, 72, 0.28);
+  border-left: 2.5px solid #f43f5e;
+  border-radius: 4px;
+  padding: 2.5px 6px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+/* Hàng dưới của ô ngày: Ngày Âm lịch đặt lệch góc phải */
+.cal-cell-bottom {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+}
+
+.cal-lunar-day {
+  font-family: var(--font-timeline-num), var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  color: #fde68a;
+  line-height: 1;
+  white-space: nowrap;
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.cal-lunar-day.is-first-or-full {
+  color: #fef3c7;
+  background: rgba(245, 158, 11, 0.22);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-weight: 800;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.25);
+}
+
+/* Chú thích chân lịch (Footer) */
+.monthly-cal-footer {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.cal-legend {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.legend-badge-today {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: #0284c7;
+  border: 1px solid var(--accent-cyan);
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.5);
+}
+
+.legend-badge-holiday {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: #fb7185;
+  box-shadow: 0 0 6px rgba(251, 113, 133, 0.5);
+}
+
+.legend-badge-lunar {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: #fde68a;
+  box-shadow: 0 0 6px rgba(253, 230, 138, 0.5);
+}
+
+.cal-hint-text {
+  font-size: 12px;
+  color: #8fa0c2;
+  font-style: italic;
+}
+
+/* ========================================================
+   MODAL CHI TIẾT NGÀY TRONG LỊCH (Day Detail Modal)
+   ======================================================== */
+.modal-day-detail-card {
+  max-width: 480px;
+  padding-bottom: 22px;
+}
+
+.day-detail-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.day-detail-weekday-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 4px;
+  padding: 2px 8px;
+  width: fit-content;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.day-detail-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.day-detail-relative-tag {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--slate-400);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  white-space: nowrap;
+}
+
+.day-detail-relative-tag.is-today {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #34d399;
+  font-weight: 700;
+}
+
+.day-detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 6px 0;
+}
+
+/* Banner Ngày lễ / Kỷ niệm */
+.day-detail-holiday-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.18) 0%, rgba(185, 28, 28, 0.1) 100%);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 10px;
+  padding: 10px 14px;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.12);
+}
+
+.holiday-banner-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.holiday-banner-label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #fca5a5;
+  letter-spacing: 0.5px;
+  display: block;
+}
+
+.holiday-banner-title {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--color-white);
+  margin: 2px 0 0 0;
+  text-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+}
+
+/* Dual cards so sánh Dương - Âm */
+.day-detail-dual-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.day-dual-card {
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.day-dual-card.solar-card {
+  background: linear-gradient(180deg, rgba(56, 189, 248, 0.12) 0%, rgba(15, 23, 42, 0.7) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+.day-dual-card.lunar-card {
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.12) 0%, rgba(15, 23, 42, 0.7) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.28);
+}
+
+.dual-card-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dual-card-icon {
+  font-size: 13px;
+}
+
+.dual-card-badge {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+}
+
+.solar-card .dual-card-badge {
+  color: var(--accent-cyan);
+}
+
+.lunar-card .dual-card-badge {
+  color: #f59e0b;
+}
+
+.dual-card-day-num {
+  font-family: var(--font-heading);
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1;
+  margin: 6px 0 6px 0;
+}
+
+.solar-card .dual-card-day-num {
+  color: var(--color-white);
+  text-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+}
+
+.lunar-card .dual-card-day-num {
+  color: #f59e0b;
+  text-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+}
+
+.dual-card-sub {
+  font-size: 11.5px;
+  color: var(--slate-400);
+  font-weight: 600;
+}
+
+/* Section chung */
+.day-detail-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.day-section-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #8fa0c2;
+  letter-spacing: 0.6px;
+}
+
+/* Can Chi Grid */
+.day-canchi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.canchi-item {
+  background: rgba(15, 20, 38, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 8px 10px;
+  text-align: center;
+}
+
+.canchi-label {
+  display: block;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.5px;
+  margin-bottom: 3px;
+}
+
+.canchi-value {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--slate-200);
+}
+
+/* Thẻ Hoàng Đạo / Hắc Đạo */
+.day-hoangdao-card {
+  border-radius: 10px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 20, 38, 0.7);
+}
+
+.day-hoangdao-card.is-hd {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(15, 20, 38, 0.7) 100%);
+}
+
+.day-hoangdao-card.is-hac {
+  border-color: rgba(148, 163, 184, 0.25);
+  background: linear-gradient(135deg, rgba(100, 116, 139, 0.1) 0%, rgba(15, 20, 38, 0.7) 100%);
+}
+
+.hoangdao-status-badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 800;
+  border-radius: 6px;
+  padding: 3px 10px;
+}
+
+.day-hoangdao-card.is-hd .hoangdao-status-badge {
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.day-hoangdao-card.is-hac .hoangdao-status-badge {
+  color: var(--slate-400);
+  background: rgba(100, 116, 139, 0.2);
+  border: 1px solid rgba(100, 116, 139, 0.4);
+}
+
+.hoangdao-advice {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--slate-300);
+  margin: 8px 0 0 0;
+}
+
+/* Danh sách Giờ Hoàng Đạo */
+.day-hours-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.hour-chip {
+  background: rgba(30, 41, 74, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 6px 8px;
+  text-align: center;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--slate-200);
+  transition: all 0.2s;
+}
+
+.hour-chip:hover {
+  border-color: rgba(56, 189, 248, 0.4);
+  background: rgba(56, 189, 248, 0.12);
+  color: var(--accent-cyan);
+}
+
+.day-detail-actions {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  justify-content: flex-end;
+}
+
+@media (max-width: 900px) {
+
+  .monthly-cal-grid,
+  .monthly-cal-weekdays {
+    gap: 4px;
+  }
+
+  .cal-day-cell {
+    min-height: 80px;
+    padding: 6px;
+  }
+
+  .cal-solar-day {
+    font-size: 16px;
+  }
+}
+
+/* ========================================================
+   MODAL THÊM SỰ KIỆN LỊCH CÁ NHÂN (+ Thêm)
+   ======================================================== */
+.modal-cal-add-card {
+  max-width: 520px;
+  padding-bottom: 22px;
+}
+
+.cal-modal-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.cal-add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 6px;
+}
+
+.cal-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cal-form-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #8fa0c2;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cal-form-label .required {
+  color: #ef4444;
+}
+
+.cal-label-sub {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: none;
+  color: #64748b;
+  letter-spacing: 0;
+}
+
+.cal-form-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(15, 20, 38, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 9px 12px;
+  color: var(--color-white);
+  font-family: var(--font-body);
+  font-size: 13px;
+  outline: none;
+  transition: all 0.2s;
+  color-scheme: dark;
+}
+
+.cal-form-input:focus {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+
+.cal-form-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(15, 20, 38, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--color-white);
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.45;
+  outline: none;
+  resize: vertical;
+  min-height: 60px;
+  max-height: 150px;
+  transition: all 0.2s;
+}
+
+.cal-form-textarea:focus {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+
+/* Dòng 2: Thời gian sự kiện (Bắt đầu & Kết thúc) */
+.cal-time-range-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(15, 20, 38, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.cal-time-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cal-time-line-tag {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 5px 8px;
+  border-radius: 5px;
+  min-width: 68px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.cal-time-line-tag.start-tag {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.cal-time-line-tag.end-tag {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.cal-time-line-inputs {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 8px;
+  flex: 1;
+}
+
+.cal-time-line-inputs.is-allday {
+  grid-template-columns: 1fr;
+}
+
+.cal-time-line-inputs.is-allday .cal-time-input {
+  display: none !important;
+}
+
+
+.cal-time-subrow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.cal-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.cal-checkbox-label input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.cal-checkbox-label .custom-checkbox {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: rgba(15, 20, 38, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.cal-checkbox-label:hover .custom-checkbox {
+  border-color: var(--accent-cyan);
+}
+
+.cal-checkbox-label input[type="checkbox"]:checked+.custom-checkbox {
+  background: #0284c7;
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+}
+
+.cal-checkbox-label input[type="checkbox"]:checked+.custom-checkbox::after {
+  content: '';
+  width: 4px;
+  height: 8px;
+  border: solid var(--color-white);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) translate(-0.5px, -0.5px);
+  display: block;
+}
+
+.cal-checkbox-label .chk-text {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--slate-300);
+}
+
+.cal-repeat-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cal-repeat-control .repeat-label {
+  font-size: 12px;
+  color: var(--slate-400);
+  font-weight: 600;
+}
+
+.cal-repeat-select-wrap {
+  min-width: 130px;
+}
+
+.cal-select-repeat {
+  padding: 6px 26px 6px 10px;
+  font-size: 12px;
+  background: rgba(15, 20, 38, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+}
+
+/* Dòng 3: Loại nhãn */
+.cal-categories-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.cal-cat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px 5px 12px;
+  border-radius: 20px;
+  background: rgba(15, 20, 38, 0.8);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--slate-300);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+
+.cal-cat-chip:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.cal-cat-chip.is-active {
+  color: var(--color-white);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.cal-cat-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.cal-cat-name {
+  line-height: 1;
+}
+
+.cal-cat-del-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--slate-400);
+  padding: 0;
+  margin-left: 2px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.cal-cat-chip:hover .cal-cat-del-btn {
+  opacity: 0.9;
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--slate-200);
+}
+
+.cal-cat-del-btn:hover {
+  opacity: 1 !important;
+  background: #ef4444 !important;
+  color: var(--color-white) !important;
+  transform: scale(1.15);
+}
+
+.cal-cat-chip-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1.5px dashed rgba(255, 255, 255, 0.2);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--slate-400);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cal-cat-chip-add:hover {
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+  background: rgba(56, 189, 248, 0.08);
+}
+
+.cal-add-custom-cat-box {
+  margin-top: 6px;
+  padding: 8px 12px;
+  background: rgba(15, 20, 38, 0.9);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 8px;
+}
+
+.custom-cat-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.custom-cat-inputs input[type="text"] {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+  color: var(--color-white);
+  outline: none;
+}
+
+.custom-cat-inputs input[type="color"] {
+  width: 32px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: transparent;
+}
+
+.btn-confirm-add-cat {
+  padding: 5px 12px;
+  border-radius: 6px;
+  background: #0284c7;
+  color: var(--color-white);
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-cancel-add-cat {
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--slate-400);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.btn-reset-default-cats {
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--slate-400);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-reset-default-cats:hover {
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+  background: rgba(56, 189, 248, 0.1);
+}
+
+/* Dòng 4: Chi tiết (Ghi chú, Tệp đính kèm, URL) */
+.cal-details-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cal-detail-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cal-attachment-dropzone {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1.5px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  background: rgba(15, 20, 38, 0.4);
+  color: var(--slate-400);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cal-attachment-dropzone:hover {
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+  background: rgba(56, 189, 248, 0.05);
+}
+
+.cal-attachment-preview-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 6px;
+  font-size: 12px;
+  color: #e0f2fe;
+}
+
+.btn-remove-attachment {
+  background: transparent;
+  border: none;
+  color: #f87171;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.cal-url-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.cal-url-input-wrap .url-icon {
+  position: absolute;
+  left: 10px;
+  color: #64748b;
+  pointer-events: none;
+}
+
+.cal-input-with-icon {
+  padding-left: 32px !important;
+}
+
+.cal-modal-actions {
+  margin-top: 6px;
+}
+
+/* User Event Pill trên ô ngày */
+.cal-user-event-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2.5px 7px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  margin-top: 3px;
+  box-sizing: border-box;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
+  transition: all 0.15s ease;
+}
+
+.cal-user-event-pill:hover {
+  transform: translateX(1px);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+}
+
+.cal-user-event-pill .user-event-dot {
+  width: 5.5px;
+  height: 5.5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 5px currentColor;
+}
+
+.cal-user-event-pill .user-event-time {
+  opacity: 0.9;
+  font-size: 9px;
+  flex-shrink: 0;
+  color: var(--slate-200);
+}
+
+.cal-user-event-pill .user-event-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--slate-50);
+}
+
+.cal-user-event-more {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #93c5fd;
+  margin-top: 2px;
+  padding-left: 2px;
+}
+
+/* Danh sách sự kiện trong Modal Chi Tiết Ngày */
+.day-section-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-day-add-event {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 5px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #34d399;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-day-add-event:hover {
+  background: rgba(16, 185, 129, 0.25);
+  border-color: #34d399;
+}
+
+.day-events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.day-event-item {
+  background: rgba(15, 20, 38, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left-width: 4px;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.day-event-item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.day-event-item-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--slate-50);
+}
+
+.day-event-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--slate-400);
+}
+
+.day-event-cat-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.day-event-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-edit-cal-event,
+.btn-delete-cal-event {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 3px 6px;
+  font-size: 13px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-edit-cal-event:hover {
+  color: var(--accent-cyan);
+  background: rgba(56, 189, 248, 0.15);
+}
+
+.btn-delete-cal-event:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.day-event-item-note {
+  font-size: 11.5px;
+  color: var(--slate-300);
+  background: rgba(0, 0, 0, 0.2);
+  padding: 6px 8px;
+  border-radius: 4px;
+  margin-top: 2px;
+  white-space: pre-wrap;
+}
+
+.day-event-item-link {
+  font-size: 11px;
+  color: var(--accent-cyan);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.day-event-item-link:hover {
+  text-decoration: underline;
+}
+
+.day-event-item-attachment {
+  font-size: 11px;
+  color: #a78bfa;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.day-empty-events {
+  font-size: 12px;
+  color: #64748b;
+  font-style: italic;
+  padding: 6px 0;
+}

@@ -1,0 +1,571 @@
+/* Timeline ngang: viewport, thanh cuộn, trục ngày, thân và lưới */
+
+/* ========================================================
+   KHUNG TIMELINE CHÍNH (Viewport & Canvas)
+   Hỗ trợ kéo chuột, cuộn ngang & cuộn dọc
+   ======================================================== */
+.timeline-viewport {
+  flex: 0 0 auto;
+  overflow-x: auto;
+  overflow-y: hidden;
+  position: relative;
+  cursor: grab;
+  user-select: none;
+  background-color: var(--bg-canvas);
+  scrollbar-gutter: auto;
+  margin-bottom: 20px;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+  overscroll-behavior-x: contain;
+}
+
+/* ========================================================
+   THANH CUỘN TO VÀ RÕ RÀNG (Custom Thick Scrollbars with Arrows)
+   Theo đúng hình ảnh mẫu: Bản to 15px, rãnh nền tối,
+   con trượt xám bo tròn hai đầu và nút mũi tên điều hướng
+   ======================================================== */
+html,
+body,
+.timeline-viewport {
+  scrollbar-color: #8c92a4 var(--bg-navy);
+  scrollbar-width: auto;
+}
+
+/* Bản to 15px cho cả thanh cuộn dọc & ngang */
+::-webkit-scrollbar {
+  width: 15px;
+  height: 15px;
+}
+
+/* Rãnh trượt nền tối */
+::-webkit-scrollbar-track {
+  background: var(--bg-navy);
+}
+
+/* Con trượt thanh cuộn dạng viên thuốc bo tròn dày dặn */
+::-webkit-scrollbar-thumb {
+  background-color: #8c92a4;
+  border-radius: 999px;
+  border: 2.5px solid var(--bg-navy);
+  background-clip: padding-box;
+  min-height: 40px;
+  min-width: 40px;
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #a4abbd;
+}
+
+::-webkit-scrollbar-thumb:active {
+  background-color: var(--slate-300);
+}
+
+/* Nút mũi tên ở 2 đầu thanh cuộn dọc (Up & Down Buttons) */
+::-webkit-scrollbar-button:single-button:vertical:decrement {
+  height: 16px;
+  width: 15px;
+  background-color: var(--bg-navy);
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 8px 8px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238c92a4'><polygon points='12,5 3,18 21,18'/></svg>");
+}
+
+::-webkit-scrollbar-button:single-button:vertical:decrement:hover {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'><polygon points='12,5 3,18 21,18'/></svg>");
+}
+
+::-webkit-scrollbar-button:single-button:vertical:increment {
+  height: 16px;
+  width: 15px;
+  background-color: var(--bg-navy);
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 8px 8px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238c92a4'><polygon points='12,19 3,6 21,6'/></svg>");
+}
+
+::-webkit-scrollbar-button:single-button:vertical:increment:hover {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'><polygon points='12,19 3,6 21,6'/></svg>");
+}
+
+/* Nút mũi tên ở 2 đầu thanh cuộn ngang (Left & Right Buttons) */
+::-webkit-scrollbar-button:single-button:horizontal:decrement {
+  width: 16px;
+  height: 15px;
+  background-color: var(--bg-navy);
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 8px 8px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238c92a4'><polygon points='5,12 18,3 18,21'/></svg>");
+}
+
+::-webkit-scrollbar-button:single-button:horizontal:decrement:hover {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'><polygon points='5,12 18,3 18,21'/></svg>");
+}
+
+::-webkit-scrollbar-button:single-button:horizontal:increment {
+  width: 16px;
+  height: 15px;
+  background-color: var(--bg-navy);
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 8px 8px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238c92a4'><polygon points='19,12 6,3 6,21'/></svg>");
+}
+
+::-webkit-scrollbar-button:single-button:horizontal:increment:hover {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'><polygon points='19,12 6,3 6,21'/></svg>");
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--bg-navy);
+}
+
+.timeline-viewport.is-dragging {
+  cursor: grabbing !important;
+  cursor: -webkit-grabbing !important;
+}
+
+.timeline-canvas {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: auto;
+  height: auto;
+  width: max-content;
+}
+
+/* ========================================================
+   TRỤC THỜI GIAN TRÊN CÙNG (Axis Header: Thứ/Ngày/Tháng)
+   Không có viền ngang chia cắt, số ngày nằm ngay trên vạch dọc
+   ======================================================== */
+.timeline-header-axis {
+  display: flex;
+  height: var(--header-axis-height);
+  background: rgba(37, 41, 74, 1);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  border-bottom: none;
+  padding-bottom: 2px;
+}
+
+.axis-col {
+  width: var(--col-width);
+  flex: 0 0 var(--col-width);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 3px;
+  padding-bottom: 3px;
+  position: relative;
+}
+
+/* Vạch chia ngày xuất hiện trong trục ngày, bắt đầu từ dưới hàng thứ và đi qua số ngày */
+.axis-col::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 15px;
+  bottom: 0;
+  width: 1px;
+  transform: scaleX(0.5);
+  transform-origin: left;
+  background-color: var(--grid-line-day);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.axis-col .col-label-top {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.1;
+  height: 12px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 3;
+}
+
+/* Tên thứ tiếng Việt (CN, T2, T3, T4, T5, T6, T7) - Chuẩn Paimon.moe */
+.axis-col .weekday-text {
+  color: #718096;
+  font-family: var(--font-timeline-num);
+  font-size: 10.5px;
+  font-weight: 600;
+  display: inline-block;
+  line-height: 1;
+}
+
+/* Tên tháng nổi bật màu vàng cam nằm ở phía trên và chính giữa của ngày 1 */
+/* Nền nhỏ màu rgba(37, 41, 74) tự nhiên che thứ bên dưới, không làm chớp nháy */
+.month-overlay-text {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #f59e0b;
+  background-color: rgba(37, 41, 74, 1);
+  padding: 0 4px;
+  border-radius: 4px;
+  box-shadow: 0 0 5px 2px rgba(37, 41, 74, 1);
+  font-family: var(--font-timeline-num);
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* Nhãn tháng ghim động ở mép trái khi ngày 1 bị cuộn khuất - Nền nhỏ đồng nhất */
+.pinned-month-badge {
+  position: absolute;
+  top: 5px;
+  left: 0;
+  height: 14px;
+  line-height: 1.1;
+  color: #f59e0b;
+  background-color: rgba(37, 41, 74, 1);
+  padding: 0 4px;
+  border-radius: 4px;
+  box-shadow: 0 0 5px 2px rgba(37, 41, 74, 1);
+  font-family: var(--font-timeline-num);
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  z-index: 32;
+  pointer-events: none;
+  display: none;
+  will-change: transform, opacity;
+}
+
+/* Số ngày trong tháng (1, 2, 3 ... 31) - Chuẩn Paimon.moe: phông Segoe UI / Inter sắc nét, cỡ 14.5px, màu #edf2f7 */
+.axis-col .day-number {
+  position: relative;
+  z-index: 2;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #edf2f7;
+  font-family: var(--font-timeline-num);
+  line-height: 1;
+  letter-spacing: -0.2px;
+  background: transparent;
+}
+
+/* ========================================================
+   VẠCH THỜI GIAN HIỆN TẠI (Current Time Indicator)
+   Nét trắng gọn gàng, không phát sáng, huy hiệu đồng hồ sáng màu
+   ======================================================== */
+.current-time-indicator {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1.5px;
+  background: var(--color-white);
+  box-shadow: none;
+  z-index: 35;
+  pointer-events: none;
+  transform: translateX(-50%);
+  transition: left 0.2s linear;
+}
+
+.time-badge {
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--slate-200);
+  border: 1px solid rgba(15, 23, 42, 0.25);
+  color: #0f172a;
+  font-family: var(--font-timeline-num), var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1.5px 7px;
+  border-radius: 999px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  white-space: nowrap;
+  z-index: 36;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.25;
+}
+
+/* ========================================================
+   THÂN TIMELINE & LƯỚI DỌC (Timeline Body & Grid)
+   Màu sắc nền đồng nhất & Vạch chia ngày nằm chính giữa số ngày
+   Độ cao tối thiểu chứa đủ 15 sự kiện cùng mốc thời gian + footer
+   ======================================================== */
+.timeline-body {
+  position: relative;
+  min-height: var(--timeline-tracks-min-height);
+  display: flex;
+  flex-direction: column;
+}
+
+.timeline-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  pointer-events: none;
+}
+
+.grid-col {
+  width: var(--col-width);
+  flex: 0 0 var(--col-width);
+  position: relative;
+  height: 100%;
+}
+
+/* Vạch chia ngày nằm ở chính giữa cột (thẳng hàng chính giữa số ngày) */
+.grid-col::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  transform: scaleX(0.5);
+  transform-origin: left;
+  background-color: var(--grid-line-day);
+}
+
+/* Khu vực dành cho các đường hàng sự kiện (Tracks) */
+/* Đảm bảo độ cao tối thiểu chứa được 14 sự kiện chuẩn Paimon.moe */
+.timeline-tracks {
+  position: relative;
+  z-index: 10;
+  padding: 6px 0 6px 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--event-row-gap);
+  width: 100%;
+  pointer-events: none;
+  min-height: var(--timeline-tracks-min-height);
+}
+
+/* Từng hàng ngang chứa sự kiện */
+.timeline-track-row {
+  position: relative;
+  height: var(--event-row-height);
+  flex-shrink: 0;
+  width: 100%;
+}
+
+/* Thanh hiển thị sự kiện (Shape bo góc 8px chuẩn theo ảnh, màu đơn sắc, phẳng 2D) */
+.event-bar {
+  position: absolute;
+  top: 0;
+  height: var(--event-row-height);
+  border-radius: var(--event-bar-radius, 8px);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0 8px 0 10px;
+  border: none;
+  box-shadow: none;
+  cursor: pointer;
+  user-select: none;
+  overflow: visible;
+  /* Cho phép chữ sticky bên trong tự do trôi theo mép trái màn hình */
+  pointer-events: auto;
+  transition: transform 0.15s ease, filter 0.15s ease;
+  box-sizing: border-box;
+  z-index: 2;
+}
+
+.event-bar:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  z-index: 5;
+  /* Nổi nhẹ lên trên thanh liền kề nhưng luôn nằm DƯỚI nhãn đếm ngược & vạch ngăn */
+}
+
+/* Khối chữ bên trong thanh: Bám dính (sticky) ở mép trái màn hình khi bị cuộn khuất */
+.event-bar-content {
+  position: sticky;
+  left: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 3;
+  min-width: 0;
+  max-width: calc(100% - 18px);
+  margin-right: 6px;
+  pointer-events: none;
+}
+
+/* Khi có sự kiện liền kề phía trước (có nhãn đếm ngược ở vị trí nối): dời tên sự kiện sang phải để nhãn không che chữ */
+.event-bar.has-contiguous-prev {
+  padding-left: 38px;
+}
+
+.event-bar.has-contiguous-prev .event-bar-content {
+  left: 38px;
+  max-width: calc(100% - 46px);
+}
+
+.event-bar-title {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: -0.15px;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: var(--event-row-height);
+  pointer-events: auto;
+  text-shadow: var(--bar-bg, var(--color-white)) -1px -1px 3px,
+    var(--bar-bg, var(--color-white)) 1px -1px 3px,
+    var(--bar-bg, var(--color-white)) -1px 1px 3px,
+    var(--bar-bg, var(--color-white)) 1px 1px 3px,
+    var(--bar-bg, var(--color-white)) 0 0 8px;
+}
+
+/* Biểu tượng sự kiện lặp lại trên thanh sự kiện (ẩn trên thanh timeline theo yêu cầu) */
+.event-repeat-badge {
+  display: none !important;
+}
+
+/* Thanh sự kiện ngắn (diễn ra trong ngày hoặc ít ngày, width < 120px) */
+.event-bar.is-compact {
+  padding: 0 4px 0 6px;
+}
+
+.event-bar.is-compact .event-bar-content {
+  left: 6px;
+  gap: 4px;
+  max-width: calc(100% - 10px);
+}
+
+/* Icon thumbnail thu nhỏ cho sự kiện ngắn (Google Calendar / Notion style) */
+.event-bar-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  pointer-events: none;
+}
+
+/* Ảnh minh họa mờ dần về bên trái bên trong thanh (chỉ dành cho thanh dài >= 120px) */
+.event-bar-art {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 130px;
+  max-width: 42%;
+  /* Tuyệt đối không bao giờ vượt quá 42% chiều dài thanh để không tràn ra ngoài */
+  border-top-right-radius: inherit;
+  border-bottom-right-radius: inherit;
+  background-size: cover;
+  background-position: center right;
+  background-repeat: no-repeat;
+  mask-image: linear-gradient(to left, #000000 40%, rgba(0, 0, 0, 0.7) 65%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to left, #000000 40%, rgba(0, 0, 0, 0.7) 65%, transparent 100%);
+  opacity: 0.95;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Nhãn đếm ngược thời gian còn lại (17d 20h, 15d 9h...) nền trắng mờ chuẩn Paimon.moe */
+.event-countdown-badge {
+  position: absolute;
+  top: 50%;
+  height: 15px;
+  background: rgba(240, 243, 252, 0.9);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  color: #000000;
+  font-family: var(--font-body);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  font-variant-numeric: tabular-nums;
+  padding: 0 5px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+  user-select: none;
+  line-height: 1;
+  z-index: 30;
+  /* Luôn hiển thị trọn vẹn bên trên thanh sự kiện, không bị che cắt */
+}
+
+/* Đếm ngược kết thúc sự kiện đang diễn ra: đặt ở bên phải đuôi thanh sự kiện */
+.event-countdown-badge.is-trail {
+  transform: translateY(-50%);
+  z-index: 30;
+}
+
+/* Đếm ngược bắt đầu sự kiện sắp tới: đặt ở bên trái đầu thanh sự kiện */
+.event-countdown-badge.is-start {
+  transform: translate(-100%, -50%);
+  z-index: 30;
+}
+
+/* Trường hợp hai sự kiện liên tiếp: đặt chính giữa vạch phân cách 2 sự kiện */
+.event-countdown-badge.is-junction {
+  transform: translate(-50%, -50%);
+  z-index: 35;
+  /* Ưu tiên cao nhất ở vị trí nối giữa 2 sự kiện */
+}
+
+/* Vạch ngăn cách màu trắng giữa 2 sự kiện liên tiếp */
+.event-track-divider {
+  position: absolute;
+  top: 0;
+  height: var(--event-row-height);
+  width: 2px;
+  background: var(--color-white);
+  z-index: 20;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+/* ========================================================
+   TÙY CHỈNH THANH CUỘN (Custom Scrollbar)
+   ======================================================== */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #111524;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2d3b63;
+  border-radius: 5px;
+  border: 2px solid #111524;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #465b98;
+}
+
+/* ========================================================
+   KHOẢNG TRỐNG FOOTER (Bao trọn trong timeline-body)
+   ======================================================== */
+.app-footer {
+  display: none;
+}

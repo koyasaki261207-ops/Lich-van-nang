@@ -1,0 +1,1092 @@
+/* Đăng nhập, hồ sơ người dùng, chọn tài khoản Google, đồng bộ đám mây */
+
+/* =====================================================================
+   MÀN HÌNH ĐĂNG NHẬP (LOGIN GATE OVERLAY) & HỒ SƠ NGƯỜI DÙNG
+   ===================================================================== */
+.calendar-top-header {
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Thẻ hồ sơ người dùng góc trên phải */
+.top-user-profile-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 4px 12px 4px 5px;
+  border-radius: 999px;
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.top-user-profile-badge:hover {
+  border-color: rgba(56, 189, 248, 0.6);
+  box-shadow: 0 4px 18px rgba(56, 189, 248, 0.25);
+}
+
+.user-avatar-wrap {
+  position: relative;
+  cursor: pointer;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.user-avatar-circle {
+  width: 29px;
+  height: 29px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-cyan), #818cf8);
+  color: var(--color-white);
+  font-weight: 800;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.4);
+  flex-shrink: 0;
+  text-transform: uppercase;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.user-avatar-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatar-edit-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-cyan);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  backdrop-filter: blur(2px);
+}
+
+.user-avatar-wrap:hover .avatar-edit-overlay {
+  opacity: 1;
+}
+
+.user-avatar-wrap:hover .user-avatar-circle {
+  transform: scale(1.08);
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.6);
+}
+
+.top-user-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.top-user-name-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.top-user-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--slate-50);
+  max-width: 125px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-quick-edit-name {
+  background: transparent;
+  border: none;
+  padding: 2px 4px;
+  border-radius: 4px;
+  color: var(--slate-400);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5;
+  transition: all 0.2s ease;
+}
+
+.top-user-name-row:hover .btn-quick-edit-name,
+.btn-quick-edit-name:hover {
+  opacity: 1;
+  color: var(--accent-cyan);
+  background: rgba(56, 189, 248, 0.15);
+}
+
+.top-user-email {
+  font-size: 10px;
+  color: var(--slate-400);
+  max-width: 130px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-top-logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 999px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-top-logout:hover {
+  background: rgba(239, 68, 68, 0.25);
+  color: var(--color-white);
+  border-color: #ef4444;
+  transform: translateY(-1px);
+}
+
+/* Lớp phủ toàn màn hình Đăng Nhập */
+.login-gate-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(9, 14, 28, 0.88);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.35s;
+}
+
+.login-gate-overlay.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Khung thẻ đăng nhập */
+.login-gate-card {
+  width: 100%;
+  max-width: 440px;
+  background: rgba(19, 27, 46, 0.95);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 24px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 50px rgba(56, 189, 248, 0.18);
+  padding: 38px 32px;
+  text-align: center;
+  animation: loginCardPop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes loginCardPop {
+  0% { transform: scale(0.92) translateY(20px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.login-logo-glow {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  margin: 0 auto 16px auto;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(129, 140, 248, 0.25));
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 30px rgba(56, 189, 248, 0.35);
+  color: var(--accent-cyan);
+}
+
+.login-title {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--color-white);
+  margin-bottom: 8px;
+  letter-spacing: -0.3px;
+}
+
+.login-subtitle {
+  font-size: 13px;
+  color: var(--slate-400);
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+.login-actions-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Nút Google lớn chuẩn UX */
+.btn-login-google-large {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 13px 20px;
+  border-radius: 12px;
+  background: var(--color-white);
+  color: #1f2937;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-login-google-large:hover {
+  background: var(--slate-50);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2);
+}
+
+.btn-login-google-large:active {
+  transform: translateY(0);
+}
+
+.btn-choose-saved-acc {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px dashed rgba(56, 189, 248, 0.35);
+  color: var(--accent-cyan);
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 9px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-choose-saved-acc:hover {
+  background: rgba(56, 189, 248, 0.16);
+  border-color: var(--accent-cyan);
+  color: var(--color-white);
+}
+
+.btn-choose-saved-acc.is-hidden {
+  display: none !important;
+}
+
+.login-divider-row {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 10px 0;
+}
+
+.login-divider-row::before,
+.login-divider-row::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.login-divider-row span {
+  padding: 0 12px;
+  font-size: 11px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-weight: 600;
+}
+
+/* Form đăng nhập nhanh */
+.quick-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.login-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.login-mail-icon {
+  position: absolute;
+  left: 14px;
+  color: #64748b;
+  pointer-events: none;
+}
+
+.login-email-input {
+  width: 100%;
+  padding: 12px 14px 12px 42px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--slate-50);
+  font-size: 13.5px;
+  font-family: var(--font-body);
+  transition: all 0.2s ease;
+}
+
+.login-email-input:focus {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+  outline: none;
+}
+
+.btn-quick-enter {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #0284c7, #0ea5e9);
+  color: var(--color-white);
+  font-weight: 700;
+  font-size: 13.5px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(14, 165, 233, 0.3);
+}
+
+.btn-quick-enter:hover {
+  background: linear-gradient(135deg, #0ea5e9, var(--accent-cyan));
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(14, 165, 233, 0.45);
+}
+
+.login-security-notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 24px;
+  font-size: 11.5px;
+  color: var(--slate-400);
+  line-height: 1.4;
+}
+
+/* ========================================================
+   BỘ CHỌN TÀI KHOẢN GOOGLE (Google Account Chooser)
+   ======================================================== */
+.login-panel {
+  display: block;
+  animation: fadeInPanel 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.login-panel.is-hidden {
+  display: none !important;
+}
+
+@keyframes fadeInPanel {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.google-chooser-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.btn-chooser-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--slate-300);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-chooser-back:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--color-white);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateX(-2px);
+}
+
+.google-top-brand {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--slate-50);
+}
+
+.google-chooser-heading {
+  text-align: left;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 12px;
+}
+
+.google-chooser-title {
+  font-family: var(--font-heading);
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--color-white);
+  margin: 0 0 4px 0;
+  letter-spacing: -0.2px;
+}
+
+.google-chooser-subtitle {
+  font-size: 12.5px;
+  color: var(--slate-400);
+  margin: 0;
+}
+
+.google-accounts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding-right: 2px;
+  margin-bottom: 10px;
+}
+
+.google-account-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(30, 41, 59, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
+  position: relative;
+}
+
+.google-account-item:hover {
+  background: rgba(56, 189, 248, 0.12);
+  border-color: rgba(56, 189, 248, 0.45);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+}
+
+.google-acc-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--color-white);
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.google-acc-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.google-acc-avatar.add-avatar {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+  color: var(--accent-cyan);
+}
+
+.google-acc-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.google-acc-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--slate-50);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.google-acc-email {
+  font-size: 11.5px;
+  color: var(--slate-400);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.google-acc-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent-cyan);
+  background: rgba(56, 189, 248, 0.15);
+  border-radius: 999px;
+  padding: 2px 7px;
+  margin-right: 4px;
+  white-space: nowrap;
+}
+
+.google-acc-btn-remove {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--slate-400);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.google-acc-btn-remove:hover {
+  opacity: 1;
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.btn-chooser-google-popup {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 11px 16px;
+  border-radius: 12px;
+  background: var(--color-white);
+  border: 1px solid #e5e7eb;
+  color: #1f2937;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.btn-chooser-google-popup:hover {
+  background: var(--slate-50);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(255, 255, 255, 0.15);
+}
+
+.btn-chooser-google-popup:active {
+  transform: translateY(0);
+}
+
+.google-item-add {
+  border: 1px dashed rgba(148, 163, 184, 0.3);
+  background: rgba(30, 41, 59, 0.3);
+}
+
+.google-item-add:hover {
+  border-style: solid;
+  border-color: rgba(56, 189, 248, 0.6);
+  background: rgba(56, 189, 248, 0.08);
+}
+
+.google-add-account-form {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: fadeInPanel 0.25s ease;
+}
+
+.google-add-account-form.is-hidden {
+  display: none !important;
+}
+
+.google-empty-hint {
+  font-size: 12.5px;
+  color: var(--slate-400);
+  padding: 14px 10px;
+  text-align: center;
+  background: rgba(30, 41, 59, 0.4);
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  margin-bottom: 8px;
+}
+
+.google-chooser-footer {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 11px;
+  color: #64748b;
+  line-height: 1.4;
+  text-align: left;
+}
+
+/* ========================================================
+   MODAL CẬP NHẬT ẢNH ĐẠI DIỆN TÀI KHOẢN (User Avatar Modal)
+   ======================================================== */
+.modal-avatar-card {
+  max-width: 480px;
+}
+
+.avatar-preview-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  background: rgba(30, 41, 59, 0.45);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 16px;
+  margin-bottom: 18px;
+}
+
+.avatar-preview-large {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-cyan), #818cf8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--color-white);
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(56, 189, 248, 0.35);
+  flex-shrink: 0;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.avatar-preview-large img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatar-preview-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.avatar-edit-name-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 5px;
+}
+
+.avatar-edit-name-wrap {
+  margin-bottom: 6px;
+}
+
+.avatar-name-input {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-white);
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 9px;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.avatar-name-input:focus {
+  outline: none;
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.4);
+  background: rgba(15, 23, 42, 0.95);
+}
+
+.avatar-preview-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--slate-50);
+  margin-bottom: 2px;
+}
+
+.avatar-preview-email {
+  font-size: 12px;
+  color: var(--slate-400);
+}
+
+.avatar-upload-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.btn-avatar-upload {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(129, 140, 248, 0.2));
+  border: 1px dashed rgba(56, 189, 248, 0.5);
+  color: var(--accent-cyan);
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-avatar-upload:hover {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(129, 140, 248, 0.3));
+  border-color: var(--accent-cyan);
+  color: var(--color-white);
+  transform: translateY(-1px);
+}
+
+.avatar-url-row {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-avatar-url-apply {
+  padding: 0 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--slate-50);
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.btn-avatar-url-apply:hover {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+
+.avatar-presets-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--slate-400);
+  margin-top: 4px;
+}
+
+.avatar-presets-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+.avatar-preset-btn {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background: rgba(30, 41, 59, 0.7);
+  padding: 0;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-preset-btn:hover {
+  transform: scale(1.12);
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+}
+
+.avatar-preset-btn.is-active {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
+}
+
+.avatar-preset-btn img,
+.avatar-preset-btn svg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.btn-danger-text {
+  background: transparent;
+  border: none;
+  color: #f87171;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 0;
+  transition: color 0.2s ease;
+}
+
+.btn-danger-text:hover {
+  color: #ef4444;
+  text-decoration: underline;
+}
+
+@media (max-width: 520px) {
+  .login-gate-card {
+    padding: 28px 20px;
+    border-radius: 18px;
+  }
+
+  .login-title {
+    font-size: 19px;
+  }
+
+  .btn-login-google-large {
+    padding: 11px 16px;
+    font-size: 13px;
+  }
+
+  .top-user-info {
+    display: none;
+  }
+}
+
+/* ========================================================
+   GIAO DIỆN ĐỒNG BỘ ĐÁM MÂY (FIREBASE CLOUD SYNC)
+   ======================================================== */
+.top-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-top-cloud-sync {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  border-radius: 20px;
+  padding: 6px 12px;
+  color: var(--slate-200);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+
+.btn-top-cloud-sync:hover {
+  background: rgba(30, 41, 59, 0.9);
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+  transform: translateY(-1px);
+}
+
+.cloud-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--slate-400);
+  transition: all 0.25s ease;
+}
+
+.cloud-status-dot.is-connected {
+  background: #22c55e;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.7);
+}
+
+.cloud-status-dot.is-syncing {
+  background: var(--accent-cyan);
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.9);
+  animation: pulse-sync 1s infinite alternate;
+}
+
+@keyframes pulse-sync {
+  0% { transform: scale(0.9); opacity: 0.6; }
+  100% { transform: scale(1.3); opacity: 1; }
+}
+
+.modal-card-cloud-sync {
+  max-width: 540px;
+}
+
+.cloud-status-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  margin-bottom: 14px;
+}
+
+.cloud-status-banner.is-connected {
+  background: rgba(34, 197, 94, 0.08);
+  border-color: rgba(34, 197, 94, 0.35);
+}
+
+.cloud-status-banner-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.cloud-status-banner-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.cloud-status-banner-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--slate-50);
+  margin-bottom: 2px;
+}
+
+.cloud-status-banner.is-connected .cloud-status-banner-title {
+  color: #4ade80;
+}
+
+.cloud-status-banner-desc {
+  font-size: 11px;
+  color: var(--slate-400);
+  line-height: 1.4;
+}
+
+.btn-cloud-manual-sync {
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  color: var(--accent-cyan);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.btn-cloud-manual-sync:hover {
+  background: #0284c7;
+  color: var(--color-white);
+  border-color: var(--accent-cyan);
+}
+
+.cloud-config-section {
+  margin-bottom: 14px;
+}
+
+.cloud-config-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  margin-bottom: 6px;
+}
+
+.cloud-config-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+  color: #f1f5f9;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 10px;
+  resize: vertical;
+  line-height: 1.5;
+  transition: all 0.2s ease;
+}
+
+.cloud-config-textarea:focus {
+  outline: none;
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.35);
+  background: rgba(15, 23, 42, 0.95);
+}
+
+.cloud-quick-guide {
+  padding: 12px 14px;
+  border-radius: 11px;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px dashed rgba(148, 163, 184, 0.25);
+  font-size: 11.5px;
+}
+
+.cloud-guide-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--slate-200);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.cloud-guide-steps {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--slate-400);
+  line-height: 1.6;
+}
+
+.cloud-guide-steps a {
+  color: var(--accent-cyan);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.cloud-guide-steps a:hover {
+  text-decoration: underline;
+}
+
+.cloud-guide-steps strong {
+  color: var(--slate-50);
+}
+
+.cloud-guide-steps code {
+  background: rgba(15, 23, 42, 0.7);
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: var(--accent-cyan);
+  font-size: 11px;
+}

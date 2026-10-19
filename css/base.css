@@ -1,0 +1,76 @@
+/* Biến màu, reset và kiểu chữ cơ bản */
+
+/* ========================================================
+   DESIGN SYSTEM & COLOR TOKENS
+   Theme: Deep Indigo/Navy Dark Mode (Hoyo-style Event Calendar)
+   ======================================================== */
+:root {
+  /* Nền chính & Bảng màu Dark Mode */
+  --bg-page: rgba(37, 41, 74, 1);
+  --bg-header: rgba(37, 41, 74, 1);
+  --bg-canvas: rgba(37, 41, 74, 1);
+  --bg-card: #202947;
+  --bg-card-hover: #29345a;
+
+  /* Đường lưới dọc chia ngày */
+  --grid-line-day: rgba(255, 255, 255, 0.23);
+  --border-subtle: rgba(255, 255, 255, 0.09);
+
+  /* Màu chữ (Typography) */
+  --text-primary: #ffffff;
+  --text-secondary: #8fa0c2;
+  --text-muted: #5e6f96;
+  --text-gold: #f59e0b;
+
+  /* Màu điểm nhấn (Accents) */
+  --accent-blue: #3b82f6;
+  --accent-cyan: #38bdf8;
+  --accent-gold: #fbbf24;
+
+  /* Màu dùng lặp lại trong toàn bộ giao diện */
+  --color-white: #ffffff;
+  --slate-50: #f8fafc;
+  --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1;
+  --slate-400: #94a3b8;
+  --bg-navy: #181d33;
+
+  /* Cấu hình kích thước trục ngày: Tự động vừa vặn hiển thị 44 ngày chuẩn như Hình 1 */
+  --visible-days: 44;
+  --header-axis-height: 38px;
+  --row-height: 25px;
+
+  /* Chiều cao ô sự kiện 24px, khoảng cách giữa các hàng 7px, bo góc 7px */
+  /* Đảm bảo hiển thị vừa vặn tối thiểu 10 sự kiện diễn ra cùng một lúc trên màn hình */
+  --event-row-height: 24px;
+  --event-row-gap: 7px;
+  --event-bar-radius: 7px;
+  --timeline-tracks-min-height: calc(10 * var(--event-row-height) + 9 * var(--event-row-gap) + 12px);
+
+  /* Phông chữ */
+  --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-timeline-num: 'Segoe UI', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+}
+
+/* ========================================================
+   RESET & BASE STYLES
+   ======================================================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
