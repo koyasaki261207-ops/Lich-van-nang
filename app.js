@@ -84,10 +84,64 @@ document.addEventListener('DOMContentLoaded', () => {
     const formQuickLogin = document.getElementById('form-quick-login');
     const inputQuickEmail = document.getElementById('input-quick-email');
     const topUserProfileBadge = document.getElementById('top-user-profile-badge');
+    const userAvatarWrap = document.getElementById('user-avatar-wrap');
     const userAvatarCircle = document.getElementById('user-avatar-circle');
     const topUserName = document.getElementById('top-user-name');
     const topUserEmail = document.getElementById('top-user-email');
     const btnTopLogout = document.getElementById('btn-top-logout');
+
+    // Các phần tử trong Modal Cập nhật Ảnh Đại Diện
+    const modalUserAvatar = document.getElementById('modal-user-avatar');
+    const btnCloseAvatarModal = document.getElementById('btn-close-avatar-modal');
+    const btnCancelAvatarModal = document.getElementById('btn-cancel-avatar-modal');
+    const btnSaveAvatarModal = document.getElementById('btn-save-avatar-modal');
+    const avatarPreviewLarge = document.getElementById('avatar-preview-large');
+    const avatarPreviewInitial = document.getElementById('avatar-preview-initial');
+    const avatarPreviewImg = document.getElementById('avatar-preview-img');
+    const avatarPreviewName = document.getElementById('avatar-preview-name');
+    const avatarPreviewEmail = document.getElementById('avatar-preview-email');
+    const btnTriggerAvatarFile = document.getElementById('btn-trigger-avatar-file');
+    const inputAvatarFile = document.getElementById('input-avatar-file');
+    const inputAvatarUrl = document.getElementById('input-avatar-url');
+    const btnApplyAvatarUrl = document.getElementById('btn-apply-avatar-url');
+    const btnRemoveAvatar = document.getElementById('btn-remove-avatar');
+    const avatarPresetsGrid = document.getElementById('avatar-presets-grid');
+
+    let pendingAvatarDataUrl = null;
+
+    // Bộ sưu tập Avatar mẫu phong cách Anime, Mascot & Google
+    const PRESET_AVATARS = [
+        {
+            id: 'anime_purple_girl',
+            name: 'Anime Tím',
+            svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="pbg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#8b5cf6"/><stop offset="100%" stop-color="#ec4899"/></linearGradient></defs><rect width="100" height="100" rx="50" fill="url(#pbg1)"/><circle cx="50" cy="46" r="23" fill="#fed7aa"/><path d="M26 40 C28 20, 72 20, 74 40 C76 46, 68 52, 64 54 C60 48, 40 48, 36 54 C32 52, 24 46, 26 40 Z" fill="#6d28d9"/><path d="M24 38 C20 46, 24 64, 30 70 C34 58, 36 52, 34 46 Z" fill="#5b21b6"/><path d="M76 38 C80 46, 76 64, 70 70 C66 58, 64 52, 66 46 Z" fill="#5b21b6"/><circle cx="41" cy="45" r="4.5" fill="#4c1d95"/><circle cx="59" cy="45" r="4.5" fill="#4c1d95"/><circle cx="42.5" cy="43.5" r="1.8" fill="#ffffff"/><circle cx="60.5" cy="43.5" r="1.8" fill="#ffffff"/><path d="M46 53 Q50 58 54 53" stroke="#e11d48" stroke-width="2.5" fill="none" stroke-linecap="round"/><ellipse cx="36" cy="50" rx="4" ry="2" fill="#f43f5e" opacity="0.45"/><ellipse cx="64" cy="50" rx="4" ry="2" fill="#f43f5e" opacity="0.45"/><path d="M30 84 C34 70, 66 70, 70 84 L72 100 L28 100 Z" fill="#c084fc"/></svg>`
+        },
+        {
+            id: 'anime_cyan_boy',
+            name: 'Cyber Boy',
+            svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="pbg2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0284c7"/><stop offset="100%" stop-color="#38bdf8"/></linearGradient></defs><rect width="100" height="100" rx="50" fill="url(#pbg2)"/><circle cx="50" cy="47" r="23" fill="#ffedd5"/><path d="M25 42 C26 22, 74 22, 75 42 C68 36, 60 35, 50 36 C40 35, 32 36, 25 42 Z" fill="#0369a1"/><rect x="23" y="42" width="54" height="9" rx="4" fill="#0284c7" opacity="0.85"/><circle cx="41" cy="46" r="3.5" fill="#38bdf8"/><circle cx="59" cy="46" r="3.5" fill="#38bdf8"/><path d="M46 54 Q50 57 54 54" stroke="#0284c7" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M28 85 C32 72, 68 72, 72 85 L74 100 L26 100 Z" fill="#0f172a"/><path d="M20 42 C16 42, 16 54, 20 54 Z" fill="#38bdf8"/><path d="M80 42 C84 42, 84 54, 80 54 Z" fill="#38bdf8"/></svg>`
+        },
+        {
+            id: 'cute_neko',
+            name: 'Mèo Neko',
+            svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="pbg3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#fbbf24"/></linearGradient></defs><rect width="100" height="100" rx="50" fill="url(#pbg3)"/><polygon points="30,42 22,18 44,28" fill="#ffffff"/><polygon points="30,40 25,23 41,30" fill="#f43f5e"/><polygon points="70,42 78,18 56,28" fill="#ffffff"/><polygon points="70,40 75,23 59,30" fill="#f43f5e"/><circle cx="50" cy="54" r="28" fill="#ffffff"/><circle cx="39" cy="52" r="5" fill="#1e293b"/><circle cx="61" cy="52" r="5" fill="#1e293b"/><circle cx="41" cy="50" r="1.8" fill="#ffffff"/><circle cx="63" cy="50" r="1.8" fill="#ffffff"/><polygon points="50,57 47,60 53,60" fill="#f43f5e"/><path d="M44 63 Q47 67 50 63 Q53 67 56 63" stroke="#475569" stroke-width="2" fill="none" stroke-linecap="round"/><line x1="28" y1="56" x2="18" y2="54" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/><line x1="28" y1="60" x2="18" y2="62" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/><line x1="72" y1="56" x2="82" y2="54" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/><line x1="72" y1="60" x2="82" y2="62" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/></svg>`
+        },
+        {
+            id: 'google_official',
+            name: 'Google Color',
+            svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="50" fill="#ffffff"/><g transform="translate(18, 18) scale(2.65)"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></g></svg>`
+        },
+        {
+            id: 'star_cosmic',
+            name: 'Ngôi Sao',
+            svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="pbg5" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4f46e5"/><stop offset="100%" stop-color="#06b6d4"/></linearGradient></defs><rect width="100" height="100" rx="50" fill="url(#pbg5)"/><polygon points="50,20 59,38 79,41 64,56 68,76 50,66 32,76 36,56 21,41 41,38" fill="#facc15"/><circle cx="43" cy="48" r="3.5" fill="#1e1b4b"/><circle cx="57" cy="48" r="3.5" fill="#1e1b4b"/><path d="M47 54 Q50 58 53 54" stroke="#1e1b4b" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`
+        },
+        {
+            id: 'gamer_neon',
+            name: 'Gamer Neon',
+            svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="pbg6" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0f172a"/><stop offset="100%" stop-color="#1e293b"/></linearGradient></defs><rect width="100" height="100" rx="50" fill="url(#pbg6)"/><circle cx="50" cy="50" r="44" stroke="#10b981" stroke-width="2.5" fill="none"/><path d="M30 42 C30 35, 70 35, 70 42 L74 62 C75 68, 68 72, 62 66 L56 60 L44 60 L38 66 C32 72, 25 68, 26 62 Z" fill="#10b981"/><circle cx="65" cy="47" r="3" fill="#0f172a"/><circle cx="61" cy="53" r="3" fill="#0f172a"/><rect x="35" y="45" width="4" height="10" fill="#0f172a"/><rect x="32" y="48" width="10" height="4" fill="#0f172a"/></svg>`
+        }
+    ];
 
     function getCurrentUser() {
         if (currentActiveUser) return currentActiveUser;
@@ -127,6 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         id: user.id || user.email,
                         email: user.email,
                         name: user.name || user.email.split('@')[0],
+                        avatar: user.avatar || '',
                         lastUsed: new Date().toISOString()
                     });
                     localStorage.setItem(SAVED_GOOGLE_ACCOUNTS_KEY, JSON.stringify(accounts));
@@ -142,11 +197,14 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             let accounts = getSavedGoogleAccounts();
             const cleanEmail = userObj.email.trim().toLowerCase();
+            const existing = accounts.find(a => a.email.toLowerCase() === cleanEmail);
+            const avatar = userObj.avatar || (existing ? existing.avatar : '') || '';
             accounts = accounts.filter(a => a.email.toLowerCase() !== cleanEmail);
             accounts.unshift({
                 id: cleanEmail,
                 email: cleanEmail,
                 name: userObj.name || (cleanEmail.split('@')[0].charAt(0).toUpperCase() + cleanEmail.split('@')[0].slice(1)),
+                avatar: avatar,
                 lastUsed: new Date().toISOString()
             });
             localStorage.setItem(SAVED_GOOGLE_ACCOUNTS_KEY, JSON.stringify(accounts));
@@ -200,9 +258,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const initial = (acc.name || acc.email || 'G').trim().charAt(0).toUpperCase();
             const hue = (initial.charCodeAt(0) * 47) % 360;
 
+            const avatarHtml = acc.avatar
+                ? `<img src="${safeEscape(acc.avatar)}" alt="${safeEscape(acc.name)}">`
+                : initial;
+            const avatarStyle = acc.avatar
+                ? ''
+                : `background: linear-gradient(135deg, hsl(${hue}, 75%, 55%), hsl(${(hue + 40) % 360}, 85%, 45%));`;
+
             item.innerHTML = `
-                <div class="google-acc-avatar" style="background: linear-gradient(135deg, hsl(${hue}, 75%, 55%), hsl(${(hue + 40) % 360}, 85%, 45%));">
-                    ${initial}
+                <div class="google-acc-avatar" style="${avatarStyle}">
+                    ${avatarHtml}
                 </div>
                 <div class="google-acc-info">
                     <div class="google-acc-name">${safeEscape(acc.name)}</div>
@@ -220,7 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Click vào tài khoản để đăng nhập nhanh ngay tức khắc!
             item.addEventListener('click', (e) => {
                 if (e.target.closest('.google-acc-btn-remove')) return;
-                performLogin(acc.email, acc.name);
+                performLogin(acc.email, acc.name, acc.avatar);
             });
 
             // Nút xóa tài khoản khỏi danh sách máy
@@ -274,10 +339,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 topUserEmail.textContent = user.email || '';
             }
             if (userAvatarCircle) {
-                const initial = (user.name || user.email || 'U').trim().charAt(0).toUpperCase();
-                userAvatarCircle.textContent = initial;
-                const hue = (initial.charCodeAt(0) * 47) % 360;
-                userAvatarCircle.style.background = `linear-gradient(135deg, hsl(${hue}, 75%, 55%), hsl(${(hue + 40) % 360}, 85%, 45%))`;
+                if (user.avatar) {
+                    userAvatarCircle.innerHTML = `<img src="${safeEscape(user.avatar)}" alt="${safeEscape(user.name)}">`;
+                    userAvatarCircle.style.background = 'transparent';
+                } else {
+                    const initial = (user.name || user.email || 'U').trim().charAt(0).toUpperCase();
+                    userAvatarCircle.textContent = initial;
+                    const hue = (initial.charCodeAt(0) * 47) % 360;
+                    userAvatarCircle.style.background = `linear-gradient(135deg, hsl(${hue}, 75%, 55%), hsl(${(hue + 40) % 360}, 85%, 45%))`;
+                }
             }
         } else {
             if (loginGateOverlay) {
@@ -289,7 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function performLogin(email, customName) {
+    function performLogin(email, customName, avatarUrl) {
         if (!email) return;
         let cleanEmail = email.trim().toLowerCase();
         if (!cleanEmail.includes('@')) {
@@ -298,10 +368,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const usernamePart = cleanEmail.split('@')[0];
         const name = customName || (usernamePart.charAt(0).toUpperCase() + usernamePart.slice(1));
 
+        const existingAcc = getSavedGoogleAccounts().find(a => a.email.toLowerCase() === cleanEmail);
+        const userAvatar = avatarUrl || (existingAcc ? existingAcc.avatar : '') || '';
+
         const userObj = {
             id: cleanEmail,
             email: cleanEmail,
             name: name,
+            avatar: userAvatar,
             loginAt: new Date().toISOString()
         };
 
@@ -331,6 +405,188 @@ document.addEventListener('DOMContentLoaded', () => {
             const y = parseInt(calSelectYear.value, 10);
             renderMonthlyCalendar(m, y);
         }
+    }
+
+    // ========================================================
+    // QUẢN LÝ AVATAR TÀI KHOẢN (Avatar Customizer Controller)
+    // ========================================================
+    function updateModalAvatarPreview(dataUrl) {
+        const user = getCurrentUser();
+        if (dataUrl) {
+            if (avatarPreviewImg) {
+                avatarPreviewImg.src = dataUrl;
+                avatarPreviewImg.style.display = 'block';
+            }
+            if (avatarPreviewInitial) avatarPreviewInitial.style.display = 'none';
+            if (avatarPreviewLarge) avatarPreviewLarge.style.background = 'transparent';
+        } else {
+            if (avatarPreviewImg) {
+                avatarPreviewImg.src = '';
+                avatarPreviewImg.style.display = 'none';
+            }
+            if (avatarPreviewInitial) {
+                avatarPreviewInitial.style.display = 'block';
+                const initial = (user ? (user.name || user.email) : 'U').trim().charAt(0).toUpperCase();
+                avatarPreviewInitial.textContent = initial;
+            }
+            if (avatarPreviewLarge) {
+                const initial = (user ? (user.name || user.email) : 'U').trim().charAt(0).toUpperCase();
+                const hue = (initial.charCodeAt(0) * 47) % 360;
+                avatarPreviewLarge.style.background = `linear-gradient(135deg, hsl(${hue}, 75%, 55%), hsl(${(hue + 40) % 360}, 85%, 45%))`;
+            }
+        }
+    }
+
+    function openAvatarModal() {
+        const user = getCurrentUser();
+        if (!user || !modalUserAvatar) return;
+
+        pendingAvatarDataUrl = user.avatar || '';
+        if (avatarPreviewName) avatarPreviewName.textContent = user.name || 'Người dùng';
+        if (avatarPreviewEmail) avatarPreviewEmail.textContent = user.email || '';
+        if (inputAvatarUrl) inputAvatarUrl.value = '';
+
+        updateModalAvatarPreview(pendingAvatarDataUrl);
+        renderAvatarPresetsGrid();
+
+        modalUserAvatar.classList.add('is-active');
+        modalUserAvatar.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeAvatarModal() {
+        if (!modalUserAvatar) return;
+        modalUserAvatar.classList.remove('is-active');
+        modalUserAvatar.setAttribute('aria-hidden', 'true');
+        pendingAvatarDataUrl = null;
+    }
+
+    function renderAvatarPresetsGrid() {
+        if (!avatarPresetsGrid) return;
+        avatarPresetsGrid.innerHTML = '';
+        PRESET_AVATARS.forEach(p => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'avatar-preset-btn';
+            btn.title = p.name;
+            const dataUri = 'data:image/svg+xml;utf8,' + encodeURIComponent(p.svg);
+            btn.innerHTML = `<img src="${dataUri}" alt="${p.name}">`;
+
+            btn.addEventListener('click', () => {
+                pendingAvatarDataUrl = dataUri;
+                updateModalAvatarPreview(dataUri);
+                avatarPresetsGrid.querySelectorAll('.avatar-preset-btn').forEach(b => b.classList.remove('is-active'));
+                btn.classList.add('is-active');
+            });
+            avatarPresetsGrid.appendChild(btn);
+        });
+    }
+
+    function processImageFileToAvatar(file) {
+        if (!file || !file.type.startsWith('image/')) {
+            alert('Vui lòng chọn một tệp hình ảnh hợp lệ (JPG, PNG, WebP)!');
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = 128;
+                canvas.height = 128;
+                const ctx = canvas.getContext('2d');
+
+                const minDim = Math.min(img.width, img.height);
+                const sx = (img.width - minDim) / 2;
+                const sy = (img.height - minDim) / 2;
+                ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, 128, 128);
+
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+                pendingAvatarDataUrl = dataUrl;
+                updateModalAvatarPreview(dataUrl);
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Sự kiện mở Modal Avatar khi nhấp vào Avatar ở góc trên phải
+    if (userAvatarWrap) {
+        userAvatarWrap.addEventListener('click', openAvatarModal);
+    }
+
+    if (btnCloseAvatarModal) {
+        btnCloseAvatarModal.addEventListener('click', closeAvatarModal);
+    }
+
+    if (btnCancelAvatarModal) {
+        btnCancelAvatarModal.addEventListener('click', closeAvatarModal);
+    }
+
+    if (btnTriggerAvatarFile) {
+        btnTriggerAvatarFile.addEventListener('click', () => {
+            if (inputAvatarFile) inputAvatarFile.click();
+        });
+    }
+
+    if (inputAvatarFile) {
+        inputAvatarFile.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                processImageFileToAvatar(e.target.files[0]);
+                inputAvatarFile.value = '';
+            }
+        });
+    }
+
+    if (btnApplyAvatarUrl) {
+        btnApplyAvatarUrl.addEventListener('click', () => {
+            const url = inputAvatarUrl ? inputAvatarUrl.value.trim() : '';
+            if (!url) return;
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = 128;
+                canvas.height = 128;
+                const ctx = canvas.getContext('2d');
+                const minDim = Math.min(img.width, img.height);
+                const sx = (img.width - minDim) / 2;
+                const sy = (img.height - minDim) / 2;
+                ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, 128, 128);
+                try {
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+                    pendingAvatarDataUrl = dataUrl;
+                    updateModalAvatarPreview(dataUrl);
+                } catch (err) {
+                    // Nếu lỗi CORS từ server ngoài, dùng trực tiếp link URL
+                    pendingAvatarDataUrl = url;
+                    updateModalAvatarPreview(url);
+                }
+            };
+            img.onerror = () => {
+                alert('Không thể tải hình ảnh từ liên kết này. Vui lòng kiểm tra lại URL hoặc tải ảnh trực tiếp từ máy!');
+            };
+            img.src = url;
+        });
+    }
+
+    if (btnRemoveAvatar) {
+        btnRemoveAvatar.addEventListener('click', () => {
+            pendingAvatarDataUrl = '';
+            updateModalAvatarPreview('');
+        });
+    }
+
+    if (btnSaveAvatarModal) {
+        btnSaveAvatarModal.addEventListener('click', () => {
+            const user = getCurrentUser();
+            if (!user) return;
+            user.avatar = pendingAvatarDataUrl || '';
+            setCurrentUser(user);
+            saveGoogleAccount(user);
+            updateAuthUI();
+            renderGoogleAccountsList();
+            closeAvatarModal();
+        });
     }
 
     // Sự kiện khi bấm "Tiếp tục với Google": bật ngay bảng chọn tài khoản Google
