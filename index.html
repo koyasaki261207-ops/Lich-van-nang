@@ -34,8 +34,16 @@
                             </svg>
                         </div>
                     </div>
-                    <div class="top-user-info">
-                        <span class="top-user-name" id="top-user-name">Tài khoản</span>
+                    <div class="top-user-info" id="top-user-info" title="Nhấp để đổi tên tài khoản và ảnh đại diện" style="cursor: pointer;">
+                        <div class="top-user-name-row">
+                            <span class="top-user-name" id="top-user-name">Tài khoản</span>
+                            <button type="button" class="btn-quick-edit-name" id="btn-quick-edit-name" title="Chỉnh sửa tên hiển thị">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 20h9"></path>
+                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                                </svg>
+                            </button>
+                        </div>
                         <span class="top-user-email" id="top-user-email">user@gmail.com</span>
                     </div>
                     <button type="button" class="btn-top-logout" id="btn-top-logout" title="Đăng xuất / Đổi tài khoản khác">
@@ -1300,21 +1308,30 @@
                     </svg>
                 </div>
                 <div class="modal-header-text">
-                    <h2 class="modal-title">Ảnh đại diện tài khoản Google</h2>
-                    <p class="modal-subtitle">Đồng bộ ảnh đại diện để hiển thị trên lịch và danh sách chuyển tài khoản</p>
+                    <h2 class="modal-title">Hồ sơ tài khoản Google</h2>
+                    <p class="modal-subtitle">Tùy chỉnh tên hiển thị và ảnh đại diện đồng bộ trên hệ thống</p>
                 </div>
                 <button type="button" class="btn-close-modal" id="btn-close-avatar-modal" aria-label="Đóng">✕</button>
             </div>
 
             <div class="modal-body" style="padding-top: 10px;">
-                <!-- Vùng xem trước ảnh đại diện hiện tại -->
+                <!-- Vùng xem trước ảnh đại diện & Tên hiển thị -->
                 <div class="avatar-preview-section">
                     <div class="avatar-preview-large" id="avatar-preview-large">
                         <span id="avatar-preview-initial">K</span>
                         <img id="avatar-preview-img" src="" alt="Avatar" style="display: none;">
                     </div>
                     <div class="avatar-preview-info">
-                        <div class="avatar-preview-name" id="avatar-preview-name">Koyasaki</div>
+                        <label for="input-user-display-name" class="avatar-edit-name-label">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                                <path d="M12 20h9"></path>
+                                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                            </svg>
+                            <span>Tên hiển thị tài khoản:</span>
+                        </label>
+                        <div class="avatar-edit-name-wrap">
+                            <input type="text" id="input-user-display-name" class="avatar-name-input" placeholder="Nhập tên tài khoản (VD: Najime • Saki)" maxlength="40" autocomplete="off">
+                        </div>
                         <div class="avatar-preview-email" id="avatar-preview-email">koyasaki2612@gmail.com</div>
                     </div>
                 </div>
