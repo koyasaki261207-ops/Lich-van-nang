@@ -12,7 +12,7 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
         rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link rel="stylesheet" href="style.css?v=20261019_v5">
+    <link rel="stylesheet" href="style.css?v=20261019_timeline_view">
 </head>
 
 <body>
@@ -1296,6 +1296,81 @@
     </div>
 
     <!-- ========================================================
+         HỘP THOẠI MODAL: XEM CHI TIẾT SỰ KIỆN LỊCH (Chỉ xem thông tin, không sửa/xóa)
+         ======================================================== -->
+    <div class="modal-overlay" id="modal-cal-event-view" aria-hidden="true" style="z-index: 127;">
+        <div class="modal-card modal-cal-view-card">
+            <div class="modal-header modal-cal-view-header">
+                <div class="modal-header-with-icon">
+                    <span class="cal-modal-icon" id="view-cal-icon">📌</span>
+                    <div>
+                        <span class="day-event-cat-badge" id="view-cal-cat-badge" style="display: inline-block; margin-bottom: 4px;">Sự kiện</span>
+                        <h3 class="modal-title" id="view-cal-title" style="font-size: 17px; word-break: break-word;">Chi tiết sự kiện</h3>
+                    </div>
+                </div>
+                <button type="button" class="modal-close-btn" id="btn-close-cal-view-modal" aria-label="Đóng">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="cal-view-body">
+                <!-- Hàng thời gian -->
+                <div class="cal-view-info-row">
+                    <div class="cal-view-info-icon">⏰</div>
+                    <div class="cal-view-info-content">
+                        <div class="cal-view-info-label">Thời gian</div>
+                        <div class="cal-view-info-val" id="view-cal-time-val">--:--</div>
+                    </div>
+                </div>
+
+                <!-- Lặp lại -->
+                <div class="cal-view-info-row" id="view-cal-repeat-row" style="display: none;">
+                    <div class="cal-view-info-icon">🔁</div>
+                    <div class="cal-view-info-content">
+                        <div class="cal-view-info-label">Chu kỳ lặp lại</div>
+                        <div class="cal-view-info-val" id="view-cal-repeat-val">Không</div>
+                    </div>
+                </div>
+
+                <!-- Ghi chú -->
+                <div class="cal-view-info-row" id="view-cal-note-row" style="display: none;">
+                    <div class="cal-view-info-icon">📝</div>
+                    <div class="cal-view-info-content">
+                        <div class="cal-view-info-label">Ghi chú</div>
+                        <div class="cal-view-info-val" id="view-cal-note-val"></div>
+                    </div>
+                </div>
+
+                <!-- Tệp đính kèm -->
+                <div class="cal-view-info-row" id="view-cal-attachment-row" style="display: none;">
+                    <div class="cal-view-info-icon">📎</div>
+                    <div class="cal-view-info-content">
+                        <div class="cal-view-info-label">Tệp đính kèm</div>
+                        <div class="cal-view-info-val" id="view-cal-attachment-val"></div>
+                    </div>
+                </div>
+
+                <!-- Đường dẫn liên kết -->
+                <div class="cal-view-info-row" id="view-cal-url-row" style="display: none;">
+                    <div class="cal-view-info-icon">🔗</div>
+                    <div class="cal-view-info-content">
+                        <div class="cal-view-info-label">Đường dẫn liên kết</div>
+                        <div class="cal-view-info-val" id="view-cal-url-val"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions cal-view-actions">
+                <button type="button" class="btn-submit" id="btn-done-cal-view-modal" style="min-width: 100px;">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================
          MODAL CẬP NHẬT ẢNH ĐẠI DIỆN TÀI KHOẢN (User Avatar Modal)
          ======================================================== -->
     <div class="modal-overlay" id="modal-user-avatar" role="dialog" aria-modal="true" aria-hidden="true">
@@ -1595,7 +1670,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="firebase-config.js"></script>
-    <script src="app.js?v=20261019_cloud_fix_final"></script>
+    <script src="app.js?v=20261019_timeline_view"></script>
 </body>
 
 </html>

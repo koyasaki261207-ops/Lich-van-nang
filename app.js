@@ -5985,6 +5985,23 @@ Quy tắc bóc tách:
     const btnRemoveCalAttachment = document.getElementById('btn-remove-cal-attachment');
     const inputCalUrl = document.getElementById('cal-event-url');
 
+    // DOM Elements cho Modal Xem Chi Tiết Sự Kiện Lịch (Chỉ xem thông tin, không sửa/xóa)
+    const modalCalEventView = document.getElementById('modal-cal-event-view');
+    const btnCloseCalViewModal = document.getElementById('btn-close-cal-view-modal');
+    const btnDoneCalViewModal = document.getElementById('btn-done-cal-view-modal');
+    const viewCalIcon = document.getElementById('view-cal-icon');
+    const viewCalCatBadge = document.getElementById('view-cal-cat-badge');
+    const viewCalTitle = document.getElementById('view-cal-title');
+    const viewCalTimeVal = document.getElementById('view-cal-time-val');
+    const viewCalRepeatRow = document.getElementById('view-cal-repeat-row');
+    const viewCalRepeatVal = document.getElementById('view-cal-repeat-val');
+    const viewCalNoteRow = document.getElementById('view-cal-note-row');
+    const viewCalNoteVal = document.getElementById('view-cal-note-val');
+    const viewCalAttachmentRow = document.getElementById('view-cal-attachment-row');
+    const viewCalAttachmentVal = document.getElementById('view-cal-attachment-val');
+    const viewCalUrlRow = document.getElementById('view-cal-url-row');
+    const viewCalUrlVal = document.getElementById('view-cal-url-val');
+
     // Storage Keys cho Lịch Cá Nhân (hoàn toàn độc lập với Timeline)
     const CAL_USER_EVENTS_KEY = 'calendar_user_events';
     const CAL_CATEGORIES_KEY = 'calendar_user_categories';
@@ -6325,6 +6342,118 @@ Quy tắc bóc tách:
         modalCalAddEvent.setAttribute('aria-hidden', 'true');
     }
 
+    function openCalEventViewModal(evt, isHoliday = false) {
+        if (!modalCalEventView) return;
+
+        if (isHoliday) {
+            if (viewCalIcon) viewCalIcon.textContent = '🎉';
+            if (viewCalCatBadge) {
+                viewCalCatBadge.textContent = 'Ngày lễ';
+                viewCalCatBadge.style.background = '#ef444422';
+                viewCalCatBadge.style.color = '#ef4444';
+                viewCalCatBadge.style.borderColor = '#ef444444';
+            }
+            if (viewCalTitle) viewCalTitle.textContent = evt.title || evt;
+            if (viewCalTimeVal) {
+                const dateStr = activeTimelineDate ? `${activeTimelineDate.getDate()}/${activeTimelineDate.getMonth() + 1}/${activeTimelineDate.getFullYear()}` : 'Cả ngày';
+                viewCalTimeVal.textContent = `Cả ngày (${dateStr})`;
+            }
+            if (viewCalRepeatRow) viewCalRepeatRow.style.display = 'none';
+            if (viewCalNoteRow) viewCalNoteRow.style.display = 'none';
+            if (viewCalAttachmentRow) viewCalAttachmentRow.style.display = 'none';
+            if (viewCalUrlRow) viewCalUrlRow.style.display = 'none';
+        } else {
+            const cat = DEFAULT_CAL_CATEGORIES.find(c => c.id === evt.categoryId) || {
+                name: evt.categoryName || 'Sự kiện',
+                color: evt.categoryColor || '#38bdf8',
+                icon: '📌'
+            };
+
+            if (viewCalIcon) viewCalIcon.textContent = cat.icon || '📌';
+            if (viewCalCatBadge) {
+                viewCalCatBadge.textContent = evt.categoryName || cat.name || 'Sự kiện';
+                viewCalCatBadge.style.background = `${evt.categoryColor || cat.color}22`;
+                viewCalCatBadge.style.color = evt.categoryColor || cat.color;
+                viewCalCatBadge.style.borderColor = `${evt.categoryColor || cat.color}44`;
+            }
+            if (viewCalTitle) viewCalTitle.textContent = evt.title || '';
+
+            if (viewCalTimeVal) {
+                const timeStr = formatCalEventTimeRange(evt);
+                const sDate = evt.startDate || evt.date || '';
+                const eDate = evt.endDate || sDate;
+                let dateDisplay = '';
+                if (sDate && eDate && sDate !== eDate) {
+                    dateDisplay = ` • ${sDate} ➔ ${eDate}`;
+                } else if (sDate) {
+                    dateDisplay = ` • ${sDate}`;
+                }
+                viewCalTimeVal.textContent = `${timeStr}${dateDisplay}`;
+            }
+
+            // Lặp lại
+            if (viewCalRepeatRow && viewCalRepeatVal) {
+                if (evt.repeat && evt.repeat !== 'none') {
+                    viewCalRepeatRow.style.display = 'flex';
+                    viewCalRepeatVal.textContent = getRepeatLabel(evt.repeat);
+                } else {
+                    viewCalRepeatRow.style.display = 'none';
+                }
+            }
+
+            // Ghi chú
+            if (viewCalNoteRow && viewCalNoteVal) {
+                if (evt.note && evt.note.trim()) {
+                    viewCalNoteRow.style.display = 'flex';
+                    viewCalNoteVal.textContent = evt.note;
+                } else {
+                    viewCalNoteRow.style.display = 'none';
+                }
+            }
+
+            // Đính kèm
+            if (viewCalAttachmentRow && viewCalAttachmentVal) {
+                if (evt.attachment) {
+                    viewCalAttachmentRow.style.display = 'flex';
+                    viewCalAttachmentVal.innerHTML = `<a href="${evt.attachment.dataUrl || '#'}" download="${escapeHtml(evt.attachment.name)}" style="color: #38bdf8; text-decoration: underline;">${escapeHtml(evt.attachment.name)}</a>`;
+                } else {
+                    viewCalAttachmentRow.style.display = 'none';
+                }
+            }
+
+            // URL
+            if (viewCalUrlRow && viewCalUrlVal) {
+                if (evt.url && evt.url.trim()) {
+                    viewCalUrlRow.style.display = 'flex';
+                    viewCalUrlVal.innerHTML = `<a href="${escapeHtml(evt.url)}" target="_blank" rel="noopener noreferrer" style="color: #38bdf8; word-break: break-all; text-decoration: underline;">${escapeHtml(evt.url)}</a>`;
+                } else {
+                    viewCalUrlRow.style.display = 'none';
+                }
+            }
+        }
+
+        modalCalEventView.classList.add('is-active');
+        modalCalEventView.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeCalEventViewModal() {
+        if (!modalCalEventView) return;
+        modalCalEventView.classList.remove('is-active');
+        modalCalEventView.setAttribute('aria-hidden', 'true');
+    }
+
+    if (btnCloseCalViewModal) {
+        btnCloseCalViewModal.addEventListener('click', closeCalEventViewModal);
+    }
+    if (btnDoneCalViewModal) {
+        btnDoneCalViewModal.addEventListener('click', closeCalEventViewModal);
+    }
+    if (modalCalEventView) {
+        modalCalEventView.addEventListener('click', (e) => {
+            if (e.target === modalCalEventView) closeCalEventViewModal();
+        });
+    }
+
     function deleteCalEvent(id) {
         let events = loadCalEvents();
         events = events.filter(e => e.id !== id);
@@ -6612,6 +6741,8 @@ Quy tắc bóc tách:
                     pill.className = 'day-h-allday-pill';
                     pill.style.background = 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)';
                     pill.innerHTML = `🎉 ${escapeHtml(holiday)}`;
+                    pill.title = 'Nhấp để xem thông tin';
+                    pill.addEventListener('click', () => openCalEventViewModal({ title: holiday }, true));
                     dayHAlldayPills.appendChild(pill);
                 }
 
@@ -6621,8 +6752,8 @@ Quy tắc bóc tách:
                     pill.style.background = `linear-gradient(135deg, ${evt.categoryColor || '#38bdf8'} 0%, rgba(15, 23, 42, 0.9) 100%)`;
                     pill.style.borderLeft = `3px solid ${evt.categoryColor || '#38bdf8'}`;
                     pill.innerHTML = `📌 ${escapeHtml(evt.title)}`;
-                    pill.title = 'Nhấp để chỉnh sửa sự kiện';
-                    pill.addEventListener('click', () => openCalEditEventModal(evt.id));
+                    pill.title = 'Nhấp để xem thông tin sự kiện';
+                    pill.addEventListener('click', () => openCalEventViewModal(evt));
                     dayHAlldayPills.appendChild(pill);
                 });
             } else {
@@ -6709,36 +6840,13 @@ Quy tắc bóc tách:
                 bar.innerHTML = `
                     <span class="day-h-event-time" style="color: ${catColor};">${timeLabel}</span>
                     <span class="day-h-event-title">${escapeHtml(ev.title)}</span>
-                    <div class="day-h-event-actions">
-                        <button type="button" class="btn-h-evt-action btn-edit" title="Chỉnh sửa">✏️</button>
-                        <button type="button" class="btn-h-evt-action btn-del" title="Xóa">🗑️</button>
-                    </div>
                 `;
-                bar.title = `${ev.title} (${timeLabel})${ev.note ? ' - ' + ev.note : ''}`;
+                bar.title = `${ev.title} (${timeLabel})${ev.note ? ' - ' + ev.note : ''}\nNhấp để xem thông tin`;
 
-                // Bấm vào bar để chỉnh sửa
-                bar.addEventListener('click', (e) => {
-                    if (e.target.closest('.btn-del')) return;
-                    openCalEditEventModal(ev.id);
+                // Bấm vào ô trong timeline ngày: chỉ hiển thị thông tin, không cho phép sửa hoặc xóa
+                bar.addEventListener('click', () => {
+                    openCalEventViewModal(ev);
                 });
-
-                const btnEdit = bar.querySelector('.btn-edit');
-                if (btnEdit) {
-                    btnEdit.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        openCalEditEventModal(ev.id);
-                    });
-                }
-
-                const btnDel = bar.querySelector('.btn-del');
-                if (btnDel) {
-                    btnDel.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        if (confirm(`Bạn có chắc muốn xóa sự kiện "${ev.title}"?`)) {
-                            deleteCalEvent(ev.id);
-                        }
-                    });
-                }
 
                 dayHEventsLane.appendChild(bar);
             });
