@@ -75,6 +75,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginPanelMain = document.getElementById('login-panel-main');
     const loginPanelGoogleChooser = document.getElementById('login-panel-google-chooser');
     const btnLoginGateGoogle = document.getElementById('btn-login-gate-google');
+    const btnShowSavedAccounts = document.getElementById('btn-show-saved-accounts');
+    const btnChooserGooglePopup = document.getElementById('btn-chooser-google-popup');
     const btnChooserBack = document.getElementById('btn-chooser-back');
     const googleAccountsList = document.getElementById('google-accounts-list');
     const btnToggleAddAccount = document.getElementById('btn-toggle-add-account');
@@ -375,6 +377,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (topUserProfileBadge) {
                 topUserProfileBadge.style.display = 'none';
             }
+            const savedAccs = getSavedGoogleAccounts();
+            if (btnShowSavedAccounts) {
+                if (savedAccs && savedAccs.length > 0) {
+                    btnShowSavedAccounts.classList.remove('is-hidden');
+                } else {
+                    btnShowSavedAccounts.classList.add('is-hidden');
+                }
+            }
         }
     }
 
@@ -432,6 +442,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function performLogout() {
+        if (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser) {
+            firebase.auth().signOut().catch(err => console.warn('Lỗi signOut:', err));
+        }
         if (firestoreUnsubscribe) {
             firestoreUnsubscribe();
             firestoreUnsubscribe = null;
@@ -676,10 +689,117 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Sự kiện khi bấm "Tiếp tục với Google": bật ngay bảng chọn tài khoản Google
+    // ========================================================
+    // ĐĂNG NHẬP GOOGLE BẰNG FIREBASE AUTHENTICATION (POPUP)
+    // ========================================================
+    async function loginWithGoogle() {
+        const cfg = getActiveFirebaseConfig();
+        if (!cfg || !cfg.apiKey || typeof firebase === 'undefined' || !firebase.auth) {
+            if (typeof showToastNotification === 'function') {
+                showToastNotification('Chưa tải được Firebase Authentication. Đang mở danh sách tài khoản...', '⚠️ Thông báo');
+            }
+            showGoogleChooserPanel();
+            return;
+        }
+
+        try {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(cfg);
+            }
+        } catch (e) {
+            console.warn('Lỗi kiểm tra Firebase app:', e);
+        }
+
+        const auth = firebase.auth();
+        if (typeof auth.useDeviceLanguage === 'function') {
+            auth.useDeviceLanguage();
+        }
+
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.setCustomParameters({
+            prompt: 'select_account'
+        });
+
+        const setButtonsBusy = (isBusy) => {
+            if (btnLoginGateGoogle) {
+                btnLoginGateGoogle.disabled = isBusy;
+                btnLoginGateGoogle.style.opacity = isBusy ? '0.6' : '1';
+                btnLoginGateGoogle.style.pointerEvents = isBusy ? 'none' : 'auto';
+            }
+            if (btnChooserGooglePopup) {
+                btnChooserGooglePopup.disabled = isBusy;
+                btnChooserGooglePopup.style.opacity = isBusy ? '0.6' : '1';
+                btnChooserGooglePopup.style.pointerEvents = isBusy ? 'none' : 'auto';
+            }
+        };
+
+        try {
+            setButtonsBusy(true);
+            const result = await auth.signInWithPopup(provider);
+            const user = result.user;
+            if (user && user.email) {
+                const email = user.email;
+                const displayName = user.displayName || (email ? email.split('@')[0] : 'Người dùng');
+                const photoURL = user.photoURL || '';
+
+                performLogin(email, displayName, photoURL);
+                if (typeof showToastNotification === 'function') {
+                    showToastNotification(`Đăng nhập Google thành công! Xin chào "${displayName}"`, '🎉 Google Sign-in');
+                }
+            }
+        } catch (error) {
+            console.error('Lỗi khi đăng nhập Google qua Firebase:', error);
+            if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+                return;
+            }
+            if (error.code === 'auth/unauthorized-domain') {
+                const currentHost = window.location.hostname || 'localhost';
+                alert(
+                    `⚠️ Tên miền "${currentHost}" chưa được thêm vào Authorized domains trong Firebase Console.\n\n` +
+                    `CÁCH CẤP PHÉP TRONG 30 GIÂY:\n` +
+                    `1. Mở Firebase Console > Chọn dự án "${cfg.projectId || 'lich-van-nang'}"\n` +
+                    `2. Vào mục "Authentication" > chọn thẻ "Settings"\n` +
+                    `3. Nhấp vào "Authorized domains" (Miền được ủy quyền)\n` +
+                    `4. Bấm "Add domain" và nhập: ${currentHost}\n` +
+                    `5. Bấm "Add" xong quay lại trang này bấm Đăng nhập lại là được ngay!`
+                );
+                return;
+            }
+            if (error.code === 'auth/operation-not-allowed') {
+                alert(
+                    `⚠️ Đăng nhập Google chưa được kích hoạt trong Firebase Console.\n\n` +
+                    `Vào: Authentication > Sign-in method > Google > Bật "Enable" và nhấn Lưu.`
+                );
+                return;
+            }
+            if (error.code === 'auth/popup-blocked') {
+                alert('Trình duyệt đã chặn cửa sổ bật lên (popup). Vui lòng cho phép popup đối với trang này để đăng nhập Google.');
+                return;
+            }
+            alert('Đăng nhập Google không thành công: ' + (error.message || error.code || 'Đã xảy ra lỗi'));
+        } finally {
+            setButtonsBusy(false);
+        }
+    }
+
+    // Sự kiện khi bấm "Tiếp tục với Google": mở cửa sổ Google Sign-In chính thức
     if (btnLoginGateGoogle) {
         btnLoginGateGoogle.addEventListener('click', () => {
+            loginWithGoogle();
+        });
+    }
+
+    // Sự kiện mở danh sách các tài khoản Google đã lưu trên máy
+    if (btnShowSavedAccounts) {
+        btnShowSavedAccounts.addEventListener('click', () => {
             showGoogleChooserPanel();
+        });
+    }
+
+    // Sự kiện đăng nhập bằng tài khoản Google khác trong bảng Account Chooser
+    if (btnChooserGooglePopup) {
+        btnChooserGooglePopup.addEventListener('click', () => {
+            loginWithGoogle();
         });
     }
 
@@ -939,6 +1059,41 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             firestoreDb = firebase.firestore();
             updateCloudUIState(true, cfg);
+
+            // Lắng nghe trạng thái xác thực người dùng Firebase Auth
+            if (firebase.auth) {
+                try {
+                    firebase.auth().onAuthStateChanged(firebaseUser => {
+                        if (firebaseUser && firebaseUser.email) {
+                            const activeUser = getCurrentUser();
+                            if (!activeUser) {
+                                performLogin(
+                                    firebaseUser.email,
+                                    firebaseUser.displayName || firebaseUser.email.split('@')[0],
+                                    firebaseUser.photoURL || ''
+                                );
+                            } else if (activeUser.email.toLowerCase() === firebaseUser.email.toLowerCase()) {
+                                let profileUpdated = false;
+                                if (firebaseUser.photoURL && activeUser.avatar !== firebaseUser.photoURL) {
+                                    activeUser.avatar = firebaseUser.photoURL;
+                                    profileUpdated = true;
+                                }
+                                if (firebaseUser.displayName && (!activeUser.name || activeUser.name === activeUser.email.split('@')[0])) {
+                                    activeUser.name = firebaseUser.displayName;
+                                    profileUpdated = true;
+                                }
+                                if (profileUpdated) {
+                                    setCurrentUser(activeUser);
+                                    saveGoogleAccount(activeUser);
+                                    updateAuthUI();
+                                }
+                            }
+                        }
+                    });
+                } catch (authErr) {
+                    console.warn('Lỗi lắng nghe Firebase Auth:', authErr);
+                }
+            }
 
             const user = getCurrentUser();
             if (user && user.email) {
