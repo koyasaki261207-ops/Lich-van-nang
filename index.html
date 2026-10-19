@@ -12,7 +12,7 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
         rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link rel="stylesheet" href="style.css?v=20261019_v4">
+    <link rel="stylesheet" href="style.css?v=20261019_v5">
 </head>
 
 <body>
@@ -1439,8 +1439,17 @@
                 </div>
             </div>
 
-            <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
-                <button type="button" class="btn-secondary" id="btn-cancel-cloud-modal">Đóng</button>
+            <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button type="button" class="btn-secondary" id="btn-cancel-cloud-modal">Đóng</button>
+                    <button type="button" class="btn-secondary" id="btn-cloud-restore-backup" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12px; color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);" title="Khôi phục dữ liệu gốc từ đám mây hoặc bản sao lưu máy">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                            <polyline points="1 4 1 10 7 10"></polyline>
+                            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                        </svg>
+                        <span>Khôi phục dữ liệu gốc</span>
+                    </button>
+                </div>
                 <div style="display: flex; gap: 8px;">
                     <button type="button" class="btn-danger-text" id="btn-disconnect-firebase" style="display: none; padding: 6px 12px; font-size: 12px;">Ngắt kết nối</button>
                     <button type="button" class="btn-primary" id="btn-save-firebase-config">
@@ -1586,7 +1595,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="firebase-config.js"></script>
-    <script src="app.js"></script>
+    <script src="app.js?v=20261019_cloud_fix_final"></script>
 </body>
 
 </html>
