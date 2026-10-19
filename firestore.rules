@@ -1,0 +1,18 @@
+rules_version = '2';
+
+// Mỗi người dùng chỉ được đọc/ghi tài liệu của chính mình.
+// Dữ liệu nằm ở user_calendars/{email} (email viết thường), nên so khớp với email đã xác thực của Google.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /user_calendars/{email} {
+      allow read, write: if request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email.lower() == email;
+    }
+
+    // Chặn mọi đường dẫn khác
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
