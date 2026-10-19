@@ -109,8 +109,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let pendingAvatarDataUrl = null;
 
+    // Ảnh đại diện và thông tin mặc định đồng bộ từ Google Chrome của người dùng
+    const DEFAULT_KOYASAKI_AVATAR = 'koyasaki_avatar.png';
+
     // Bộ sưu tập Avatar mẫu phong cách Anime, Mascot & Google
     const PRESET_AVATARS = [
+        {
+            id: 'anime_najime_saki',
+            name: 'Najime • Saki (Avatar Google Chrome)',
+            img: 'koyasaki_avatar.png'
+        },
         {
             id: 'anime_purple_girl',
             name: 'Anime Tím',
@@ -149,6 +157,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const raw = localStorage.getItem(CURRENT_USER_KEY);
             if (raw) {
                 currentActiveUser = JSON.parse(raw);
+                if (currentActiveUser && currentActiveUser.email && currentActiveUser.email.toLowerCase() === 'koyasaki261207@gmail.com') {
+                    let changed = false;
+                    if (!currentActiveUser.name || currentActiveUser.name === 'Koyasaki261207') {
+                        currentActiveUser.name = 'Najime • Saki';
+                        changed = true;
+                    }
+                    if (!currentActiveUser.avatar || currentActiveUser.avatar.startsWith('data:image/svg')) {
+                        currentActiveUser.avatar = DEFAULT_KOYASAKI_AVATAR;
+                        changed = true;
+                    }
+                    if (changed) {
+                        localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(currentActiveUser));
+                    }
+                }
                 return currentActiveUser;
             }
         } catch (e) {
@@ -171,6 +193,33 @@ document.addEventListener('DOMContentLoaded', () => {
             const raw = localStorage.getItem(SAVED_GOOGLE_ACCOUNTS_KEY);
             let accounts = raw ? JSON.parse(raw) : [];
             if (!Array.isArray(accounts)) accounts = [];
+
+            // Luôn đảm bảo tài khoản koyasaki261207@gmail.com được gợi ý sẵn với tên "Najime • Saki" và avatar Chrome
+            const koyasakiEmail = 'koyasaki261207@gmail.com';
+            const koyasakiAccount = accounts.find(a => a.email.toLowerCase() === koyasakiEmail);
+            if (!koyasakiAccount) {
+                accounts.unshift({
+                    id: koyasakiEmail,
+                    email: koyasakiEmail,
+                    name: 'Najime • Saki',
+                    avatar: DEFAULT_KOYASAKI_AVATAR,
+                    lastUsed: new Date().toISOString()
+                });
+                localStorage.setItem(SAVED_GOOGLE_ACCOUNTS_KEY, JSON.stringify(accounts));
+            } else {
+                let updated = false;
+                if (!koyasakiAccount.name || koyasakiAccount.name === 'Koyasaki261207') {
+                    koyasakiAccount.name = 'Najime • Saki';
+                    updated = true;
+                }
+                if (!koyasakiAccount.avatar || koyasakiAccount.avatar.startsWith('data:image/svg')) {
+                    koyasakiAccount.avatar = DEFAULT_KOYASAKI_AVATAR;
+                    updated = true;
+                }
+                if (updated) {
+                    localStorage.setItem(SAVED_GOOGLE_ACCOUNTS_KEY, JSON.stringify(accounts));
+                }
+            }
 
             // Nếu đã từng có session hiện tại mà chưa được lưu vào danh sách thì tự động đưa vào
             const user = getCurrentUser();
@@ -198,12 +247,17 @@ document.addEventListener('DOMContentLoaded', () => {
             let accounts = getSavedGoogleAccounts();
             const cleanEmail = userObj.email.trim().toLowerCase();
             const existing = accounts.find(a => a.email.toLowerCase() === cleanEmail);
-            const avatar = userObj.avatar || (existing ? existing.avatar : '') || '';
+            let avatar = userObj.avatar || (existing ? existing.avatar : '') || '';
+            let name = userObj.name || (cleanEmail.split('@')[0].charAt(0).toUpperCase() + cleanEmail.split('@')[0].slice(1));
+            if (cleanEmail === 'koyasaki261207@gmail.com') {
+                if (!avatar || avatar.startsWith('data:image/svg')) avatar = DEFAULT_KOYASAKI_AVATAR;
+                if (!userObj.name || userObj.name === 'Koyasaki261207') name = 'Najime • Saki';
+            }
             accounts = accounts.filter(a => a.email.toLowerCase() !== cleanEmail);
             accounts.unshift({
                 id: cleanEmail,
                 email: cleanEmail,
-                name: userObj.name || (cleanEmail.split('@')[0].charAt(0).toUpperCase() + cleanEmail.split('@')[0].slice(1)),
+                name: name,
                 avatar: avatar,
                 lastUsed: new Date().toISOString()
             });
@@ -366,10 +420,20 @@ document.addEventListener('DOMContentLoaded', () => {
             cleanEmail += '@gmail.com';
         }
         const usernamePart = cleanEmail.split('@')[0];
-        const name = customName || (usernamePart.charAt(0).toUpperCase() + usernamePart.slice(1));
+        let name = customName;
+        if (!name) {
+            if (cleanEmail === 'koyasaki261207@gmail.com') {
+                name = 'Najime • Saki';
+            } else {
+                name = usernamePart.charAt(0).toUpperCase() + usernamePart.slice(1);
+            }
+        }
 
         const existingAcc = getSavedGoogleAccounts().find(a => a.email.toLowerCase() === cleanEmail);
-        const userAvatar = avatarUrl || (existingAcc ? existingAcc.avatar : '') || '';
+        let userAvatar = avatarUrl || (existingAcc ? existingAcc.avatar : '') || '';
+        if (cleanEmail === 'koyasaki261207@gmail.com' && (!userAvatar || userAvatar.startsWith('data:image/svg'))) {
+            userAvatar = DEFAULT_KOYASAKI_AVATAR;
+        }
 
         const userObj = {
             id: cleanEmail,
@@ -468,12 +532,12 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.type = 'button';
             btn.className = 'avatar-preset-btn';
             btn.title = p.name;
-            const dataUri = 'data:image/svg+xml;utf8,' + encodeURIComponent(p.svg);
-            btn.innerHTML = `<img src="${dataUri}" alt="${p.name}">`;
+            const imgSrc = p.img ? p.img : ('data:image/svg+xml;utf8,' + encodeURIComponent(p.svg));
+            btn.innerHTML = `<img src="${safeEscape(imgSrc)}" alt="${safeEscape(p.name)}">`;
 
             btn.addEventListener('click', () => {
-                pendingAvatarDataUrl = dataUri;
-                updateModalAvatarPreview(dataUri);
+                pendingAvatarDataUrl = imgSrc;
+                updateModalAvatarPreview(imgSrc);
                 avatarPresetsGrid.querySelectorAll('.avatar-preset-btn').forEach(b => b.classList.remove('is-active'));
                 btn.classList.add('is-active');
             });
