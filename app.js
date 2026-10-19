@@ -754,6 +754,76 @@ document.addEventListener('DOMContentLoaded', () => {
     let isIncomingCloudUpdate = false;
     let isInitialCloudPullComplete = false;
 
+    // --- Quản lý ID sự kiện đã xóa (Tombstone Tracking) để chống hồi sinh khi đồng bộ ---
+    function getCleanUserEmail() {
+        const u = getCurrentUser();
+        return (u && u.email) ? u.email.trim().toLowerCase() : 'guest';
+    }
+
+    function getDeletedTimelineIds() {
+        try {
+            const raw = localStorage.getItem(`timeline_deleted_ids_${getCleanUserEmail()}`);
+            if (raw) {
+                const arr = JSON.parse(raw);
+                if (Array.isArray(arr)) return new Set(arr);
+            }
+        } catch (e) { }
+        return new Set();
+    }
+
+    function recordDeletedTimelineIds(idOrIds) {
+        const set = getDeletedTimelineIds();
+        const ids = Array.isArray(idOrIds) ? idOrIds : [idOrIds];
+        ids.forEach(id => { if (id) set.add(id); });
+        const arr = Array.from(set).slice(-500);
+        try {
+            localStorage.setItem(`timeline_deleted_ids_${getCleanUserEmail()}`, JSON.stringify(arr));
+        } catch (e) { }
+        return set;
+    }
+
+    function unmarkTimelineEventDeleted(id) {
+        const set = getDeletedTimelineIds();
+        if (set.has(id)) {
+            set.delete(id);
+            try {
+                localStorage.setItem(`timeline_deleted_ids_${getCleanUserEmail()}`, JSON.stringify(Array.from(set)));
+            } catch (e) { }
+        }
+    }
+
+    function getDeletedCalIds() {
+        try {
+            const raw = localStorage.getItem(`calendar_deleted_ids_${getCleanUserEmail()}`);
+            if (raw) {
+                const arr = JSON.parse(raw);
+                if (Array.isArray(arr)) return new Set(arr);
+            }
+        } catch (e) { }
+        return new Set();
+    }
+
+    function recordDeletedCalIds(idOrIds) {
+        const set = getDeletedCalIds();
+        const ids = Array.isArray(idOrIds) ? idOrIds : [idOrIds];
+        ids.forEach(id => { if (id) set.add(id); });
+        const arr = Array.from(set).slice(-500);
+        try {
+            localStorage.setItem(`calendar_deleted_ids_${getCleanUserEmail()}`, JSON.stringify(arr));
+        } catch (e) { }
+        return set;
+    }
+
+    function unmarkCalEventDeleted(id) {
+        const set = getDeletedCalIds();
+        if (set.has(id)) {
+            set.delete(id);
+            try {
+                localStorage.setItem(`calendar_deleted_ids_${getCleanUserEmail()}`, JSON.stringify(Array.from(set)));
+            } catch (e) { }
+        }
+    }
+
     function parseFirebaseConfig(raw) {
         if (!raw) return null;
         if (typeof raw === 'object' && raw.apiKey) return raw;
@@ -917,18 +987,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     try { localStorage.setItem('timeline_backup_auto_cal', currentCalRaw); } catch (e) { }
                 }
 
+                // Đồng bộ danh sách các ID đã bị xóa từ Cloud (Tombstones) để không bao giờ hồi sinh sự kiện đã xóa
+                if (Array.isArray(data.deletedTimelineEventIds)) {
+                    recordDeletedTimelineIds(data.deletedTimelineEventIds);
+                }
+                if (Array.isArray(data.deletedCalEventIds)) {
+                    recordDeletedCalIds(data.deletedCalEventIds);
+                }
+                const deletedTimelineIds = getDeletedTimelineIds();
+                const deletedCalIds = getDeletedCalIds();
+
                 // MERGE THÔNG MINH CHO TIMELINE:
-                // Nếu máy cục bộ có sự kiện mới hơn hoặc chưa kịp lên đám mây, KHÔNG BAO GIỜ xóa mất!
                 if (Array.isArray(data.timelineEvents)) {
-                    const localEvents = loadEvents() || [];
+                    const localEvents = (loadEvents() || []).filter(e => e && e.id && !deletedTimelineIds.has(e.id));
                     const cloudMap = new Map();
                     data.timelineEvents.forEach(e => {
-                        if (e && e.id) cloudMap.set(e.id, e);
+                        if (e && e.id && !deletedTimelineIds.has(e.id)) {
+                            cloudMap.set(e.id, e);
+                        }
                     });
 
                     let hasLocalNew = false;
                     localEvents.forEach(e => {
-                        if (e && e.id && !cloudMap.has(e.id)) {
+                        if (e && e.id && !cloudMap.has(e.id) && !deletedTimelineIds.has(e.id)) {
                             cloudMap.set(e.id, e);
                             hasLocalNew = true;
                         }
@@ -950,15 +1031,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // MERGE THÔNG MINH CHO CALENDAR:
                 if (Array.isArray(data.calEvents)) {
-                    const localCal = loadCalEvents() || [];
+                    const localCal = (loadCalEvents() || []).filter(e => e && e.id && !deletedCalIds.has(e.id));
                     const cloudCalMap = new Map();
                     data.calEvents.forEach(e => {
-                        if (e && e.id) cloudCalMap.set(e.id, e);
+                        if (e && e.id && !deletedCalIds.has(e.id)) {
+                            cloudCalMap.set(e.id, e);
+                        }
                     });
 
                     let hasLocalNewCal = false;
                     localCal.forEach(e => {
-                        if (e && e.id && !cloudCalMap.has(e.id)) {
+                        if (e && e.id && !cloudCalMap.has(e.id) && !deletedCalIds.has(e.id)) {
                             cloudCalMap.set(e.id, e);
                             hasLocalNewCal = true;
                         }
@@ -1067,27 +1150,34 @@ document.addEventListener('DOMContentLoaded', () => {
             avatar: (user && user.avatar) ? user.avatar : ''
         };
 
-        // Tối ưu hóa dữ liệu đẩy lên Firestore:
-        // Giữ lại rawImageUrl đã nén (< 120KB) để xem ảnh đầy đủ trên mọi thiết bị, chỉ lược bỏ nếu là data: siêu lớn chưa nén (> 120KB)
-        const cleanTimelineEvents = JSON.parse(JSON.stringify((timelineEvents || []).map(evt => {
-            const clone = { ...evt };
-            if (clone.rawImageUrl && typeof clone.rawImageUrl === 'string' && clone.rawImageUrl.startsWith('data:') && clone.rawImageUrl.length > 120000) {
-                delete clone.rawImageUrl;
-            }
-            if (!clone.rawImageUrl && typeof getKnownRawBannerUrl === 'function') {
-                const known = getKnownRawBannerUrl(clone.title);
-                if (known) clone.rawImageUrl = known;
-            }
-            return clone;
-        })));
+        const deletedTimelineIds = getDeletedTimelineIds();
+        const deletedCalIds = getDeletedCalIds();
 
-        const cleanCalEvents = JSON.parse(JSON.stringify((calEvents || []).map(evt => {
-            const clone = { ...evt };
-            if (clone.attachment && clone.attachment.dataUrl && clone.attachment.dataUrl.length > 100000) {
-                clone.attachment = { ...clone.attachment, dataUrl: '' };
-            }
-            return clone;
-        })));
+        // Tối ưu hóa dữ liệu đẩy lên Firestore:
+        // Lọc chắc chắn không đẩy bất kỳ sự kiện nào đã bị xóa
+        const cleanTimelineEvents = JSON.parse(JSON.stringify((timelineEvents || [])
+            .filter(evt => evt && evt.id && !deletedTimelineIds.has(evt.id))
+            .map(evt => {
+                const clone = { ...evt };
+                if (clone.rawImageUrl && typeof clone.rawImageUrl === 'string' && clone.rawImageUrl.startsWith('data:') && clone.rawImageUrl.length > 120000) {
+                    delete clone.rawImageUrl;
+                }
+                if (!clone.rawImageUrl && typeof getKnownRawBannerUrl === 'function') {
+                    const known = getKnownRawBannerUrl(clone.title);
+                    if (known) clone.rawImageUrl = known;
+                }
+                return clone;
+            })));
+
+        const cleanCalEvents = JSON.parse(JSON.stringify((calEvents || [])
+            .filter(evt => evt && evt.id && !deletedCalIds.has(evt.id))
+            .map(evt => {
+                const clone = { ...evt };
+                if (clone.attachment && clone.attachment.dataUrl && clone.attachment.dataUrl.length > 100000) {
+                    clone.attachment = { ...clone.attachment, dataUrl: '' };
+                }
+                return clone;
+            })));
 
         const docRef = firestoreDb.collection('user_calendars').doc(cleanEmail);
         docRef.set({
@@ -1096,6 +1186,8 @@ document.addEventListener('DOMContentLoaded', () => {
             updatedFrom: navigator.userAgent.includes('Mobile') ? 'mobile' : 'desktop',
             timelineEvents: cleanTimelineEvents,
             calEvents: cleanCalEvents,
+            deletedTimelineEventIds: Array.from(deletedTimelineIds).slice(-500),
+            deletedCalEventIds: Array.from(deletedCalIds).slice(-500),
             calCategories: JSON.parse(JSON.stringify(calCategories || [])),
             trackOrder: JSON.parse(JSON.stringify(trackOrder || [])),
             userProfile
@@ -1884,8 +1976,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (raw) {
                 const parsed = JSON.parse(raw);
                 if (Array.isArray(parsed) && parsed.length > 0) {
+                    const deletedSet = getDeletedTimelineIds();
                     events = parsed.filter(e => {
-                        if (!e || !e.id) return false;
+                        if (!e || !e.id || deletedSet.has(e.id)) return false;
                         const s = new Date(e.start).getTime();
                         const end = new Date(e.end).getTime();
                         if (isNaN(s) || isNaN(end)) return false;
@@ -1901,7 +1994,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     try {
                         const parsedB = JSON.parse(autoBackup);
                         if (Array.isArray(parsedB) && parsedB.length > 0) {
-                            events = parsedB.filter(e => e && e.id);
+                            const deletedSet = getDeletedTimelineIds();
+                            events = parsedB.filter(e => e && e.id && !deletedSet.has(e.id));
                             if (events.length > 0) {
                                 localStorage.setItem(storageKey, JSON.stringify(events));
                             }
@@ -2583,11 +2677,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Xóa một sự kiện theo ID
     function deleteEvent(id) {
-        const events = loadEvents().filter(e => e.id !== id);
+        if (!id) return;
+        const deletedSet = recordDeletedTimelineIds(id);
+        const events = loadEvents().filter(e => e && e.id !== id && !deletedSet.has(e.id));
         saveEvents(events);
         renderEvents();
         updateTitleSuggestions();
         updateTagSuggestions();
+
+        // Đẩy ngay lập tức lên đám mây, không cần chờ debounce 500ms
+        const user = getCurrentUser();
+        if (user && user.email && typeof pushLocalDataToCloud === 'function') {
+            pushLocalDataToCloud(user.email);
+        }
     }
 
     // ========================================================
@@ -5068,13 +5170,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const curStartMs = new Date(pendingRepeatEventToDelete.start).getTime();
 
             let events = loadEvents();
+            const idsToDelete = [];
             // Xóa sự kiện này và tất cả các sự kiện tương lai trong chuỗi lặp
             events = events.filter(e => {
                 if (e.repeatId === repId && new Date(e.start).getTime() >= curStartMs) {
+                    idsToDelete.push(e.id);
                     return false;
                 }
                 return true;
             });
+            recordDeletedTimelineIds(idsToDelete);
+
             // Tắt chế độ vĩnh viễn và dừng chuỗi lặp lại cho các sự kiện còn lại trong quá khứ
             events.forEach(e => {
                 if (e.repeatId === repId) {
@@ -5088,6 +5194,11 @@ document.addEventListener('DOMContentLoaded', () => {
             renderEvents();
             updateTitleSuggestions();
             updateTagSuggestions();
+
+            const user = getCurrentUser();
+            if (user && user.email && typeof pushLocalDataToCloud === 'function') {
+                pushLocalDataToCloud(user.email);
+            }
         });
     }
 
@@ -5096,12 +5207,19 @@ document.addEventListener('DOMContentLoaded', () => {
         btnDeleteAllRepeat.addEventListener('click', () => {
             if (!pendingRepeatEventToDelete) return;
             const repId = pendingRepeatEventToDelete.repeatId;
+            const allInGroup = loadEvents().filter(e => e.repeatId === repId);
+            recordDeletedTimelineIds(allInGroup.map(e => e.id));
             let events = loadEvents().filter(e => e.repeatId !== repId);
             saveEvents(events);
             closeDeleteRepeatModal();
             renderEvents();
             updateTitleSuggestions();
             updateTagSuggestions();
+
+            const user = getCurrentUser();
+            if (user && user.email && typeof pushLocalDataToCloud === 'function') {
+                pushLocalDataToCloud(user.email);
+            }
         });
     }
 
@@ -5300,6 +5418,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
+            eventsToAdd.forEach(e => {
+                if (e.id) unmarkTimelineEventDeleted(e.id);
+            });
             const events = loadEvents();
             events.push(...eventsToAdd);
             saveEvents(events);
@@ -6185,6 +6306,7 @@ Quy tắc bóc tách:
             const key = getCalEventsStorageKey();
             let raw = localStorage.getItem(key);
             const user = getCurrentUser();
+            const deletedCalIds = (typeof getDeletedCalIds === 'function') ? getDeletedCalIds() : new Set();
             if (!raw && user && !localStorage.getItem('legacy_cal_migrated')) {
                 const legacy = localStorage.getItem(CAL_USER_EVENTS_KEY);
                 if (legacy) {
@@ -6199,13 +6321,20 @@ Quy tắc bóc tách:
                     try {
                         const parsedBackup = JSON.parse(autoBackup);
                         if (Array.isArray(parsedBackup) && parsedBackup.length > 0) {
-                            localStorage.setItem(key, autoBackup);
-                            return parsedBackup;
+                            const filtered = parsedBackup.filter(e => e && e.id && !deletedCalIds.has(e.id));
+                            localStorage.setItem(key, JSON.stringify(filtered));
+                            return filtered;
                         }
                     } catch (e) { }
                 }
             }
-            return raw ? JSON.parse(raw) : [];
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed)) {
+                    return parsed.filter(e => e && e.id && !deletedCalIds.has(e.id));
+                }
+            }
+            return [];
         } catch (e) {
             return [];
         }
@@ -6600,13 +6729,20 @@ Quy tắc bóc tách:
     }
 
     function deleteCalEvent(id) {
+        if (!id) return;
+        const deletedSet = recordDeletedCalIds(id);
         let events = loadCalEvents();
-        events = events.filter(e => e.id !== id);
+        events = events.filter(e => e && e.id !== id && !deletedSet.has(e.id));
         saveCalEvents(events);
         renderMonthlyCalendar(currentCalMonth, currentCalYear);
         renderHorizontalDailyTimeline(activeTimelineDate);
         if (activeDayDetailData && modalDayDetail && modalDayDetail.classList.contains('is-active')) {
             renderDayDetailEvents(activeDayDetailData);
+        }
+
+        const user = getCurrentUser();
+        if (user && user.email && typeof pushLocalDataToCloud === 'function') {
+            pushLocalDataToCloud(user.email);
         }
     }
 
@@ -7396,6 +7532,7 @@ Quy tắc bóc tách:
                         url,
                         createdAt: new Date().toISOString()
                     };
+                    if (typeof unmarkCalEventDeleted === 'function') unmarkCalEventDeleted(newEvt.id);
                     events.push(newEvt);
                 }
                 saveCalEvents(events);
