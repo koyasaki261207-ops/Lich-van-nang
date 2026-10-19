@@ -53,15 +53,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputEnd = document.getElementById('event-end');
 
     // ========================================================
-    // QUẢN LÝ TÀI KHOẢN NGƯỜI DÙNG & TÁCH BIỆT DỮ LIỆU RIÊNG (User Session)
+    // QUẢN LÝ TÀI KHOẢN NGƯỜI DÙNG & TÁCH BIỆT DỮ LIỆU RIÊNG (User Session & Google Chooser)
     // ========================================================
     const CURRENT_USER_KEY = 'timeline_current_user_session';
+    const SAVED_GOOGLE_ACCOUNTS_KEY = 'timeline_saved_google_accounts';
     let currentActiveUser = null;
     let currentFirebaseUser = null;
     let firestoreDb = null;
 
+    function safeEscape(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
     const loginGateOverlay = document.getElementById('login-gate-overlay');
+    const loginPanelMain = document.getElementById('login-panel-main');
+    const loginPanelGoogleChooser = document.getElementById('login-panel-google-chooser');
     const btnLoginGateGoogle = document.getElementById('btn-login-gate-google');
+    const btnChooserBack = document.getElementById('btn-chooser-back');
+    const googleAccountsList = document.getElementById('google-accounts-list');
+    const btnToggleAddAccount = document.getElementById('btn-toggle-add-account');
+    const formAddGoogleAccount = document.getElementById('form-add-google-account');
+    const inputNewGoogleEmail = document.getElementById('input-new-google-email');
+
     const formQuickLogin = document.getElementById('form-quick-login');
     const inputQuickEmail = document.getElementById('input-quick-email');
     const topUserProfileBadge = document.getElementById('top-user-profile-badge');
@@ -91,6 +110,132 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             localStorage.removeItem(CURRENT_USER_KEY);
         }
+    }
+
+    function getSavedGoogleAccounts() {
+        try {
+            const raw = localStorage.getItem(SAVED_GOOGLE_ACCOUNTS_KEY);
+            let accounts = raw ? JSON.parse(raw) : [];
+            if (!Array.isArray(accounts)) accounts = [];
+
+            // Nếu đã từng có session hiện tại mà chưa được lưu vào danh sách thì tự động đưa vào
+            const user = getCurrentUser();
+            if (user && user.email) {
+                const exists = accounts.some(a => a.email.toLowerCase() === user.email.toLowerCase());
+                if (!exists) {
+                    accounts.unshift({
+                        id: user.id || user.email,
+                        email: user.email,
+                        name: user.name || user.email.split('@')[0],
+                        lastUsed: new Date().toISOString()
+                    });
+                    localStorage.setItem(SAVED_GOOGLE_ACCOUNTS_KEY, JSON.stringify(accounts));
+                }
+            }
+            return accounts;
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function saveGoogleAccount(userObj) {
+        try {
+            let accounts = getSavedGoogleAccounts();
+            const cleanEmail = userObj.email.trim().toLowerCase();
+            accounts = accounts.filter(a => a.email.toLowerCase() !== cleanEmail);
+            accounts.unshift({
+                id: cleanEmail,
+                email: cleanEmail,
+                name: userObj.name || (cleanEmail.split('@')[0].charAt(0).toUpperCase() + cleanEmail.split('@')[0].slice(1)),
+                lastUsed: new Date().toISOString()
+            });
+            localStorage.setItem(SAVED_GOOGLE_ACCOUNTS_KEY, JSON.stringify(accounts));
+        } catch (e) { }
+    }
+
+    function removeSavedGoogleAccount(email) {
+        try {
+            let accounts = getSavedGoogleAccounts();
+            const cleanEmail = email.trim().toLowerCase();
+            accounts = accounts.filter(a => a.email.toLowerCase() !== cleanEmail);
+            localStorage.setItem(SAVED_GOOGLE_ACCOUNTS_KEY, JSON.stringify(accounts));
+            renderGoogleAccountsList();
+        } catch (e) { }
+    }
+
+    function showGoogleChooserPanel() {
+        if (loginPanelMain) loginPanelMain.classList.add('is-hidden');
+        if (loginPanelGoogleChooser) loginPanelGoogleChooser.classList.remove('is-hidden');
+        if (formAddGoogleAccount) formAddGoogleAccount.classList.add('is-hidden');
+        renderGoogleAccountsList();
+    }
+
+    function showMainLoginPanel() {
+        if (loginPanelGoogleChooser) loginPanelGoogleChooser.classList.add('is-hidden');
+        if (loginPanelMain) loginPanelMain.classList.remove('is-hidden');
+    }
+
+    function renderGoogleAccountsList() {
+        if (!googleAccountsList) return;
+        googleAccountsList.innerHTML = '';
+        const accounts = getSavedGoogleAccounts();
+
+        if (!accounts.length) {
+            const emptyHint = document.createElement('div');
+            emptyHint.className = 'google-empty-hint';
+            emptyHint.textContent = 'Chưa có tài khoản Google nào được lưu trên trình duyệt này. Hãy nhập Gmail của bạn ở mục bên dưới để ghi nhớ và đăng nhập nhanh cho các lần sau!';
+            googleAccountsList.appendChild(emptyHint);
+            if (formAddGoogleAccount) {
+                formAddGoogleAccount.classList.remove('is-hidden');
+                if (inputNewGoogleEmail) inputNewGoogleEmail.focus();
+            }
+            return;
+        }
+
+        accounts.forEach(acc => {
+            const item = document.createElement('div');
+            item.className = 'google-account-item';
+            item.setAttribute('data-email', acc.email);
+
+            const initial = (acc.name || acc.email || 'G').trim().charAt(0).toUpperCase();
+            const hue = (initial.charCodeAt(0) * 47) % 360;
+
+            item.innerHTML = `
+                <div class="google-acc-avatar" style="background: linear-gradient(135deg, hsl(${hue}, 75%, 55%), hsl(${(hue + 40) % 360}, 85%, 45%));">
+                    ${initial}
+                </div>
+                <div class="google-acc-info">
+                    <div class="google-acc-name">${safeEscape(acc.name)}</div>
+                    <div class="google-acc-email">${safeEscape(acc.email)}</div>
+                </div>
+                <div class="google-acc-badge">Đã lưu</div>
+                <button type="button" class="google-acc-btn-remove" title="Xóa tài khoản này khỏi máy" data-email="${safeEscape(acc.email)}">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            `;
+
+            // Click vào tài khoản để đăng nhập nhanh ngay tức khắc!
+            item.addEventListener('click', (e) => {
+                if (e.target.closest('.google-acc-btn-remove')) return;
+                performLogin(acc.email, acc.name);
+            });
+
+            // Nút xóa tài khoản khỏi danh sách máy
+            const btnRemove = item.querySelector('.google-acc-btn-remove');
+            if (btnRemove) {
+                btnRemove.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (confirm(`Bạn có chắc muốn xóa gợi ý tài khoản "${acc.email}" khỏi thiết bị này?`)) {
+                        removeSavedGoogleAccount(acc.email);
+                    }
+                });
+            }
+
+            googleAccountsList.appendChild(item);
+        });
     }
 
     function getTimelineStorageKey() {
@@ -161,6 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         setCurrentUser(userObj);
+        saveGoogleAccount(userObj); // Tự động ghi nhớ tài khoản để hiển thị trong Google Account Chooser
         cachedEventsMemory = null;
         updateAuthUI();
 
@@ -174,33 +320,50 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function performLogout() {
-        if (confirm('Bạn có muốn đăng xuất hoặc đổi sang tài khoản Google khác không?')) {
-            setCurrentUser(null);
-            cachedEventsMemory = null;
-            updateAuthUI();
-            if (inputQuickEmail) {
-                inputQuickEmail.value = '';
-                setTimeout(() => inputQuickEmail.focus(), 300);
-            }
-            renderEvents();
-            if (typeof renderMonthlyCalendar === 'function' && typeof calSelectMonth !== 'undefined' && calSelectMonth && typeof calSelectYear !== 'undefined' && calSelectYear) {
-                const m = parseInt(calSelectMonth.value, 10);
-                const y = parseInt(calSelectYear.value, 10);
-                renderMonthlyCalendar(m, y);
-            }
+        setCurrentUser(null);
+        cachedEventsMemory = null;
+        updateAuthUI();
+        showGoogleChooserPanel(); // Hiển thị sẵn danh sách các tài khoản Google đã lưu trên máy để chuyển đổi 1-click!
+
+        renderEvents();
+        if (typeof renderMonthlyCalendar === 'function' && typeof calSelectMonth !== 'undefined' && calSelectMonth && typeof calSelectYear !== 'undefined' && calSelectYear) {
+            const m = parseInt(calSelectMonth.value, 10);
+            const y = parseInt(calSelectYear.value, 10);
+            renderMonthlyCalendar(m, y);
         }
     }
 
+    // Sự kiện khi bấm "Tiếp tục với Google": bật ngay bảng chọn tài khoản Google
     if (btnLoginGateGoogle) {
         btnLoginGateGoogle.addEventListener('click', () => {
-            let email = inputQuickEmail ? inputQuickEmail.value.trim() : '';
-            if (!email) {
-                email = prompt('Vui lòng nhập địa chỉ tài khoản Google (Gmail) của bạn để tiếp tục:', '');
+            showGoogleChooserPanel();
+        });
+    }
+
+    if (btnChooserBack) {
+        btnChooserBack.addEventListener('click', () => {
+            showMainLoginPanel();
+        });
+    }
+
+    if (btnToggleAddAccount) {
+        btnToggleAddAccount.addEventListener('click', () => {
+            if (formAddGoogleAccount) {
+                formAddGoogleAccount.classList.toggle('is-hidden');
+                if (!formAddGoogleAccount.classList.contains('is-hidden') && inputNewGoogleEmail) {
+                    inputNewGoogleEmail.focus();
+                }
             }
+        });
+    }
+
+    if (formAddGoogleAccount) {
+        formAddGoogleAccount.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = inputNewGoogleEmail ? inputNewGoogleEmail.value.trim() : '';
             if (email) {
                 performLogin(email);
-            } else if (inputQuickEmail) {
-                inputQuickEmail.focus();
+                if (inputNewGoogleEmail) inputNewGoogleEmail.value = '';
             }
         });
     }
@@ -216,7 +379,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (btnTopLogout) {
-        btnTopLogout.addEventListener('click', performLogout);
+        btnTopLogout.addEventListener('click', () => {
+            if (confirm('Bạn có muốn đổi sang tài khoản Google khác không?')) {
+                performLogout();
+            }
+        });
     }
 
     // Các phần tử Lặp lại sự kiện (Recurring Events)
