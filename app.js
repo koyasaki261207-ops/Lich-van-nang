@@ -1068,12 +1068,15 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         // Tối ưu hóa dữ liệu đẩy lên Firestore:
-        // Lược bỏ rawImageUrl dạng base64 dung lượng MB trước khi đẩy lên Firestore để dung lượng luôn dưới 300KB,
-        // tuyệt đối không bao giờ chạm ngưỡng giới hạn 1MB của Firestore!
+        // Giữ lại rawImageUrl đã nén (< 120KB) để xem ảnh đầy đủ trên mọi thiết bị, chỉ lược bỏ nếu là data: siêu lớn chưa nén (> 120KB)
         const cleanTimelineEvents = JSON.parse(JSON.stringify((timelineEvents || []).map(evt => {
             const clone = { ...evt };
-            if (clone.rawImageUrl && typeof clone.rawImageUrl === 'string' && clone.rawImageUrl.startsWith('data:')) {
+            if (clone.rawImageUrl && typeof clone.rawImageUrl === 'string' && clone.rawImageUrl.startsWith('data:') && clone.rawImageUrl.length > 120000) {
                 delete clone.rawImageUrl;
+            }
+            if (!clone.rawImageUrl && typeof getKnownRawBannerUrl === 'function') {
+                const known = getKnownRawBannerUrl(clone.title);
+                if (known) clone.rawImageUrl = known;
             }
             return clone;
         })));
@@ -3285,6 +3288,35 @@ document.addEventListener('DOMContentLoaded', () => {
             if (cropZoomSlider) cropZoomSlider.value = '1';
             if (cropZoomValue) cropZoomValue.textContent = '100%';
 
+            // Tự động nén và chuẩn hóa ảnh gốc chưa cắt (~35-50KB) để lưu trữ nhẹ nhàng mà cực kỳ sắc nét
+            try {
+                if (typeof imageSrc === 'string' && imageSrc.startsWith('data:')) {
+                    const maxDim = 960;
+                    let w = img.naturalWidth || img.width;
+                    let h = img.naturalHeight || img.height;
+                    if (w > maxDim || h > maxDim) {
+                        if (w > h) {
+                            h = Math.round(h * (maxDim / w));
+                            w = maxDim;
+                        } else {
+                            w = Math.round(w * (maxDim / h));
+                            h = maxDim;
+                        }
+                    }
+                    const optCanvas = document.createElement('canvas');
+                    optCanvas.width = w;
+                    optCanvas.height = h;
+                    const optCtx = optCanvas.getContext('2d');
+                    optCtx.drawImage(img, 0, 0, w, h);
+                    originalImageSrc = optCanvas.toDataURL('image/jpeg', 0.82);
+                } else {
+                    originalImageSrc = imageSrc;
+                }
+            } catch (err) {
+                console.warn('Lỗi tối ưu ảnh gốc chưa cắt:', err);
+                originalImageSrc = imageSrc;
+            }
+
             // Đồng bộ tên tiêu đề và màu xem trước mẫu
             const curTitle = inputTitle.value.trim() || 'Tên hoạt động';
             if (cropperSampleTitle) cropperSampleTitle.textContent = curTitle;
@@ -4201,7 +4233,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!eventImageData.value || isAutoSyncedImage) {
                 const imgToUse = matched.imageUrl || matched.rawImageUrl;
                 if (imgToUse) {
-                    originalImageSrc = matched.rawImageUrl || matched.imageUrl;
+                    originalImageSrc = matched.rawImageUrl || (typeof getKnownRawBannerUrl === 'function' ? getKnownRawBannerUrl(matched.title) : '') || matched.imageUrl;
                     isAutoSyncedImage = true;
                     setCroppedResult(imgToUse, matched.color || '#d6aa7d');
                 }
@@ -4820,11 +4852,51 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Tra cứu kho banner chính thức chưa cắt theo tên sự kiện
+    function getKnownRawBannerUrl(title) {
+        if (!title || typeof title !== 'string') return '';
+        const t = title.trim().toLowerCase();
+        if (t.includes('skirk') || t.includes('void star')) {
+            return 'https://paimon.moe/images/events/Void%20Stars%20Advent%203.png';
+        }
+        if (t.includes('escoffier') || t.includes('chanson cerise')) {
+            return 'https://paimon.moe/images/events/La%20Chanson%20Cerise%203.png';
+        }
+        if (t.includes('la hoàn') || t.includes('spiral abyss')) {
+            return 'https://paimon.moe/images/events/spiral_abyss.jpg';
+        }
+        if (t.includes('imaginarium') || t.includes('nhà hát')) {
+            return 'https://paimon.moe/images/events/imaginarium_theater.jpg';
+        }
+        if (t.includes('warm winds') || t.includes('venti')) {
+            return 'https://paimon.moe/images/events/When%20Warm%20Winds%20Cavort%201.png';
+        }
+        if (t.includes('surging ballad') || t.includes('furina')) {
+            return 'https://paimon.moe/images/events/Surging%20Ballad%201.png';
+        }
+        if (t.includes('epitome invocation') || t.includes('định hình quỹ đạo')) {
+            return 'https://paimon.moe/images/events/Epitome%20Invocation%20105.png';
+        }
+        if (t.includes('overflowing favor')) {
+            return 'https://paimon.moe/images/events/Overflowing%20Favor%201.png';
+        }
+        if (t.includes('snowball fight') || t.includes('carefree snowball')) {
+            return 'https://paimon.moe/images/events/Carefree%20Snowball%20Fight%201.png';
+        }
+        if (t.includes('predictive victory')) {
+            return 'https://paimon.moe/images/events/Predictive%20Victory%20Dynamics%201.png';
+        }
+        if (t.includes('stygian onslaught')) {
+            return 'https://paimon.moe/images/events/Stygian%20Onslaught%201.png';
+        }
+        return '';
+    }
+
     function openEventDetail(evt) {
         if (!modalEventDetail || !evt) return;
         currentDetailEvent = evt;
 
-        // 1. Ảnh chưa cắt (Ưu tiên rawImageUrl nếu có, sau đó tìm từ chuỗi lặp lại hoặc sự kiện cùng tên)
+        // 1. Ảnh chưa cắt (Ưu tiên rawImageUrl nếu có, sau đó tìm từ chuỗi lặp lại, sự kiện cùng tên hoặc kho banner gốc)
         let bannerImgSrc = evt.rawImageUrl;
         if (!bannerImgSrc || bannerImgSrc === evt.imageUrl) {
             const allEvts = loadEvents();
@@ -4836,8 +4908,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const sameTitle = allEvts.find(e => e.title && e.title.trim().toLowerCase() === evt.title.trim().toLowerCase() && e.rawImageUrl && e.rawImageUrl !== e.imageUrl);
                 if (sameTitle) bannerImgSrc = sameTitle.rawImageUrl;
             }
-            if (!bannerImgSrc && evt.title && (evt.title.trim().toLowerCase().includes('la hoàn') || evt.title.trim().toLowerCase().includes('spiral abyss'))) {
-                bannerImgSrc = 'https://paimon.moe/images/events/spiral_abyss.jpg';
+            if (!bannerImgSrc) {
+                bannerImgSrc = getKnownRawBannerUrl(evt.title);
+            }
+            if (bannerImgSrc && !evt.rawImageUrl) {
+                evt.rawImageUrl = bannerImgSrc;
             }
         }
         if (!bannerImgSrc) {
@@ -5112,7 +5187,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     end: endVal,
                     color: colorVal,
                     imageUrl: imgVal,
-                    rawImageUrl: (originalImageSrc && typeof originalImageSrc === 'string' && originalImageSrc.startsWith('data:') && originalImageSrc.length > 250000) ? '' : (originalImageSrc || imgVal),
+                    rawImageUrl: (originalImageSrc && typeof originalImageSrc === 'string' && originalImageSrc.startsWith('data:') && originalImageSrc.length > 150000) ? (getKnownRawBannerUrl(title) || '') : (originalImageSrc || getKnownRawBannerUrl(title) || imgVal || ''),
                     url: articleUrlVal,
                     tag: tagVal,
                     note: noteVal
@@ -5199,7 +5274,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         end: toDateTimeLocalString(curEnd),
                         color: colorVal,
                         imageUrl: imgVal,
-                        rawImageUrl: (originalImageSrc && typeof originalImageSrc === 'string' && originalImageSrc.startsWith('data:') && originalImageSrc.length > 250000) ? '' : (originalImageSrc || imgVal || ''),
+                        rawImageUrl: (originalImageSrc && typeof originalImageSrc === 'string' && originalImageSrc.startsWith('data:') && originalImageSrc.length > 150000) ? (getKnownRawBannerUrl(title) || '') : (originalImageSrc || getKnownRawBannerUrl(title) || imgVal || ''),
                         url: articleUrlVal,
                         tag: tagVal,
                         note: noteVal
