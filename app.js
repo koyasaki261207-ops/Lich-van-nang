@@ -112,13 +112,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let pendingAvatarDataUrl = null;
 
-    // Bộ sưu tập Avatar mẫu phong cách Anime, Mascot & Google
+    // Bộ sưu tập Avatar mẫu phong cách Mascot & Google
     const PRESET_AVATARS = [
-        {
-            id: 'anime_najime_saki',
-            name: 'Anime Tím Chrome',
-            img: 'koyasaki_avatar.png'
-        },
         {
             id: 'anime_purple_girl',
             name: 'Anime Tím',
@@ -157,6 +152,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const raw = localStorage.getItem(CURRENT_USER_KEY);
             if (raw) {
                 currentActiveUser = JSON.parse(raw);
+                if (currentActiveUser && currentActiveUser.avatar && currentActiveUser.avatar.includes('koyasaki_avatar.png')) {
+                    currentActiveUser.avatar = '';
+                    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(currentActiveUser));
+                }
                 return currentActiveUser;
             }
         } catch (e) {
@@ -179,6 +178,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const raw = localStorage.getItem(SAVED_GOOGLE_ACCOUNTS_KEY);
             let accounts = raw ? JSON.parse(raw) : [];
             if (!Array.isArray(accounts)) accounts = [];
+
+            // Tự động làm sạch các avatar dính ảnh cũ koyasaki_avatar.png
+            let updatedAccounts = false;
+            accounts.forEach(acc => {
+                if (acc.avatar && acc.avatar.includes('koyasaki_avatar.png')) {
+                    acc.avatar = '';
+                    updatedAccounts = true;
+                }
+            });
+            if (updatedAccounts) {
+                localStorage.setItem(SAVED_GOOGLE_ACCOUNTS_KEY, JSON.stringify(accounts));
+            }
 
             // Nếu đã từng có session hiện tại mà chưa được lưu vào danh sách thì tự động đưa vào
             const user = getCurrentUser();
