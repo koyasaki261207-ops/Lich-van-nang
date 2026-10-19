@@ -6645,44 +6645,14 @@ Quy tắc bóc tách:
                 }
             }
 
-            // Danh sách chấm tròn màu sắc biểu thị sự kiện / ngày lễ (Tối ưu tuyệt đối cho điện thoại)
-            const eventDots = [];
-            if (holiday) {
-                eventDots.push({
-                    color: '#f43f5e',
-                    title: holiday
-                });
-            }
-            dayEvents.forEach(evt => {
-                eventDots.push({
-                    color: evt.categoryColor || '#38bdf8',
-                    title: `${evt.title}${evt.startTime ? ` (${evt.startTime})` : ''}`
-                });
-            });
-
-            let dotsHtml = '';
-            if (eventDots.length > 0) {
-                const maxDots = 4;
-                const visibleDots = eventDots.slice(0, maxDots);
-                dotsHtml = `
-                    <div class="cal-event-dots" title="${eventDots.length} sự kiện/ngày lễ">
-                        ${visibleDots.map(d => `<span class="cal-event-dot-item" style="background-color: ${d.color};" title="${escapeHtml(d.title)}"></span>`).join('')}
-                        ${eventDots.length > maxDots ? `<span class="cal-event-dot-more">+</span>` : ''}
-                    </div>
-                `;
-            }
-
             // Ô lịch tối giản, thanh lịch, có thêm các sự kiện người dùng thêm
             cell.innerHTML = `
                 <div class="cal-cell-top">
                     <span class="cal-solar-day">${String(dayNum).padStart(2, '0')}</span>
                 </div>
                 <div class="cal-cell-mid">
-                    <div class="cal-desktop-events">
-                        ${holidayHtml}
-                        ${userEventsHtml}
-                    </div>
-                    ${dotsHtml}
+                    ${holidayHtml}
+                    ${userEventsHtml}
                 </div>
                 <div class="cal-cell-bottom">
                     <span class="cal-lunar-day ${lunarClass}" title="Âm lịch: ${lunar.day} tháng ${lunar.month}">${lunarText}</span>

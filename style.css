@@ -4031,15 +4031,6 @@ body.is-reordering-tracks * {
 }
 
 /* Hàng tiêu đề 7 thứ trong tuần (T2 - CN) */
-.cal-desktop-events {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-}
-
-.cal-event-dots {
-  display: none;
-}
 
 .monthly-cal-weekdays {
   display: grid;
@@ -5388,13 +5379,12 @@ body.is-reordering-tracks * {
     white-space: nowrap;
   }
 
-  /* Lưới Lịch Tháng - Tối ưu di động kích thước đồng nhất, không bị chữ làm giãn */
+  /* Lưới Lịch Tháng - Tối ưu di động kích thước đồng nhất, không bị chữ làm giãn (Hình 1) */
   .monthly-cal-container {
     padding: 12px 6px;
     overflow: hidden;
   }
 
-  /* 1. Tiêu đề thứ: kích thước chiều rộng luôn luôn khớp 100% với các ô ngày */
   .monthly-cal-weekdays {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -5418,25 +5408,24 @@ body.is-reordering-tracks * {
     box-sizing: border-box;
   }
 
-  /* 3. Lưới các ô ngày: 7 cột minmax(0, 1fr) và gap 3px giống hệt hàng thứ */
   .monthly-cal-grid {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
-    grid-auto-rows: 52px;
+    grid-auto-rows: 64px;
     gap: 3px;
     width: 100%;
     box-sizing: border-box;
   }
 
-  /* Mỗi ô ngày kích thước hoàn toàn bằng nhau, không bị chữ làm giãn */
+  /* Mỗi ô ngày kích thước hoàn toàn như nhau, không bị chữ làm giãn */
   .cal-day-cell {
-    height: 52px;
-    min-height: 52px;
-    max-height: 52px;
+    height: 64px;
+    min-height: 64px;
+    max-height: 64px;
     min-width: 0;
     width: 100%;
     overflow: hidden;
-    padding: 3px 3px;
+    padding: 3px 2.5px;
     border-radius: 6px;
     box-sizing: border-box;
     display: flex;
@@ -5462,7 +5451,7 @@ body.is-reordering-tracks * {
 
   .cal-day-cell.is-today .cal-solar-day {
     font-size: 11px;
-    padding: 1px 4px;
+    padding: 1.5px 4px;
     margin: 0;
     border-radius: 4px;
   }
@@ -5472,46 +5461,75 @@ body.is-reordering-tracks * {
     min-height: 0;
     min-width: 0;
     overflow: hidden;
+    margin: 1px 0;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    gap: 1.5px;
+    justify-content: flex-start;
   }
 
-  /* 2. Không cần ghi tiêu đề sự kiện trên ô ngày: Ẩn hoàn toàn chữ sự kiện trên di động */
-  .cal-desktop-events {
+  .cal-holiday-text {
+    font-size: 7.5px;
+    font-weight: 700;
+    line-height: 1.1;
+    padding: 0.5px 2px;
+    border-left: 2px solid #f43f5e;
+    border-radius: 2.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    box-sizing: border-box;
+    display: block;
+    margin-bottom: 0.5px;
+  }
+
+  .cal-user-event-pill {
+    font-size: 7.5px;
+    font-weight: 600;
+    line-height: 1.1;
+    padding: 0.5px 2px;
+    gap: 2px;
+    border-radius: 2.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    margin-top: 0;
+  }
+
+  .cal-user-event-pill .user-event-dot {
+    width: 3.5px;
+    height: 3.5px;
+    min-width: 3.5px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .cal-user-event-pill .user-event-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .cal-user-event-pill .user-event-time {
     display: none !important;
   }
 
-  /* Chỉ hiện các chấm màu sắc để biết ngày đó có sự kiện / ngày lễ */
-  .cal-event-dots {
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    gap: 2.5px;
-    min-height: 8px;
-    margin: 2px 0;
-    width: 100%;
-    overflow: hidden;
-  }
-
-  .cal-event-dot-item {
-    width: 5px;
-    height: 5px;
-    min-width: 5px;
-    max-width: 5px;
-    border-radius: 50%;
-    display: inline-block;
-    flex-shrink: 0;
-    box-shadow: 0 0 5px currentColor;
-  }
-
-  .cal-event-dot-more {
+  .cal-user-event-more {
     font-size: 7.5px;
+    font-weight: 700;
     color: #94a3b8;
-    font-weight: 800;
     line-height: 1;
-    margin-left: 1px;
+    padding: 0 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .cal-cell-bottom {
