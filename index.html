@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch Hoạt Động - Timeline</title>
+    <!-- Google Font: Inter, Outfit & Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- ========================================================
+             1. KHU VỰC LỊCH THÁNG / LỊCH VẠN NIÊN (Ở TRÊN)
+             ======================================================== -->
+        <section class="monthly-calendar-section" id="monthly-calendar-section">
+            <!-- Tiêu đề Lịch Vạn Năng ở góc trên trái -->
+            <div class="calendar-top-header">
+                <h1 class="calendar-main-title">Lịch Vạn Năng</h1>
+            </div>
+
+            <div class="monthly-cal-container">
+                <!-- Thanh điều khiển Lịch Tháng -->
+                <div class="monthly-cal-header">
+                    <div class="cal-header-left">
+                        <div class="cal-title-badge" title="Lịch Tháng / Lịch Vạn Niên">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                        </div>
+                        <div class="cal-nav-group">
+                            <button type="button" class="btn-cal-nav" id="btn-cal-prev" title="Tháng trước">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="15 18 9 12 15 6"></polyline>
+                                </svg>
+                            </button>
+                            <h2 class="cal-month-title" id="cal-month-title">THÁNG 10 - 2026</h2>
+                            <button type="button" class="btn-cal-nav" id="btn-cal-next" title="Tháng sau">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
+                            </button>
+                        </div>
+                        <button type="button" class="btn-cal-today" id="btn-cal-today" title="Về tháng hiện tại">Hôm
+                            nay</button>
+                    </div>
+
+                    <div class="cal-header-right">
+                        <div class="cal-select-group">
+                            <select id="cal-select-month" class="cal-select" title="Chọn tháng">
+                                <option value="0">Tháng 1</option>
+                                <option value="1">Tháng 2</option>
+                                <option value="2">Tháng 3</option>
+                                <option value="3">Tháng 4</option>
+                                <option value="4">Tháng 5</option>
+                                <option value="5">Tháng 6</option>
+                                <option value="6">Tháng 7</option>
+                                <option value="7">Tháng 8</option>
+                                <option value="8">Tháng 9</option>
+                                <option value="9">Tháng 10</option>
+                                <option value="10">Tháng 11</option>
+                                <option value="11">Tháng 12</option>
+                            </select>
+                            <select id="cal-select-year" class="cal-select" title="Chọn năm"></select>
+                            <button type="button" id="btn-cal-add-event" class="btn-cal-add-event"
+                                title="Thêm sự kiện mới vào lịch">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                <span>Thêm</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tiêu đề 7 thứ trong tuần -->
+                <div class="monthly-cal-weekdays">
+                    <div class="cal-weekday">Thứ hai</div>
+                    <div class="cal-weekday">Thứ ba</div>
+                    <div class="cal-weekday">Thứ tư</div>
+                    <div class="cal-weekday">Thứ năm</div>
+                    <div class="cal-weekday">Thứ sáu</div>
+                    <div class="cal-weekday cal-sat">Thứ bảy</div>
+                    <div class="cal-weekday cal-sun">Chủ nhật</div>
+                </div>
+
+                <!-- Lưới hiển thị các ô ngày (7 cột x 5-6 hàng) sinh tự động qua JS -->
+                <div class="monthly-cal-grid" id="monthly-cal-grid"></div>
+
+                <!-- Chú thích chân lịch -->
+                <div class="monthly-cal-footer">
+                    <div class="cal-legend">
+                        <span class="legend-item"><span class="legend-badge-today"></span> Hôm nay</span>
+                        <span class="legend-item"><span class="legend-badge-holiday"></span> Ngày lễ / Kỷ niệm</span>
+                        <span class="legend-item"><span class="legend-badge-lunar"></span> Ngày Âm lịch</span>
+                    </div>
+                    <div class="cal-hint-text">
+                        💡 Nhấp vào ô ngày bất kỳ để xem chi tiết ngày và lịch trình 24h bên dưới
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================================
+                 TIMELINE NGANG 24 GIỜ TRONG NGÀY (00:00 -> 24:00)
+                 ======================================================== -->
+            <div class="day-h-timeline-section" id="day-h-timeline-section">
+                <!-- Thanh điều khiển & Tiêu đề Timeline Ngang -->
+                <div class="day-h-header">
+                    <div class="day-h-title-group">
+                        <div class="day-h-icon-box" title="Timeline 24h Trong Ngày">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                        </div>
+                        <div class="day-h-title-texts">
+                            <span class="day-h-sub-label">LỊCH TRÌNH 24H TRONG NGÀY</span>
+                            <h3 class="day-h-main-title" id="day-h-title-date">Thứ Hai, 19/10/2026</h3>
+                        </div>
+                        <div class="day-h-badges-group">
+                            <span class="day-h-badge day-h-badge-lunar" id="day-h-lunar-badge">🌙 10/09 ÂL</span>
+                            <span class="day-h-badge day-h-badge-canchi" id="day-h-canchi-badge">Bính Dần</span>
+                            <span class="day-h-badge day-h-badge-count" id="day-h-count-badge">0 sự kiện</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dải hiển thị sự kiện cả ngày nếu có -->
+                <div class="day-h-allday-bar" id="day-h-allday-bar" style="display: none;">
+                    <span class="day-h-allday-label">Cả ngày:</span>
+                    <div class="day-h-allday-pills" id="day-h-allday-pills"></div>
+                </div>
+
+                <!-- Khung cuộn ngang thước đo 24 Giờ -->
+                <div class="day-h-scroll-wrap" id="day-h-scroll-wrap">
+                    <div class="day-h-track-container" id="day-h-track-container">
+                        <!-- 4 Phân vùng buổi trong ngày (Đêm, Sáng, Chiều, Tối) -->
+                        <div class="day-h-periods-bg">
+                            <div class="day-period period-night" style="left: 0%; width: 25%;">
+                                <span class="period-name">🌙 Đêm (00h - 06h)</span>
+                            </div>
+                            <div class="day-period period-morning" style="left: 25%; width: 25%;">
+                                <span class="period-name">🌅 Sáng (06h - 12h)</span>
+                            </div>
+                            <div class="day-period period-afternoon" style="left: 50%; width: 25%;">
+                                <span class="period-name">☀️ Chiều (12h - 18h)</span>
+                            </div>
+                            <div class="day-period period-evening" style="left: 75%; width: 25%;">
+                                <span class="period-name">🌆 Tối (18h - 24h)</span>
+                            </div>
+                        </div>
+
+                        <!-- Thước đo giờ từ 00:00 đến 24:00 -->
+                        <div class="day-h-ruler-grid" id="day-h-ruler-grid"></div>
+
+                        <!-- Vạch chỉ giờ hiện tại ("Now Needle") -->
+                        <div class="day-h-now-needle" id="day-h-now-needle" style="display: none;">
+                            <div class="now-needle-badge">
+                                <span class="now-needle-dot"></span>
+                                <span class="now-needle-text" id="day-h-now-text">00:00</span>
+                            </div>
+                            <div class="now-needle-line"></div>
+                        </div>
+
+                        <!-- Lớp hiển thị các thanh sự kiện 24 giờ -->
+                        <div class="day-h-events-lane" id="day-h-events-lane"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             2. KHU VỰC TIMELINE (Ở DƯỚI)
+             ======================================================== -->
+        <section class="timeline-section" id="timeline-section">
+            <!-- Thanh Công Cụ của Timeline: Logo & Chữ Timeline bên trái, Các nút thao tác bên phải -->
+            <div class="timeline-toolbar-bar">
+                <div class="app-brand-row">
+                    <div class="app-logo-badge" title="Timeline">
+                        <svg width="30" height="30" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"
+                            class="app-logo-svg">
+                            <defs>
+                                <linearGradient id="logo-border-grad" x1="2" y1="2" x2="30" y2="30"
+                                    gradientUnits="userSpaceOnUse">
+                                    <stop offset="0%" stop-color="#38bdf8" />
+                                    <stop offset="50%" stop-color="#818cf8" />
+                                    <stop offset="100%" stop-color="#c084fc" />
+                                </linearGradient>
+                                <linearGradient id="logo-star-grad" x1="18" y1="13" x2="28" y2="23"
+                                    gradientUnits="userSpaceOnUse">
+                                    <stop offset="0%" stop-color="#fef08a" />
+                                    <stop offset="40%" stop-color="#facc15" />
+                                    <stop offset="100%" stop-color="#f59e0b" />
+                                </linearGradient>
+                                <linearGradient id="logo-bg-grad" x1="0" y1="0" x2="32" y2="32"
+                                    gradientUnits="userSpaceOnUse">
+                                    <stop offset="0%" stop-color="#1e293b" />
+                                    <stop offset="100%" stop-color="#0f172a" />
+                                </linearGradient>
+                                <filter id="star-glow" x="12" y="7" width="20" height="20" filterUnits="userSpaceOnUse">
+                                    <feGaussianBlur stdDeviation="1.2" result="blur" />
+                                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                                </filter>
+                            </defs>
+                            <!-- Khung lịch nền bo góc -->
+                            <rect x="3" y="5" width="26" height="24" rx="7" fill="url(#logo-bg-grad)"
+                                stroke="url(#logo-border-grad)" stroke-width="1.8" />
+                            <!-- 2 móc treo lịch -->
+                            <rect x="8.5" y="2" width="3" height="5" rx="1.5" fill="#38bdf8" />
+                            <rect x="20.5" y="2" width="3" height="5" rx="1.5" fill="#c084fc" />
+                            <!-- Đường kẻ phân chia phần đầu lịch -->
+                            <line x1="3" y1="12" x2="29" y2="12" stroke="url(#logo-border-grad)" stroke-width="1.2"
+                                stroke-opacity="0.5" />
+                            <!-- Các vạch timeline sự kiện đa tầng -->
+                            <rect x="7" y="16" width="9" height="3" rx="1.5" fill="#38bdf8" fill-opacity="0.9" />
+                            <rect x="7" y="21" width="13" height="3" rx="1.5" fill="#818cf8" fill-opacity="0.9" />
+                            <!-- Ngôi sao 4 cánh phát sáng đặc trưng game phiêu lưu -->
+                            <g filter="url(#star-glow)">
+                                <path
+                                    d="M22 12 C22 16.5, 26.5 16.5, 26.5 16.5 C26.5 16.5, 22 16.5, 22 21 C22 16.5, 17.5 16.5, 17.5 16.5 C17.5 16.5, 22 16.5, 22 12 Z"
+                                    fill="url(#logo-star-grad)" />
+                                <circle cx="22" cy="16.5" r="1.3" fill="#ffffff" />
+                            </g>
+                        </svg>
+                    </div>
+                    <h2 class="page-title">Timeline</h2>
+                </div>
+
+                <div class="header-actions">
+                    <!-- Nút Hiện tại -->
+                    <button id="btn-jump-now" class="btn-now" title="Đưa màn hình về chính giữa trục thời gian">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <span>Hiện tại</span>
+                    </button>
+
+                    <!-- Nút Thêm hoạt động mới -->
+                    <button id="btn-add-event" class="btn-add" title="Thêm hoạt động mới">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        <span>Thêm</span>
+                    </button>
+
+                    <!-- Nút Lọc theo Tag -->
+                    <div class="filter-dropdown-wrapper" id="filter-dropdown-wrapper">
+                        <button type="button" id="btn-filter-tag" class="btn-filter" title="Lọc sự kiện theo Tag">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                            </svg>
+                            <span id="btn-filter-label">Lọc</span>
+                            <span class="filter-active-dot" id="filter-active-dot" style="display: none;"></span>
+                        </button>
+
+                        <!-- Menu danh sách chọn Tag -->
+                        <div class="filter-dropdown-menu" id="filter-dropdown-menu" style="display: none;">
+                            <div class="filter-dropdown-header">
+                                <div class="filter-header-title-box">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                                    </svg>
+                                    <span>Lọc theo Tag</span>
+                                </div>
+                                <button type="button" class="btn-filter-reset" id="btn-filter-reset"
+                                    style="display: none;">Bỏ lọc</button>
+                            </div>
+                            <div class="filter-tag-list" id="filter-tag-list">
+                                <!-- Tạo danh sách tag bằng JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Nút Đổi hàng -->
+                    <button id="btn-reorder-tracks" class="btn-reorder"
+                        title="Sắp xếp & hoán đổi vị trí các hàng sự kiện">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="7 15 12 20 17 15"></polyline>
+                            <polyline points="7 9 12 4 17 9"></polyline>
+                            <line x1="12" y1="20" x2="12" y2="4"></line>
+                        </svg>
+                        <span>Đổi hàng</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Thanh thông báo trạng thái lọc (chỉ hiển thị khi đang lọc theo tag) -->
+            <div class="active-filter-banner" id="active-filter-banner" style="display: none;">
+                <div class="active-filter-content">
+                    <div class="active-filter-tag-badge">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                        </svg>
+                        <span>Đang lọc theo tag: <strong id="active-filter-name">#...</strong></span>
+                    </div>
+                    <span class="active-filter-count" id="active-filter-count"></span>
+                </div>
+                <button type="button" class="btn-clear-filter" id="btn-clear-filter"
+                    title="Bỏ lọc, hiện lại toàn bộ sự kiện">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                    <span>Hiện tất cả sự kiện</span>
+                </button>
+            </div>
+
+            <!-- Trục thời gian Timeline (Hỗ trợ kéo chuột & lăn chuột sang trái/phải) -->
+            <main class="timeline-viewport" id="timeline-viewport">
+                <div class="timeline-canvas" id="timeline-canvas">
+
+                    <!-- Nhãn tháng ghim ở mép trái khi ngày 1 của tháng bị cuộn khuất -->
+                    <div class="pinned-month-badge" id="pinned-month-badge"></div>
+
+                    <!-- Hàng hiển thị Thứ/Ngày và Tháng ở trên cùng -->
+                    <div class="timeline-header-axis" id="timeline-header-axis"></div>
+
+                    <!-- Vạch thời gian hiện tại kèm nhãn đồng hồ -->
+                    <div class="current-time-indicator" id="current-time-indicator">
+                        <div class="time-badge" id="time-badge">--:--:--</div>
+                        <div class="time-line"></div>
+                    </div>
+
+                    <!-- Thân Timeline chứa các đường lưới dọc và các hàng sự kiện -->
+                    <div class="timeline-body" id="timeline-body">
+                        <!-- Lưới dọc chia theo ngày -->
+                        <div class="timeline-grid" id="timeline-grid"></div>
+
+                        <!-- Khu vực dành cho các thanh hoạt động (sẽ bổ sung ở bước tiếp theo) -->
+                        <div class="timeline-tracks" id="timeline-tracks"></div>
+                    </div>
+
+                </div>
+            </main>
+        </section>
+
+        <!-- Khoảng trống Footer bên dưới ngăn sự kiện thứ 15 (Chưa dùng nội dung) -->
+        <footer class="app-footer" id="app-footer"></footer>
+    </div>
+
+    <!-- Hộp thoại Modal: Thêm hoạt động mới -->
+    <div class="modal-overlay" id="modal-add-event" aria-hidden="true">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title">Thêm Hoạt Động Mới</h3>
+                <button type="button" class="modal-close-btn" id="btn-close-modal" aria-label="Đóng">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <form id="form-add-event" class="modal-form">
+                <!-- Bố cục 2 cột: Bên trái là Tên, Tag. Bên phải là Thời gian sự kiện, Lặp lại và Ghi chú bên dưới -->
+                <div class="modal-section-grid">
+                    <!-- Cột trái: Tên hoạt động & Nhãn nhóm/Tag (bao quanh dạng thẻ) -->
+                    <div class="modal-col-left">
+                        <div class="activity-and-tag-card">
+                            <div class="form-group">
+                                <label for="event-title">Tên hoạt động <span class="required">*</span></label>
+                                <input type="text" id="event-title" list="event-title-suggestions"
+                                    placeholder="Nhập tên hoạt động / chọn chu kỳ..." required autocomplete="off">
+                                <datalist id="event-title-suggestions"></datalist>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="event-tag">Nhãn nhóm / Tag (Tùy chọn)</label>
+                                <div class="tag-input-row">
+                                    <div class="tag-input-prefix">#</div>
+                                    <input type="text" id="event-tag" list="event-tag-suggestions"
+                                        placeholder="VD: du-an, chu-ky... hoặc tự nhập" autocomplete="off">
+                                    <datalist id="event-tag-suggestions"></datalist>
+                                </div>
+                                <span class="tag-helper-text">Cùng tag sẽ tự động xếp chung dòng hoặc cạnh nhau</span>
+                                <div class="quick-tags-container" id="quick-tags-container" style="display: none;">
+                                    <span class="quick-tags-title">Gợi ý nhanh:</span>
+                                    <div class="quick-tags-list" id="quick-tags-list"></div>
+                                </div>
+                            </div>
+
+                            <!-- Thông báo tự động đồng bộ chu kỳ khi trùng tên -->
+                            <div class="recurring-sync-hint" id="recurring-sync-hint" style="display: none;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="23 4 23 10 17 10"></polyline>
+                                    <polyline points="1 20 1 14 7 14"></polyline>
+                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15">
+                                    </path>
+                                </svg>
+                                <span id="recurring-sync-text"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cột phải: Thời gian sự kiện, Lặp lại và Ghi chú bên dưới -->
+                    <div class="modal-col-right">
+                        <div class="timing-and-repeat-grid">
+                            <!-- Khối bên trái: Thời gian sự kiện -->
+                            <div class="timing-block">
+                                <div class="form-group">
+                                    <label for="event-start">Thời gian bắt đầu <span class="required">*</span></label>
+                                    <input type="datetime-local" id="event-start" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="event-end">Thời gian kết thúc <span class="required">*</span></label>
+                                    <input type="datetime-local" id="event-end" required>
+                                </div>
+                            </div>
+
+                            <!-- Khối bên phải: Lặp lại sự kiện (ở phía bên phải của thời gian sự kiện) -->
+                            <div class="repeat-block">
+                                <div class="form-group">
+                                    <label for="event-repeat-type">Lặp lại</label>
+                                    <div class="select-wrapper">
+                                        <select id="event-repeat-type" class="custom-select">
+                                            <option value="none">Không lặp lại</option>
+                                            <option value="daily">Mỗi ngày</option>
+                                            <option value="weekly">Mỗi tuần</option>
+                                            <option value="monthly">Mỗi tháng</option>
+                                            <option value="yearly">Mỗi năm</option>
+                                        </select>
+                                        <svg class="select-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <polyline points="6 9 12 15 18 9"></polyline>
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                <div class="form-group repeat-range-group is-disabled" id="repeat-range-group">
+                                    <label for="event-repeat-start">Thời gian lặp từ:</label>
+                                    <div class="repeat-dates-row">
+                                        <input type="date" id="event-repeat-start" title="Từ ngày (dd/mm/yyyy)"
+                                            disabled>
+                                        <span class="repeat-dates-sep">-</span>
+                                        <input type="date" id="event-repeat-end" title="Đến ngày (dd/mm/yyyy)" disabled>
+                                    </div>
+                                    <!-- Hàng dưới: Bên trái là Tuỳ chọn Vĩnh viễn, Bên phải là Thông báo số lượng sự kiện -->
+                                    <div class="repeat-bottom-row">
+                                        <label class="repeat-forever-label" for="event-repeat-forever"
+                                            title="Lặp lại liên tục vô thời hạn">
+                                            <input type="checkbox" id="event-repeat-forever" disabled>
+                                            <span class="custom-checkbox"></span>
+                                            <span class="forever-text">Vĩnh viễn</span>
+                                        </label>
+
+                                        <div class="repeat-status-hint" id="repeat-status-hint">
+                                            <span class="repeat-badge-idle">Không lặp lại</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hàng chia 2 cột: Bên trái là Ghi chú / Note, Bên phải là Đường dẫn bài viết -->
+                        <div class="note-article-grid">
+                            <div class="form-group">
+                                <label for="event-note">Ghi chú / Note</label>
+                                <textarea id="event-note" rows="3" placeholder="Nhập ghi chú thêm cho sự kiện..."
+                                    maxlength="300"></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="event-article-url">Đường dẫn bài viết (Tùy chọn)</label>
+                                <input type="url" id="event-article-url"
+                                    placeholder="https://www.najime.com/article/..." autocomplete="off">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="form-group" id="group-event-image">
+                    <div class="image-section-header">
+                        <label>Ảnh minh họa sự kiện (Tùy chọn cắt ảnh)</label>
+                        <div class="image-header-actions" style="display: flex; align-items: center; gap: 8px;">
+                            <button type="button" class="btn-ai-settings-gear" id="btn-ai-settings-gear"
+                                title="Cài đặt Google Gemini API Key" style="display: none;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                    <path
+                                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                                    </path>
+                                </svg>
+                                <span>Cài đặt Key</span>
+                            </button>
+                            <button type="button" class="btn-toggle-ai-mode" id="btn-toggle-ai-mode"
+                                title="Bật/Tắt chế độ đọc thông tin và quét ngày giờ tự động bằng AI">
+                                <span class="ai-sparkle-icon">✨</span>
+                                <span id="ai-btn-text">Chế độ đọc thông tin</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="image-input-container">
+                        <!-- CHẾ ĐỘ 1: THƯỜNG (Mặc định - Cắt ảnh & Dán URL) -->
+                        <div class="image-normal-mode" id="image-normal-mode">
+                            <!-- Nút chuyển đổi: Tải từ máy tính hoặc Dán URL -->
+                            <div class="image-source-tabs">
+                                <button type="button" class="tab-btn is-active" id="tab-btn-file">Tải từ máy
+                                    tính</button>
+                                <button type="button" class="tab-btn" id="tab-btn-url">Dán đường dẫn (URL)</button>
+                            </div>
+
+                            <!-- Khung 1: Tải file từ máy tính & Kéo thả -->
+                            <div class="tab-content" id="tab-content-file">
+                                <label class="file-upload-box" for="event-image-file" id="file-dropzone">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                        <polyline points="21 15 16 10 5 21"></polyline>
+                                    </svg>
+                                    <span class="upload-text">Nhấp để chọn ảnh hoặc kéo thả vào đây</span>
+                                    <span class="upload-hint">Hỗ trợ PNG, JPG, WEBP, GIF hoặc dán Ctrl+V</span>
+                                    <input type="file" id="event-image-file" accept="image/*" style="display: none;">
+                                </label>
+                            </div>
+
+                            <!-- Khung 2: Nhập đường dẫn ảnh URL -->
+                            <div class="tab-content" id="tab-content-url" style="display: none;">
+                                <div class="url-input-row">
+                                    <input type="url" id="event-image-url" placeholder="https://example.com/banner.png">
+                                    <button type="button" id="btn-load-url" class="btn-secondary">Tải & Cắt ảnh</button>
+                                </div>
+                            </div>
+
+                            <!-- Khung xem trước ảnh đã cắt -->
+                            <div class="image-crop-preview-wrapper" id="image-crop-preview-wrapper"
+                                style="display: none;">
+                                <div class="preview-badge-label">Ảnh đã cắt sẽ hiển thị như sau:</div>
+                                <div class="event-bar-preview-box" id="event-bar-preview-box">
+                                    <span class="preview-bar-title" id="preview-bar-title">Tên hoạt động</span>
+                                    <div class="preview-bar-art" id="preview-bar-art"></div>
+                                </div>
+                                <div class="preview-actions">
+                                    <button type="button" class="btn-recrop" id="btn-recrop">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <path d="M6.13 1L6 16a2 2 0 0 0 2 2h15"></path>
+                                            <path d="M1 6.13L16 6a2 2 0 0 1 2 2v15"></path>
+                                        </svg>
+                                        <span>Cắt lại</span>
+                                    </button>
+                                    <button type="button" class="btn-remove-art" id="btn-remove-art">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <polyline points="3 6 5 6 21 6"></polyline>
+                                            <path
+                                                d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                                            </path>
+                                        </svg>
+                                        <span>Xóa ảnh</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CHẾ ĐỘ 2: ĐỌC THÔNG TIN AI (Đơn giản, gọn gàng giống hệt khung ảnh minh họa) -->
+                        <div class="image-ai-mode" id="image-ai-mode" style="display: none;">
+                            <label class="file-upload-box" for="ai-scan-file-input" id="ai-file-dropzone">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                    <polyline points="21 15 16 10 5 21"></polyline>
+                                </svg>
+                                <span class="upload-text">Nhấp để chọn ảnh quét AI hoặc kéo thả vào đây</span>
+                                <span class="upload-hint">Hỗ trợ PNG, JPG, WEBP hoặc dán <kbd>Ctrl+V</kbd> để tự điền
+                                    form</span>
+                                <input type="file" id="ai-scan-file-input" accept="image/*" style="display: none;">
+                            </label>
+
+                            <!-- Lớp phủ Loading khi đang quét AI -->
+                            <div class="ai-scanning-overlay" id="ai-scanning-overlay" style="display: none;">
+                                <div class="ai-scanning-box">
+                                    <div class="ai-scan-spinner"></div>
+                                    <div class="ai-scan-status-text" id="ai-scan-status-text">Đang nhận diện hình ảnh &
+                                        thời gian bằng Gemini AI...</div>
+                                    <div class="ai-scan-subtext">Trí tuệ nhân tạo đang phân tích tiêu đề và lịch trình
+                                        sự kiện</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lưu trữ chuỗi dữ liệu ảnh cuối cùng (Base64 hoặc URL) -->
+                        <input type="hidden" id="event-image-data" value="">
+                    </div>
+                </div>
+
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" id="btn-cancel-modal">Hủy</button>
+                    <button type="submit" class="btn-submit">Lưu hoạt động</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Hộp thoại Modal: Cắt ảnh tương tác (Interactive Image Cropper) -->
+    <div class="modal-overlay" id="modal-crop-image" aria-hidden="true" style="z-index: 110;">
+        <div class="modal-card modal-card-crop">
+            <div class="modal-header">
+                <h3 class="modal-title">Cắt Ảnh Minh Họa Sự Kiện</h3>
+                <button type="button" class="modal-close-btn" id="btn-close-crop-modal" aria-label="Đóng">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="cropper-body">
+                <!-- Khu vực làm việc cắt ảnh tương tác -->
+                <div class="cropper-workspace-wrapper" id="cropper-workspace-wrapper">
+                    <canvas id="cropper-canvas"></canvas>
+                    <!-- Khung viền cắt với 8 điểm kéo điều chỉnh kích thước -->
+                    <div class="crop-box" id="crop-box">
+                        <div class="crop-handle handle-nw" data-handle="nw"></div>
+                        <div class="crop-handle handle-ne" data-handle="ne"></div>
+                        <div class="crop-handle handle-sw" data-handle="sw"></div>
+                        <div class="crop-handle handle-se" data-handle="se"></div>
+                        <div class="crop-handle handle-n" data-handle="n"></div>
+                        <div class="crop-handle handle-s" data-handle="s"></div>
+                        <div class="crop-handle handle-w" data-handle="w"></div>
+                        <div class="crop-handle handle-e" data-handle="e"></div>
+                        <div class="crop-grid-lines"></div>
+                    </div>
+                </div>
+
+                <!-- Bảng điều khiển thu phóng & tỉ lệ -->
+                <div class="cropper-controls">
+                    <div class="control-row">
+                        <div class="control-group">
+                            <label for="crop-zoom-slider">Thu phóng:</label>
+                            <input type="range" id="crop-zoom-slider" min="0.5" max="3" step="0.05" value="1">
+                            <span id="crop-zoom-value" class="zoom-text">100%</span>
+                        </div>
+
+                        <div class="control-group ratio-group">
+                            <span>Tỉ lệ:</span>
+                            <button type="button" class="btn-chip is-active" id="btn-ratio-banner"
+                                title="Tỉ lệ thanh sự kiện ~3.6:1">Chuẩn sự kiện</button>
+                            <button type="button" class="btn-chip" id="btn-ratio-free" title="Tự do kéo các góc">Tự
+                                do</button>
+                        </div>
+                    </div>
+
+                    <!-- Xem trước trực quan ngay lập tức -->
+                    <div class="cropper-live-preview-section">
+                        <div class="preview-title">Xem trước hiển thị trên thanh sự kiện:</div>
+                        <div class="cropper-event-sample" id="cropper-sample-bar">
+                            <span class="sample-title" id="cropper-sample-title">Tên hoạt động</span>
+                            <div class="sample-art" id="cropper-sample-art"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" id="btn-cancel-crop">Hủy</button>
+                <button type="button" class="btn-submit" id="btn-apply-crop">Áp dụng cắt ảnh</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hộp thoại Modal: Chi tiết sự kiện (Event Detail Modal) -->
+    <div class="modal-overlay" id="modal-event-detail" aria-hidden="true" style="z-index: 120;">
+        <div class="event-detail-card" id="event-detail-card">
+            <!-- Nút đóng góc phải -->
+            <button type="button" class="event-detail-close-btn" id="btn-close-event-detail" aria-label="Đóng">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+
+            <!-- Ảnh chưa cắt (Full banner) -->
+            <div class="event-detail-image-box" id="detail-image-box">
+                <img id="detail-image" src="" alt="Event Banner" class="event-detail-banner-img">
+            </div>
+
+            <!-- Nội dung chi tiết sự kiện -->
+            <div class="event-detail-body">
+                <!-- Hàng tên sự kiện và Tag cố định bên rìa phải -->
+                <div class="event-detail-title-row">
+                    <h3 class="event-detail-title" id="detail-title"></h3>
+                    <div class="event-detail-badges-row">
+                        <span class="event-detail-repeat-pill" id="detail-repeat-pill" style="display: none;"></span>
+                        <div class="event-detail-tag-box" id="detail-tag-box" style="display: none;">
+                            <span class="event-detail-tag-pill" id="detail-tag-pill"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thời gian sự kiện: CN, 27 Th09 2026 23:00 - T2, 2 Th11 2026 02:59 -->
+                <div class="event-detail-time" id="detail-time"></div>
+
+                <!-- Ghi chú / Note nếu có (chỉ hiển thị nội dung đơn giản) -->
+                <div class="event-detail-note" id="detail-note" style="display: none;"></div>
+
+                <!-- Đường dẫn bài viết Hoyolab nếu có -->
+                <div class="event-detail-link-box" id="detail-link-box" style="display: none;">
+                    <a href="#" target="_blank" rel="noopener noreferrer" class="event-detail-link"
+                        id="detail-link"></a>
+                </div>
+
+                <!-- Vị trí dòng hiện tại & Nút đổi nhanh -->
+                <div class="event-detail-track-row" id="detail-track-row">
+                    <span class="event-detail-track-badge" id="detail-track-badge">Hàng #1</span>
+                    <button type="button" class="btn-detail-swap-track" id="btn-detail-swap-track"
+                        title="Chuyển hàng sự kiện này sang vị trí khác">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="7 15 12 20 17 15"></polyline>
+                            <polyline points="7 9 12 4 17 9"></polyline>
+                            <line x1="12" y1="20" x2="12" y2="4"></line>
+                        </svg>
+                        <span>Đổi vị trí hàng</span>
+                    </button>
+                </div>
+
+                <!-- Hàng chân trang: Huy hiệu đếm ngược bên trái & Nút Xóa sự kiện góc dưới bên phải -->
+                <div class="event-detail-footer-row">
+                    <div class="event-detail-countdown-box">
+                        <span class="event-detail-countdown-pill" id="detail-countdown"></span>
+                    </div>
+                    <button type="button" class="btn-delete-detail-event" id="btn-delete-detail-event"
+                        title="Xóa hoạt động này">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                        <span>Xóa</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hộp thoại Modal: Tùy Chọn Xóa / Dừng Sự Kiện Lặp Lại (Delete Recurring Event Modal) -->
+    <div class="modal-overlay" id="modal-delete-repeat" aria-hidden="true" style="z-index: 130;">
+        <div class="modal-card modal-delete-repeat-card">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Xóa sự kiện lặp lại</h3>
+                    <p class="modal-subtitle" id="delete-repeat-subtitle">Sự kiện này thuộc một chuỗi lặp lại. Bạn muốn
+                        xóa như thế nào?</p>
+                </div>
+                <button type="button" class="modal-close-btn" id="btn-close-delete-repeat" aria-label="Đóng">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="delete-repeat-options">
+                <button type="button" class="delete-repeat-option-btn" id="btn-delete-this-only">
+                    <div class="option-icon icon-single">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </div>
+                    <div class="option-text">
+                        <strong>Chỉ xóa sự kiện này</strong>
+                        <span>Chỉ xóa kỳ đang chọn, chuỗi sự kiện vẫn tiếp tục lặp lại các kỳ khác.</span>
+                    </div>
+                </button>
+
+                <button type="button" class="delete-repeat-option-btn" id="btn-delete-from-here">
+                    <div class="option-icon icon-stop">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <rect x="9" y="9" width="6" height="6"></rect>
+                        </svg>
+                    </div>
+                    <div class="option-text">
+                        <strong>Dừng lặp lại từ kỳ này trở đi</strong>
+                        <span>Xóa kỳ này và tất cả các kỳ trong tương lai, dừng vĩnh viễn chuỗi lặp (giữ lại các kỳ
+                            trong quá khứ).</span>
+                    </div>
+                </button>
+
+                <button type="button" class="delete-repeat-option-btn is-danger" id="btn-delete-all-repeat">
+                    <div class="option-icon icon-all">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                            </path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                        </svg>
+                    </div>
+                    <div class="option-text">
+                        <strong>Xóa tất cả các lần lặp</strong>
+                        <span>Xóa sạch toàn bộ chuỗi sự kiện này (cả quá khứ và tương lai) khỏi timeline.</span>
+                    </div>
+                </button>
+            </div>
+            <div class="modal-actions" style="margin-top: 18px; justify-content: flex-end;">
+                <button type="button" class="btn-cancel" id="btn-cancel-delete-repeat">Hủy bỏ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hộp thoại Modal: Sắp Xếp & Hoán Đổi Vị Trí Các Hàng (Track Reorder Modal) -->
+    <div class="modal-overlay" id="modal-reorder-tracks" aria-hidden="true" style="z-index: 110;">
+        <div class="modal-card modal-reorder-card">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Sắp Xếp Vị Trí Các Hàng</h3>
+                    <p class="modal-subtitle">Hoán đổi hoặc di chuyển thứ tự các hàng theo ý muốn của bạn</p>
+                </div>
+                <button type="button" class="modal-close-btn" id="btn-close-reorder-modal" aria-label="Đóng">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Thanh hoán đổi nhanh giữa dòng X và dòng Y -->
+            <div class="reorder-quick-swap-box">
+                <span class="quick-swap-label">Đổi nhanh giữa 2 hàng:</span>
+                <div class="quick-swap-controls">
+                    <select id="swap-select-x" class="select-track" aria-label="Chọn hàng thứ nhất"></select>
+                    <button type="button" class="btn-swap-action" id="btn-trigger-swap"
+                        title="Hoán đổi vị trí của 2 hàng này">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="17 1 21 5 17 9"></polyline>
+                            <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                            <polyline points="7 23 3 19 7 15"></polyline>
+                            <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+                        </svg>
+                        <span>Hoán đổi</span>
+                    </button>
+                    <select id="swap-select-y" class="select-track" aria-label="Chọn hàng thứ hai"></select>
+                </div>
+            </div>
+
+            <!-- Danh sách các hàng có thể kéo thả và bấm mũi tên lên/xuống -->
+            <div class="track-list-scrollable" id="track-list-container"></div>
+
+            <div class="modal-actions reorder-modal-actions">
+                <button type="button" class="btn-reset-tracks" id="btn-reset-tracks"
+                    title="Khôi phục lại sắp xếp thông minh tự động">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="1 4 1 10 7 10"></polyline>
+                        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                    </svg>
+                    <span>Khôi phục mặc định</span>
+                </button>
+                <button type="button" class="btn-submit" id="btn-close-reorder-done">Hoàn tất</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hộp thoại Modal: Cài đặt AI Vision (Google Gemini API) -->
+    <div class="modal-overlay" id="modal-ai-config" aria-hidden="true" style="z-index: 130;">
+        <div class="modal-card modal-ai-card">
+            <div class="modal-header">
+                <div class="modal-header-with-icon">
+                    <span class="ai-sparkle-modal-icon">✨</span>
+                    <div>
+                        <h3 class="modal-title">Cài Đặt AI Vision (Google Gemini)</h3>
+                        <p class="modal-subtitle">Tự động nhận diện chữ, thời gian và banner từ ảnh chụp màn hình</p>
+                    </div>
+                </div>
+                <button type="button" class="modal-close-btn" id="btn-close-ai-config" aria-label="Đóng">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="ai-config-body">
+                <div class="ai-guide-box">
+                    <div class="ai-guide-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                        <span>Cách lấy API Key miễn phí (mất khoảng 30 giây):</span>
+                    </div>
+                    <ol class="ai-guide-steps">
+                        <li>Truy cập <a href="https://aistudio.google.com/app/apikey" target="_blank"
+                                rel="noopener noreferrer">Google AI Studio (aistudio.google.com) ↗</a></li>
+                        <li>Đăng nhập tài khoản Google và bấm nút <strong>"Create API key"</strong>.</li>
+                        <li>Sao chép mã API Key và dán vào ô bên dưới.</li>
+                    </ol>
+                    <div class="ai-privacy-note">
+                        🔒 <strong>Bảo mật riêng tư:</strong> API Key được lưu trực tiếp trên trình duyệt của bạn (Local
+                        Storage) và không bao giờ chuyển tiếp qua máy chủ trung gian.
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="input-gemini-key">Google Gemini API Key:</label>
+                    <div class="ai-key-input-wrapper">
+                        <input type="password" id="input-gemini-key" placeholder="Dán mã API Key của bạn vào đây..."
+                            autocomplete="off">
+                        <button type="button" class="btn-toggle-key-visibility" id="btn-toggle-key-visibility"
+                            title="Hiện/Ẩn API Key">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>
+                    </div>
+                    <span class="key-status-hint" id="key-status-hint"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="select-gemini-model">Mô hình AI Vision:</label>
+                    <div class="select-wrapper">
+                        <select id="select-gemini-model" class="custom-select">
+                            <option value="gemini-flash-lite-latest" selected>Gemini Flash Lite (Mặc định: Tốc độ cao,
+                                hạn mức tối đa)</option>
+                            <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite (Hạn mức cao, ổn định)</option>
+                            <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite (Mô hình mới & mượt mà)</option>
+                            <option value="gemini-flash-latest">Gemini Flash (Cân bằng tốc độ & độ chính xác)</option>
+                        </select>
+                        <svg class="select-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions ai-config-actions">
+                <button type="button" class="btn-cancel" id="btn-clear-ai-key" style="color: #fb7185;">Xóa Key</button>
+                <div class="actions-right" style="display: flex; gap: 8px;">
+                    <button type="button" class="btn-cancel" id="btn-cancel-ai-config">Hủy</button>
+                    <button type="button" class="btn-submit" id="btn-save-ai-config">Lưu Cài Đặt</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hộp thoại Modal: Thông tin chi tiết ngày trong Lịch (Day Detail Modal) -->
+    <div class="modal-overlay" id="modal-day-detail" aria-hidden="true" style="z-index: 125;">
+        <div class="modal-card modal-day-detail-card">
+            <div class="modal-header">
+                <div class="day-detail-header-left">
+                    <span class="day-detail-weekday-badge" id="modal-day-weekday">Thứ Bảy</span>
+                    <h3 class="modal-title" id="modal-day-full-solar">18 tháng 10 năm 2026</h3>
+                </div>
+                <div class="day-detail-header-right">
+                    <span class="day-detail-relative-tag" id="modal-day-relative">Hôm nay</span>
+                    <button type="button" class="modal-close-btn" id="btn-close-day-detail" aria-label="Đóng">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="day-detail-body">
+                <!-- Banner ngày lễ nếu có -->
+                <div class="day-detail-holiday-banner" id="modal-day-holiday-banner" style="display: none;">
+                    <div class="holiday-banner-icon">🎉</div>
+                    <div class="holiday-banner-info">
+                        <span class="holiday-banner-label">Ngày lễ / Kỷ niệm</span>
+                        <h4 class="holiday-banner-title" id="modal-day-holiday-title"></h4>
+                    </div>
+                </div>
+
+                <!-- So sánh 2 thẻ: Dương Lịch & Âm Lịch -->
+                <div class="day-detail-dual-cards">
+                    <div class="day-dual-card solar-card">
+                        <div class="dual-card-header">
+                            <span class="dual-card-icon">☀️</span>
+                            <span class="dual-card-badge">DƯƠNG LỊCH</span>
+                        </div>
+                        <div class="dual-card-day-num" id="modal-day-solar-num">18</div>
+                        <div class="dual-card-sub" id="modal-day-solar-sub">Tháng 10, 2026</div>
+                    </div>
+                    <div class="day-dual-card lunar-card">
+                        <div class="dual-card-header">
+                            <span class="dual-card-icon">🌙</span>
+                            <span class="dual-card-badge">ÂM LỊCH</span>
+                        </div>
+                        <div class="dual-card-day-num" id="modal-day-lunar-num">09</div>
+                        <div class="dual-card-sub" id="modal-day-lunar-sub">Tháng 9, Năm Bính Ngọ</div>
+                    </div>
+                </div>
+
+                <!-- Khối Tam Trụ Can Chi: Ngày - Tháng - Năm -->
+                <div class="day-detail-section">
+                    <div class="day-section-title">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <span>Hệ Thống Can Chi</span>
+                    </div>
+                    <div class="day-canchi-grid">
+                        <div class="canchi-item">
+                            <span class="canchi-label">CAN CHI NGÀY</span>
+                            <span class="canchi-value" id="modal-day-canchi-day">Ất Sửu</span>
+                        </div>
+                        <div class="canchi-item">
+                            <span class="canchi-label">CAN CHI THÁNG</span>
+                            <span class="canchi-value" id="modal-day-canchi-month">Mậu Tuất</span>
+                        </div>
+                        <div class="canchi-item">
+                            <span class="canchi-label">CAN CHI NĂM</span>
+                            <span class="canchi-value" id="modal-day-canchi-year">Bính Ngọ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Khối Đánh Giá Hoàng Đạo / Hắc Đạo -->
+                <div class="day-detail-section">
+                    <div class="day-section-title">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon
+                                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                            </polygon>
+                        </svg>
+                        <span>Trực Nhật & Trực Thần</span>
+                    </div>
+                    <div class="day-hoangdao-card" id="modal-day-hoangdao-card">
+                        <div class="hoangdao-badge-row">
+                            <span class="hoangdao-status-badge" id="modal-day-hoangdao-badge">Ngày Hoàng Đạo</span>
+                        </div>
+                        <p class="hoangdao-advice" id="modal-day-hoangdao-advice">Ngày cát lành, các việc lớn diễn ra
+                            thuận lợi, hanh thông.</p>
+                    </div>
+                </div>
+
+
+                <!-- Khối Sự Kiện Trong Ngày -->
+                <div class="day-detail-section" id="modal-day-events-section">
+                    <div class="day-section-header-row">
+                        <div class="day-section-title">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                            <span>Sự Kiện Trong Ngày</span>
+                        </div>
+                        <button type="button" class="btn-day-add-event" id="btn-day-add-event"
+                            title="Thêm sự kiện cho ngày này">
+                            + Thêm sự kiện
+                        </button>
+                    </div>
+                    <div class="day-events-list" id="modal-day-events-list"></div>
+                </div>
+            </div>
+
+            <div class="modal-actions day-detail-actions">
+                <button type="button" class="btn-submit" id="btn-done-day-detail"
+                    style="min-width: 110px;">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hộp thoại Modal: Thêm Sự Kiện Lịch Cá Nhân (+ Thêm) -->
+    <div class="modal-overlay" id="modal-cal-add-event" aria-hidden="true" style="z-index: 126;">
+        <div class="modal-card modal-cal-add-card">
+            <div class="modal-header">
+                <div class="modal-header-with-icon">
+                    <span class="cal-modal-icon">📅</span>
+                    <div>
+                        <h3 class="modal-title" id="cal-modal-title">Thêm Sự Kiện Lịch</h3>
+                        <p class="modal-subtitle">Ghi nhớ lịch hẹn, công việc và mục tiêu của bạn</p>
+                    </div>
+                </div>
+                <button type="button" class="modal-close-btn" id="btn-close-cal-add-modal" aria-label="Đóng">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <form id="form-cal-add-event" class="cal-add-form">
+                <!-- DÒNG 1: TIÊU ĐỀ -->
+                <div class="cal-form-row">
+                    <label for="cal-event-title" class="cal-form-label">Tiêu đề <span class="required">*</span></label>
+                    <input type="text" id="cal-event-title" class="cal-form-input" placeholder="Nhập tiêu đề sự kiện..."
+                        required autocomplete="off">
+                </div>
+
+                <!-- DÒNG 2: THỜI GIAN SỰ KIỆN -->
+                <div class="cal-form-row">
+                    <label class="cal-form-label">Thời gian sự kiện <span class="required">*</span></label>
+                    <div class="cal-time-range-container">
+                        <!-- Hàng thời gian Bắt đầu -->
+                        <div class="cal-time-line">
+                            <span class="cal-time-line-tag start-tag">Bắt đầu</span>
+                            <div class="cal-time-line-inputs" id="cal-start-time-inputs">
+                                <input type="date" id="cal-event-start-date" class="cal-form-input" required>
+                                <input type="time" id="cal-event-start-time" class="cal-form-input cal-time-input"
+                                    value="09:00">
+                            </div>
+                        </div>
+
+                        <!-- Hàng thời gian Kết thúc -->
+                        <div class="cal-time-line">
+                            <span class="cal-time-line-tag end-tag">Kết thúc</span>
+                            <div class="cal-time-line-inputs" id="cal-end-time-inputs">
+                                <input type="date" id="cal-event-end-date" class="cal-form-input" required>
+                                <input type="time" id="cal-event-end-time" class="cal-form-input cal-time-input"
+                                    value="10:00">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dưới thời gian: Trái là 'Cả ngày', Phải là 'Lặp lại' -->
+                    <div class="cal-time-subrow">
+                        <label class="cal-checkbox-label" for="cal-event-allday">
+                            <input type="checkbox" id="cal-event-allday">
+                            <span class="custom-checkbox"></span>
+                            <span class="chk-text">Cả ngày</span>
+                        </label>
+
+                        <div class="cal-repeat-control">
+                            <span class="repeat-label">Lặp lại:</span>
+                            <div class="select-wrapper cal-repeat-select-wrap">
+                                <select id="cal-event-repeat" class="custom-select cal-select-repeat">
+                                    <option value="none">Không</option>
+                                    <option value="daily">Mỗi ngày</option>
+                                    <option value="weekly">Mỗi tuần</option>
+                                    <option value="monthly">Mỗi tháng</option>
+                                    <option value="yearly">Mỗi năm</option>
+                                </select>
+                                <svg class="select-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DÒNG 3: LOẠI / NHÃN (CATEGORY / TAG) -->
+                <div class="cal-form-row">
+                    <label class="cal-form-label">Loại nhãn <span class="cal-label-sub">(Phân loại màu
+                            sắc)</span></label>
+                    <div class="cal-categories-container" id="cal-categories-list"></div>
+
+                    <!-- Popover tạo nhãn tùy chỉnh mới -->
+                    <div class="cal-add-custom-cat-box" id="cal-add-custom-cat-box" style="display: none;">
+                        <div class="custom-cat-inputs">
+                            <input type="text" id="input-custom-cat-name" placeholder="Tên nhãn mới..." maxlength="20">
+                            <input type="color" id="input-custom-cat-color" value="#38bdf8"
+                                title="Chọn màu sắc cho nhãn">
+                            <button type="button" class="btn-confirm-add-cat" id="btn-confirm-add-cat">Lưu</button>
+                            <button type="button" class="btn-cancel-add-cat" id="btn-cancel-add-cat">Hủy</button>
+                            <button type="button" class="btn-reset-default-cats" id="btn-reset-default-cats"
+                                title="Khôi phục danh sách nhãn về mặc định ban đầu">↺ Đặt lại</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DÒNG 4: CHI TIẾT (GHI CHÚ, TỆP ĐÍNH KÈM, URL) -->
+                <div class="cal-form-row cal-details-row">
+                    <label class="cal-form-label">Chi tiết</label>
+
+                    <!-- 1. Ghi chú -->
+                    <div class="cal-detail-field">
+                        <textarea id="cal-event-note" class="cal-form-textarea"
+                            placeholder="Nhập ghi chú hoặc mô tả chi tiết..."></textarea>
+                    </div>
+
+                    <!-- 2. Thêm tệp đính kèm -->
+                    <div class="cal-detail-field">
+                        <label class="cal-attachment-dropzone" for="cal-event-attachment-input"
+                            id="cal-attachment-dropzone">
+                            <input type="file" id="cal-event-attachment-input" style="display: none;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path
+                                    d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48">
+                                </path>
+                            </svg>
+                            <span id="cal-attachment-label">Thêm tệp đính kèm (Ảnh, tài liệu...)</span>
+                        </label>
+                        <div class="cal-attachment-preview-box" id="cal-attachment-preview-box" style="display: none;">
+                            <span class="attachment-name" id="cal-attachment-name"></span>
+                            <button type="button" class="btn-remove-attachment" id="btn-remove-cal-attachment"
+                                title="Xóa tệp đính kèm">✕</button>
+                        </div>
+                    </div>
+
+                    <!-- 3. Thêm URL -->
+                    <div class="cal-detail-field">
+                        <div class="cal-url-input-wrap">
+                            <svg class="url-icon" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                            </svg>
+                            <input type="url" id="cal-event-url" class="cal-form-input cal-input-with-icon"
+                                placeholder="Thêm liên kết URL (VD: https://...)">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-actions cal-modal-actions">
+                    <button type="button" class="btn-cancel" id="btn-cancel-cal-add">Hủy</button>
+                    <button type="submit" class="btn-submit" id="btn-save-cal-event">Lưu sự kiện</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
