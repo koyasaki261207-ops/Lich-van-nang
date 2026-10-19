@@ -173,7 +173,7 @@ export function openDayDetailModal(data) {
         modalDayHoangDaoCard.classList.toggle('is-hac', !hoangDao);
     }
     if (modalDayHoangDaoBadge) {
-        modalDayHoangDaoBadge.textContent = hoangDao ? '✨ Ngày Hoàng Đạo (Cát lành)' : '🌑 Ngày Hắc Đạo (Cẩn trọng)';
+        modalDayHoangDaoBadge.textContent = hoangDao ? 'Ngày Hoàng Đạo (Cát lành)' : 'Ngày Hắc Đạo (Cẩn trọng)';
     }
     if (modalDayHoangDaoAdvice) {
         modalDayHoangDaoAdvice.textContent = hoangDao

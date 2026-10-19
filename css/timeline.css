@@ -492,7 +492,7 @@ body,
   -webkit-backdrop-filter: blur(4px);
   color: #000000;
   font-family: var(--font-body);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: -0.2px;
   font-variant-numeric: tabular-nums;

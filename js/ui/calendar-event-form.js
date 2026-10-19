@@ -78,7 +78,7 @@ export function renderCategoryChips() {
             <span class="cal-cat-dot" style="background: ${cat.color};"></span>
             <span class="cal-cat-name">${escapeHtml(cat.name)}</span>
             <button type="button" class="cal-cat-del-btn" title="Xóa nhãn ${escapeHtml(cat.name)}" aria-label="Xóa nhãn ${escapeHtml(cat.name)}">
-                <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+                <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
@@ -105,7 +105,7 @@ export function renderCategoryChips() {
     addChip.className = 'cal-cat-chip-add';
     addChip.title = 'Thêm loại nhãn mới';
     addChip.innerHTML = `
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
         <span>Thêm</span>
     `;
     addChip.addEventListener('click', () => {

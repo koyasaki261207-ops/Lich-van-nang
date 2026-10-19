@@ -313,7 +313,7 @@ export function renderTrackManager(selectedVisualIndex = 0) {
             handle.className = 'track-drag-handle';
             handle.title = 'Giữ chuột để di chuyển hàng (có thể vừa giữ vừa lăn chuột để cuộn)';
             handle.innerHTML = `
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="9" cy="5" r="1.5"></circle>
                     <circle cx="9" cy="12" r="1.5"></circle>
                     <circle cx="9" cy="19" r="1.5"></circle>
@@ -356,9 +356,10 @@ export function renderTrackManager(selectedVisualIndex = 0) {
             btnUp.type = 'button';
             btnUp.className = 'btn-track-move';
             btnUp.title = 'Di chuyển lên';
+    btnUp.setAttribute('aria-label', btnUp.title);
             btnUp.disabled = (visualIdx === 0);
             btnUp.innerHTML = `
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="18 15 12 9 6 15"></polyline>
                 </svg>
             `;
@@ -371,9 +372,10 @@ export function renderTrackManager(selectedVisualIndex = 0) {
             btnDown.type = 'button';
             btnDown.className = 'btn-track-move';
             btnDown.title = 'Di chuyển xuống';
+    btnDown.setAttribute('aria-label', btnDown.title);
             btnDown.disabled = (visualIdx === total - 1);
             btnDown.innerHTML = `
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
             `;

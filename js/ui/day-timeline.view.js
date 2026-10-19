@@ -99,7 +99,7 @@ export function renderHorizontalDailyTimeline(dateData) {
     }
 
     // 2. Badges âm lịch, can chi
-    if (dayHLunarBadge) dayHLunarBadge.textContent = `🌙 ${lunar.day}/${lunar.month}${lunar.leap ? ' Nhuận' : ''} ÂL`;
+    if (dayHLunarBadge) dayHLunarBadge.innerHTML = `<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg> ${lunar.day}/${lunar.month}${lunar.leap ? ' Nhuận' : ''} ÂL`;
     if (dayHCanchiBadge) dayHCanchiBadge.textContent = canChi || '';
 
     // 3. Đọc sự kiện trong ngày

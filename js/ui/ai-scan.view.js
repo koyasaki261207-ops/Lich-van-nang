@@ -171,7 +171,7 @@ export function saveAiConfig() {
 
     S.pendingScanFile = null;
     closeAiConfigModal();
-    showToastNotification('Đã lưu cấu hình Google Gemini API thành công!', '✨ Cài đặt AI');
+    showToastNotification('Đã lưu cấu hình Google Gemini API thành công!', 'Cài đặt AI');
 }
 
 export function clearAiKey() {
@@ -375,7 +375,7 @@ async function processAiScanFile(file) {
         // Tự động nạp bức ảnh gốc (chất lượng cao) vừa quét vào bộ cắt ảnh
         openCropper(compressed.fullQualityDataUrl);
 
-        showToastNotification(`AI đã điền thành công thông tin "${parsed.title || 'Sự kiện'}"!`, '✨ AI Vision');
+        showToastNotification(`AI đã điền thành công thông tin "${parsed.title || 'Sự kiện'}"!`, 'Đọc ảnh bằng AI');
     } catch (err) {
         console.error('Lỗi nhận diện ảnh bằng AI:', err);
         alert(`Không thể nhận diện ảnh: ${err.message}\n\nBạn có thể kiểm tra lại API Key trong mục Cài đặt (nút ⚙️) hoặc thử lại.`);

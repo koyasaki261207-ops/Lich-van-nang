@@ -138,8 +138,8 @@ export function renderGoogleAccountsList() {
                 <div class="google-acc-email">${escapeHtml(acc.email)}</div>
             </div>
             <div class="google-acc-badge">Đã lưu</div>
-            <button type="button" class="google-acc-btn-remove" title="Xóa tài khoản này khỏi máy" data-email="${escapeHtml(acc.email)}">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <button type="button" class="google-acc-btn-remove" title="Xóa tài khoản này khỏi máy" aria-label="Xóa tài khoản này khỏi máy" data-email="${escapeHtml(acc.email)}">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
@@ -462,7 +462,7 @@ if (btnSaveAvatarModal) {
         renderGoogleAccountsList();
         closeAvatarModal();
         scheduleCloudPush();
-        showToastNotification(`Đã lưu thông tin "${user.name}" và đồng bộ đám mây!`, '👤 Hồ sơ tài khoản');
+        showToastNotification(`Đã lưu thông tin "${user.name}" và đồng bộ đám mây!`, 'Hồ sơ tài khoản');
     });
 }
 
@@ -473,7 +473,7 @@ async function loginWithGoogle() {
     const cfg = getActiveFirebaseConfig();
     const sdk = await loadFirebaseSdk();
     if (!cfg || !cfg.apiKey || !sdk) {
-        showToastNotification('Chưa tải được Firebase Authentication. Đang mở danh sách tài khoản...', '⚠️ Thông báo');
+        showToastNotification('Chưa tải được Firebase Authentication. Đang mở danh sách tài khoản...', 'Thông báo');
         showGoogleChooserPanel();
         return;
     }
@@ -500,7 +500,7 @@ async function loginWithGoogle() {
             const photoURL = user.photoURL || '';
 
             performLogin(email, displayName, photoURL);
-            showToastNotification(`Đăng nhập Google thành công! Xin chào "${displayName}"`, '🎉 Google Sign-in');
+            showToastNotification(`Đăng nhập Google thành công! Xin chào "${displayName}"`, 'Đăng nhập Google');
         }
     } catch (error) {
         console.error('Lỗi khi đăng nhập Google qua Firebase:', error);

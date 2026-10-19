@@ -215,7 +215,7 @@ if (btnSaveFirebaseConfig) {
             const ok = await initFirebaseSync();
             if (ok) {
                 closeCloudModal();
-                showToastNotification(`Đã kết nối thành công với dự án "${cfg.projectId}"!`, '☁️ Đám mây Firebase');
+                showToastNotification(`Đã kết nối thành công với dự án "${cfg.projectId}"!`, 'Đồng bộ đám mây');
                 const user = getCurrentUser();
                 if (user && user.email) {
                     pushLocalDataToCloud(user.email);
@@ -236,7 +236,7 @@ if (btnDisconnectFirebase) {
             disconnectCloud();
             updateCloudUIState(false, null);
             closeCloudModal();
-            showToastNotification('Đã ngắt kết nối đồng bộ đám mây', '☁️ Firebase');
+            showToastNotification('Đã ngắt kết nối đồng bộ đám mây', 'Đồng bộ đám mây');
         }
     });
 }
@@ -249,7 +249,7 @@ if (btnCloudManualSync) {
             return;
         }
         pushLocalDataToCloud(user.email);
-        showToastNotification('Đã gửi toàn bộ dữ liệu sự kiện lên Đám mây!', '☁️ Firebase');
+        showToastNotification('Đã gửi toàn bộ dữ liệu sự kiện lên Đám mây!', 'Đồng bộ đám mây');
     });
 }
 
@@ -274,7 +274,7 @@ if (btnCloudRestoreBackup) {
         }
 
         if (restoredTL || restoredCal) {
-            showToastNotification('Đã khôi phục thành công toàn bộ sự kiện gốc!', '🔄 Khôi phục hoàn tất');
+            showToastNotification('Đã khôi phục thành công toàn bộ sự kiện gốc!', 'Khôi phục hoàn tất');
             closeCloudModal();
         } else {
             alert('Không tìm thấy bản sao lưu cũ nào trên thiết bị này.');
