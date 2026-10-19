@@ -4030,7 +4030,14 @@ body.is-reordering-tracks * {
   transform: translateY(0);
 }
 
-/* Hàng tiêu đề 7 thứ trong tuần (T2 - CN) */
+/* Hàng tiêu đề 7 thứ trong tuần: Máy tính hiển thị Thứ hai - Chủ nhật, Di động hiển thị T2 - CN */
+.cal-weekday .weekday-full {
+  display: inline !important;
+}
+
+.cal-weekday .weekday-short {
+  display: none !important;
+}
 
 .monthly-cal-weekdays {
   display: grid;
@@ -5392,6 +5399,15 @@ body.is-reordering-tracks * {
     margin-bottom: 4px;
     width: 100%;
     box-sizing: border-box;
+  }
+
+  /* Trên điện thoại: hiển thị viết tắt T2 - CN để không bị tràn và bằng ô ngày */
+  .cal-weekday .weekday-full {
+    display: none !important;
+  }
+
+  .cal-weekday .weekday-short {
+    display: inline !important;
   }
 
   .cal-weekday {
