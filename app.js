@@ -52,6 +52,173 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputStart = document.getElementById('event-start');
     const inputEnd = document.getElementById('event-end');
 
+    // ========================================================
+    // QUẢN LÝ TÀI KHOẢN NGƯỜI DÙNG & TÁCH BIỆT DỮ LIỆU RIÊNG (User Session)
+    // ========================================================
+    const CURRENT_USER_KEY = 'timeline_current_user_session';
+    let currentActiveUser = null;
+    let currentFirebaseUser = null;
+    let firestoreDb = null;
+
+    const loginGateOverlay = document.getElementById('login-gate-overlay');
+    const btnLoginGateGoogle = document.getElementById('btn-login-gate-google');
+    const formQuickLogin = document.getElementById('form-quick-login');
+    const inputQuickEmail = document.getElementById('input-quick-email');
+    const topUserProfileBadge = document.getElementById('top-user-profile-badge');
+    const userAvatarCircle = document.getElementById('user-avatar-circle');
+    const topUserName = document.getElementById('top-user-name');
+    const topUserEmail = document.getElementById('top-user-email');
+    const btnTopLogout = document.getElementById('btn-top-logout');
+
+    function getCurrentUser() {
+        if (currentActiveUser) return currentActiveUser;
+        try {
+            const raw = localStorage.getItem(CURRENT_USER_KEY);
+            if (raw) {
+                currentActiveUser = JSON.parse(raw);
+                return currentActiveUser;
+            }
+        } catch (e) {
+            console.error('Lỗi khi đọc session tài khoản:', e);
+        }
+        return null;
+    }
+
+    function setCurrentUser(user) {
+        currentActiveUser = user;
+        if (user) {
+            localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
+        } else {
+            localStorage.removeItem(CURRENT_USER_KEY);
+        }
+    }
+
+    function getTimelineStorageKey() {
+        const user = getCurrentUser();
+        return user ? ('timeline_events_user_' + encodeURIComponent(user.id)) : 'timeline_events_guest';
+    }
+
+    function getCalEventsStorageKey() {
+        const user = getCurrentUser();
+        return user ? ('calendar_user_events_' + encodeURIComponent(user.id)) : 'calendar_user_events_guest';
+    }
+
+    function getCalCatsStorageKey() {
+        const user = getCurrentUser();
+        return user ? ('calendar_user_categories_' + encodeURIComponent(user.id)) : 'calendar_user_categories_guest';
+    }
+
+    function getTrackOrderStorageKey() {
+        const user = getCurrentUser();
+        return user ? ('timeline_track_order_' + encodeURIComponent(user.id)) : 'timeline_track_order_guest';
+    }
+
+    function updateAuthUI() {
+        const user = getCurrentUser();
+        if (user) {
+            if (loginGateOverlay) {
+                loginGateOverlay.classList.add('is-hidden');
+            }
+            if (topUserProfileBadge) {
+                topUserProfileBadge.style.display = 'flex';
+            }
+            if (topUserName) {
+                topUserName.textContent = user.name || 'Người dùng';
+            }
+            if (topUserEmail) {
+                topUserEmail.textContent = user.email || '';
+            }
+            if (userAvatarCircle) {
+                const initial = (user.name || user.email || 'U').trim().charAt(0).toUpperCase();
+                userAvatarCircle.textContent = initial;
+                const hue = (initial.charCodeAt(0) * 47) % 360;
+                userAvatarCircle.style.background = `linear-gradient(135deg, hsl(${hue}, 75%, 55%), hsl(${(hue + 40) % 360}, 85%, 45%))`;
+            }
+        } else {
+            if (loginGateOverlay) {
+                loginGateOverlay.classList.remove('is-hidden');
+            }
+            if (topUserProfileBadge) {
+                topUserProfileBadge.style.display = 'none';
+            }
+        }
+    }
+
+    function performLogin(email, customName) {
+        if (!email) return;
+        let cleanEmail = email.trim().toLowerCase();
+        if (!cleanEmail.includes('@')) {
+            cleanEmail += '@gmail.com';
+        }
+        const usernamePart = cleanEmail.split('@')[0];
+        const name = customName || (usernamePart.charAt(0).toUpperCase() + usernamePart.slice(1));
+
+        const userObj = {
+            id: cleanEmail,
+            email: cleanEmail,
+            name: name,
+            loginAt: new Date().toISOString()
+        };
+
+        setCurrentUser(userObj);
+        cachedEventsMemory = null;
+        updateAuthUI();
+
+        // Tự động tải lại lịch cá nhân và timeline riêng của tài khoản này
+        renderEvents();
+        if (typeof renderMonthlyCalendar === 'function' && typeof calSelectMonth !== 'undefined' && calSelectMonth && typeof calSelectYear !== 'undefined' && calSelectYear) {
+            const m = parseInt(calSelectMonth.value, 10);
+            const y = parseInt(calSelectYear.value, 10);
+            renderMonthlyCalendar(m, y);
+        }
+    }
+
+    function performLogout() {
+        if (confirm('Bạn có muốn đăng xuất hoặc đổi sang tài khoản Google khác không?')) {
+            setCurrentUser(null);
+            cachedEventsMemory = null;
+            updateAuthUI();
+            if (inputQuickEmail) {
+                inputQuickEmail.value = '';
+                setTimeout(() => inputQuickEmail.focus(), 300);
+            }
+            renderEvents();
+            if (typeof renderMonthlyCalendar === 'function' && typeof calSelectMonth !== 'undefined' && calSelectMonth && typeof calSelectYear !== 'undefined' && calSelectYear) {
+                const m = parseInt(calSelectMonth.value, 10);
+                const y = parseInt(calSelectYear.value, 10);
+                renderMonthlyCalendar(m, y);
+            }
+        }
+    }
+
+    if (btnLoginGateGoogle) {
+        btnLoginGateGoogle.addEventListener('click', () => {
+            let email = inputQuickEmail ? inputQuickEmail.value.trim() : '';
+            if (!email) {
+                email = prompt('Vui lòng nhập địa chỉ tài khoản Google (Gmail) của bạn để tiếp tục:', '');
+            }
+            if (email) {
+                performLogin(email);
+            } else if (inputQuickEmail) {
+                inputQuickEmail.focus();
+            }
+        });
+    }
+
+    if (formQuickLogin) {
+        formQuickLogin.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = inputQuickEmail ? inputQuickEmail.value.trim() : '';
+            if (email) {
+                performLogin(email);
+            }
+        });
+    }
+
+    if (btnTopLogout) {
+        btnTopLogout.addEventListener('click', performLogout);
+    }
+
     // Các phần tử Lặp lại sự kiện (Recurring Events)
     const inputRepeatType = document.getElementById('event-repeat-type');
     const inputRepeatStart = document.getElementById('event-repeat-start');
@@ -575,7 +742,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return hasNewEvents;
     }
 
-    // Đọc danh sách sự kiện từ LocalStorage (chỉ lấy sự kiện do người dùng tự thêm)
+    // Đọc danh sách sự kiện từ LocalStorage (chỉ lấy sự kiện do người dùng tự thêm theo tài khoản riêng)
     function loadEvents() {
         if (cachedEventsMemory) {
             return cachedEventsMemory;
@@ -583,7 +750,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let events = [];
         try {
-            const raw = localStorage.getItem('timeline_events_v8');
+            const storageKey = getTimelineStorageKey();
+            let raw = localStorage.getItem(storageKey);
+            const user = getCurrentUser();
+            // Nếu người dùng đầu tiên đăng nhập chưa có sự kiện riêng, chuyển sự kiện có sẵn sang tài khoản này
+            if (!raw && user && !localStorage.getItem('legacy_events_migrated')) {
+                const legacy = localStorage.getItem('timeline_events_v8');
+                if (legacy) {
+                    raw = legacy;
+                    localStorage.setItem(storageKey, legacy);
+                    localStorage.setItem('legacy_events_migrated', '1');
+                }
+            }
+
             if (raw) {
                 const parsed = JSON.parse(raw);
                 if (Array.isArray(parsed) && parsed.length > 0) {
@@ -655,8 +834,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Lưu danh sách sự kiện vào LocalStorage với cơ chế chống tràn bộ nhớ (QuotaExceededError)
     function saveEvents(events) {
         cachedEventsMemory = events;
+        const storageKey = getTimelineStorageKey();
         try {
-            localStorage.setItem('timeline_events_v8', JSON.stringify(events));
+            localStorage.setItem(storageKey, JSON.stringify(events));
         } catch (e) {
             console.warn('Lỗi khi lưu LocalStorage (có thể do ảnh quá lớn), đang tối ưu dữ liệu...', e);
             try {
@@ -668,7 +848,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     return c;
                 });
-                localStorage.setItem('timeline_events_v8', JSON.stringify(slimmed));
+                localStorage.setItem(storageKey, JSON.stringify(slimmed));
                 console.log('Đã lưu thành công danh sách sự kiện sau khi tối ưu dung lượng!');
             } catch (err2) {
                 console.error('Không thể lưu vào LocalStorage do vượt hạn mức trình duyệt:', err2);
@@ -1280,7 +1460,7 @@ function deleteEvent(id) {
 // Đọc thứ tự hàng tùy chỉnh từ LocalStorage
 function loadTrackOrder(totalTracks) {
     try {
-        const raw = localStorage.getItem('timeline_track_order');
+        const raw = localStorage.getItem(getTrackOrderStorageKey());
         if (raw) {
             const parsed = JSON.parse(raw);
             if (Array.isArray(parsed) && parsed.length > 0) {
@@ -1301,13 +1481,13 @@ function loadTrackOrder(totalTracks) {
 // Lưu thứ tự hàng vào LocalStorage
 function saveTrackOrder(order) {
     try {
-        localStorage.setItem('timeline_track_order', JSON.stringify(order));
+        localStorage.setItem(getTrackOrderStorageKey(), JSON.stringify(order));
     } catch (e) {
         console.error('Lỗi khi lưu timeline_track_order:', e);
     }
 
-    // Đồng bộ thứ tự hàng lên Cloud
-    if (currentFirebaseUser && firestoreDb) {
+    // Đồng bộ thứ tự hàng lên Cloud nếu có cấu hình
+    if (typeof currentFirebaseUser !== 'undefined' && currentFirebaseUser && typeof firestoreDb !== 'undefined' && firestoreDb) {
         try {
             firestoreDb.collection('timeline_users').doc(currentFirebaseUser.uid).set({
                 trackOrder: order
@@ -1347,7 +1527,7 @@ function moveTrack(fromIndex, toIndex) {
 
 // Khôi phục thứ tự hàng mặc định theo thuật toán sắp xếp thông minh
 function resetTrackOrder() {
-    localStorage.removeItem('timeline_track_order');
+    localStorage.removeItem(getTrackOrderStorageKey());
     renderEvents();
     renderTrackManager(0);
 }
@@ -4783,7 +4963,17 @@ let nowNeedleInterval = null;
 
 function loadCalEvents() {
     try {
-        const raw = localStorage.getItem(CAL_USER_EVENTS_KEY);
+        const key = getCalEventsStorageKey();
+        let raw = localStorage.getItem(key);
+        const user = getCurrentUser();
+        if (!raw && user && !localStorage.getItem('legacy_cal_migrated')) {
+            const legacy = localStorage.getItem(CAL_USER_EVENTS_KEY);
+            if (legacy) {
+                raw = legacy;
+                localStorage.setItem(key, legacy);
+                localStorage.setItem('legacy_cal_migrated', '1');
+            }
+        }
         return raw ? JSON.parse(raw) : [];
     } catch (e) {
         return [];
@@ -4792,7 +4982,8 @@ function loadCalEvents() {
 
 function saveCalEvents(events) {
     try {
-        localStorage.setItem(CAL_USER_EVENTS_KEY, JSON.stringify(events));
+        const key = getCalEventsStorageKey();
+        localStorage.setItem(key, JSON.stringify(events));
     } catch (e) {
         console.error('Lỗi khi lưu sự kiện lịch:', e);
     }
@@ -4800,7 +4991,8 @@ function saveCalEvents(events) {
 
 function loadCalCategories() {
     try {
-        const raw = localStorage.getItem(CAL_CATEGORIES_KEY);
+        const key = getCalCatsStorageKey();
+        const raw = localStorage.getItem(key);
         if (!raw) return [...DEFAULT_CAL_CATEGORIES];
         const parsed = JSON.parse(raw);
         return Array.isArray(parsed) && parsed.length ? parsed : [...DEFAULT_CAL_CATEGORIES];
@@ -4811,7 +5003,8 @@ function loadCalCategories() {
 
 function saveCalCategories(cats) {
     try {
-        localStorage.setItem(CAL_CATEGORIES_KEY, JSON.stringify(cats));
+        const key = getCalCatsStorageKey();
+        localStorage.setItem(key, JSON.stringify(cats));
     } catch (e) { }
 }
 
@@ -5956,6 +6149,7 @@ renderTimelineScale();
 updateCurrentTime();
 renderEvents();
 initMonthlyCalendar();
+updateAuthUI();
 
 // Cập nhật vị trí vạch thời gian mỗi giây
 setInterval(updateCurrentTime, 1000);
