@@ -402,6 +402,11 @@ document.addEventListener('DOMContentLoaded', () => {
         cachedEventsMemory = null;
         updateAuthUI();
 
+        // Tự động kết nối đồng bộ đám mây Firebase nếu đã cấu hình
+        if (typeof attachFirestoreSyncForUser === 'function') {
+            attachFirestoreSyncForUser(userObj);
+        }
+
         // Tự động tải lại lịch cá nhân và timeline riêng của tài khoản này
         renderEvents();
         if (typeof renderMonthlyCalendar === 'function' && typeof calSelectMonth !== 'undefined' && calSelectMonth && typeof calSelectYear !== 'undefined' && calSelectYear) {
@@ -412,6 +417,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function performLogout() {
+        if (firestoreUnsubscribe) {
+            firestoreUnsubscribe();
+            firestoreUnsubscribe = null;
+        }
         setCurrentUser(null);
         cachedEventsMemory = null;
         updateAuthUI();
@@ -698,6 +707,380 @@ document.addEventListener('DOMContentLoaded', () => {
         btnTopLogout.addEventListener('click', () => {
             if (confirm('Bạn có muốn đổi sang tài khoản Google khác không?')) {
                 performLogout();
+            }
+        });
+    }
+
+    // ========================================================
+    // QUẢN LÝ ĐỒNG BỘ ĐÁM MÂY (FIREBASE REAL-TIME CLOUD SYNC)
+    // ========================================================
+    const FIREBASE_CONFIG_STORAGE_KEY = 'timeline_firebase_config';
+    const btnTopCloudSync = document.getElementById('btn-top-cloud-sync');
+    const cloudStatusDot = document.getElementById('cloud-status-dot');
+    const cloudStatusText = document.getElementById('cloud-status-text');
+    const modalCloudSync = document.getElementById('modal-cloud-sync');
+    const btnCloseCloudModal = document.getElementById('btn-close-cloud-modal');
+    const btnCancelCloudModal = document.getElementById('btn-cancel-cloud-modal');
+    const btnSaveFirebaseConfig = document.getElementById('btn-save-firebase-config');
+    const btnDisconnectFirebase = document.getElementById('btn-disconnect-firebase');
+    const btnCloudManualSync = document.getElementById('btn-cloud-manual-sync');
+    const inputFirebaseConfig = document.getElementById('input-firebase-config');
+    const cloudStatusBanner = document.getElementById('cloud-status-banner');
+    const cloudBannerIcon = document.getElementById('cloud-banner-icon');
+    const cloudBannerTitle = document.getElementById('cloud-banner-title');
+    const cloudBannerDesc = document.getElementById('cloud-banner-desc');
+
+    let firestoreUnsubscribe = null;
+    let cloudPushTimeout = null;
+    let isIncomingCloudUpdate = false;
+
+    function parseFirebaseConfig(raw) {
+        if (!raw) return null;
+        if (typeof raw === 'object' && raw.apiKey) return raw;
+        if (typeof raw !== 'string') return null;
+        let text = raw.trim();
+        if (!text) return null;
+
+        // Bỏ qua dấu gán nếu có (VD: const firebaseConfig = { ... };)
+        const braceStart = text.indexOf('{');
+        const braceEnd = text.lastIndexOf('}');
+        if (braceStart !== -1 && braceEnd !== -1 && braceEnd > braceStart) {
+            text = text.substring(braceStart, braceEnd + 1);
+        }
+
+        try {
+            const parsed = JSON.parse(text);
+            if (parsed && (parsed.apiKey || parsed.projectId)) return parsed;
+        } catch (e) { }
+
+        try {
+            let cleaned = text
+                .replace(/([a-zA-Z0-9_$]+)\s*:/g, '"$1":')
+                .replace(/'/g, '"')
+                .replace(/,\s*([}\]])/g, '$1');
+            const parsed = JSON.parse(cleaned);
+            if (parsed && (parsed.apiKey || parsed.projectId)) return parsed;
+        } catch (err2) { }
+
+        try {
+            const extract = (key) => {
+                const match = raw.match(new RegExp(`['"]?${key}['"]?\\s*[:=]\\s*['"]([^'"]+)['"]`));
+                return match ? match[1] : '';
+            };
+            const apiKey = extract('apiKey');
+            const projectId = extract('projectId');
+            if (apiKey || projectId) {
+                return {
+                    apiKey,
+                    authDomain: extract('authDomain'),
+                    projectId,
+                    storageBucket: extract('storageBucket'),
+                    messagingSenderId: extract('messagingSenderId'),
+                    appId: extract('appId'),
+                    measurementId: extract('measurementId')
+                };
+            }
+        } catch (err3) { }
+
+        return null;
+    }
+
+    function getActiveFirebaseConfig() {
+        if (window.firebaseConfig && typeof window.firebaseConfig === 'object' && window.firebaseConfig.apiKey) {
+            return window.firebaseConfig;
+        }
+        try {
+            const stored = localStorage.getItem(FIREBASE_CONFIG_STORAGE_KEY);
+            if (stored) {
+                const parsed = parseFirebaseConfig(stored);
+                if (parsed && parsed.apiKey) return parsed;
+            }
+        } catch (e) { }
+        return null;
+    }
+
+    function updateCloudUIState(isConnected, config, errMsg) {
+        if (cloudStatusDot) {
+            if (isConnected) {
+                cloudStatusDot.classList.add('is-connected');
+                cloudStatusDot.classList.remove('is-syncing');
+            } else {
+                cloudStatusDot.classList.remove('is-connected', 'is-syncing');
+            }
+        }
+        if (cloudStatusText) {
+            cloudStatusText.textContent = isConnected ? 'Đám mây' : 'Chưa kết nối';
+        }
+        if (btnTopCloudSync) {
+            btnTopCloudSync.title = isConnected
+                ? `Đồng bộ đám mây: Đã kết nối với dự án "${config ? config.projectId : ''}"`
+                : 'Đồng bộ đám mây: Nhấp để kết nối Firebase';
+        }
+
+        if (cloudStatusBanner) {
+            if (isConnected) {
+                cloudStatusBanner.classList.add('is-connected');
+                if (cloudBannerIcon) cloudBannerIcon.textContent = '🟢';
+                if (cloudBannerTitle) cloudBannerTitle.textContent = `Đã kết nối đám mây (Dự án: ${config && config.projectId ? config.projectId : 'Firebase'})`;
+                if (cloudBannerDesc) cloudBannerDesc.textContent = 'Dữ liệu lịch & sự kiện sẽ tự động đồng bộ theo thời gian thực giữa máy tính và điện thoại.';
+                if (btnDisconnectFirebase) btnDisconnectFirebase.style.display = 'inline-block';
+                if (btnCloudManualSync) btnCloudManualSync.style.display = 'inline-flex';
+            } else {
+                cloudStatusBanner.classList.remove('is-connected');
+                if (cloudBannerIcon) cloudBannerIcon.textContent = '⚪';
+                if (cloudBannerTitle) cloudBannerTitle.textContent = errMsg ? `Lỗi: ${errMsg}` : 'Chưa kết nối Firebase';
+                if (cloudBannerDesc) cloudBannerDesc.textContent = 'Dán mã cấu hình Firebase bên dưới để đồng bộ dữ liệu thời gian thực giữa các thiết bị.';
+                if (btnDisconnectFirebase) btnDisconnectFirebase.style.display = 'none';
+                if (btnCloudManualSync) btnCloudManualSync.style.display = 'none';
+            }
+        }
+    }
+
+    function initFirebaseSync() {
+        const cfg = getActiveFirebaseConfig();
+        if (!cfg || !cfg.apiKey || typeof firebase === 'undefined') {
+            updateCloudUIState(false, null);
+            return false;
+        }
+
+        try {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(cfg);
+            }
+            firestoreDb = firebase.firestore();
+            updateCloudUIState(true, cfg);
+
+            const user = getCurrentUser();
+            if (user && user.email) {
+                attachFirestoreSyncForUser(user);
+            }
+            return true;
+        } catch (err) {
+            console.warn('Lỗi khởi tạo Firebase:', err);
+            updateCloudUIState(false, null, err.message);
+            return false;
+        }
+    }
+
+    function attachFirestoreSyncForUser(user) {
+        if (!firestoreDb || !user || !user.email) return;
+        const cleanEmail = user.email.trim().toLowerCase();
+
+        if (firestoreUnsubscribe) {
+            firestoreUnsubscribe();
+            firestoreUnsubscribe = null;
+        }
+
+        const docRef = firestoreDb.collection('user_calendars').doc(cleanEmail);
+
+        firestoreUnsubscribe = docRef.onSnapshot(doc => {
+            if (doc.exists) {
+                const data = doc.data() || {};
+                isIncomingCloudUpdate = true;
+                let changed = false;
+
+                if (Array.isArray(data.timelineEvents)) {
+                    cachedEventsMemory = data.timelineEvents;
+                    try {
+                        localStorage.setItem(getTimelineStorageKey(), JSON.stringify(data.timelineEvents));
+                    } catch (e) { }
+                    changed = true;
+                }
+
+                if (Array.isArray(data.calEvents)) {
+                    try {
+                        localStorage.setItem(getCalEventsStorageKey(), JSON.stringify(data.calEvents));
+                    } catch (e) { }
+                    changed = true;
+                }
+
+                if (Array.isArray(data.calCategories) && data.calCategories.length) {
+                    try {
+                        localStorage.setItem(getCalCatsStorageKey(), JSON.stringify(data.calCategories));
+                    } catch (e) { }
+                    changed = true;
+                }
+
+                if (Array.isArray(data.trackOrder) && data.trackOrder.length) {
+                    try {
+                        localStorage.setItem(getTrackOrderStorageKey(), JSON.stringify(data.trackOrder));
+                    } catch (e) { }
+                    changed = true;
+                }
+
+                if (data.userProfile && data.userProfile.name && data.userProfile.name !== user.name) {
+                    user.name = data.userProfile.name;
+                    if (data.userProfile.avatar !== undefined) user.avatar = data.userProfile.avatar;
+                    setCurrentUser(user);
+                    saveGoogleAccount(user);
+                    updateAuthUI();
+                }
+
+                if (changed) {
+                    renderEvents();
+                    if (typeof renderMonthlyCalendar === 'function' && typeof calSelectMonth !== 'undefined' && calSelectMonth) {
+                        renderMonthlyCalendar(parseInt(calSelectMonth.value, 10), parseInt(calSelectYear.value, 10));
+                    }
+                    if (typeof showToastNotification === 'function') {
+                        showToastNotification('Đã đồng bộ dữ liệu mới nhất từ Đám mây!', '☁️ Firebase Sync');
+                    }
+                }
+                setTimeout(() => { isIncomingCloudUpdate = false; }, 200);
+            } else {
+                pushLocalDataToCloud(cleanEmail);
+            }
+        }, err => {
+            console.warn('Lỗi Firestore onSnapshot:', err);
+        });
+    }
+
+    function pushLocalDataToCloud(targetEmail) {
+        if (!firestoreDb) return;
+        const user = getCurrentUser();
+        const email = targetEmail || (user ? user.email : null);
+        if (!email) return;
+        const cleanEmail = email.trim().toLowerCase();
+
+        if (cloudStatusDot) cloudStatusDot.classList.add('is-syncing');
+
+        const timelineEvents = loadEvents();
+        const calEvents = loadCalEvents();
+        const calCategories = loadCalCategories();
+        const trackOrder = loadTrackOrder(currentTotalTracks);
+        const userProfile = {
+            name: user ? user.name : '',
+            avatar: user ? (user.avatar || '') : ''
+        };
+
+        const docRef = firestoreDb.collection('user_calendars').doc(cleanEmail);
+        docRef.set({
+            email: cleanEmail,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedFrom: navigator.userAgent.includes('Mobile') ? 'mobile' : 'desktop',
+            timelineEvents,
+            calEvents,
+            calCategories,
+            trackOrder,
+            userProfile
+        }, { merge: true })
+        .then(() => {
+            if (cloudStatusDot) {
+                cloudStatusDot.classList.remove('is-syncing');
+                cloudStatusDot.classList.add('is-connected');
+            }
+        })
+        .catch(err => {
+            console.warn('Lỗi khi đẩy dữ liệu lên Firestore:', err);
+            if (cloudStatusDot) cloudStatusDot.classList.remove('is-syncing');
+        });
+    }
+
+    function scheduleCloudPush() {
+        if (!firestoreDb || isIncomingCloudUpdate) return;
+        const user = getCurrentUser();
+        if (!user || !user.email) return;
+
+        if (cloudPushTimeout) clearTimeout(cloudPushTimeout);
+        cloudPushTimeout = setTimeout(() => {
+            pushLocalDataToCloud(user.email);
+        }, 500);
+    }
+
+    function openCloudModal() {
+        if (!modalCloudSync) return;
+        const activeCfg = getActiveFirebaseConfig();
+        if (inputFirebaseConfig) {
+            if (activeCfg) {
+                inputFirebaseConfig.value = JSON.stringify(activeCfg, null, 2);
+            } else {
+                inputFirebaseConfig.value = '';
+            }
+        }
+        updateCloudUIState(!!(firestoreDb && activeCfg), activeCfg);
+        modalCloudSync.classList.add('is-active');
+        modalCloudSync.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeCloudModal() {
+        if (!modalCloudSync) return;
+        modalCloudSync.classList.remove('is-active');
+        modalCloudSync.setAttribute('aria-hidden', 'true');
+    }
+
+    if (btnTopCloudSync) {
+        btnTopCloudSync.addEventListener('click', openCloudModal);
+    }
+
+    if (btnCloseCloudModal) {
+        btnCloseCloudModal.addEventListener('click', closeCloudModal);
+    }
+
+    if (btnCancelCloudModal) {
+        btnCancelCloudModal.addEventListener('click', closeCloudModal);
+    }
+
+    if (btnSaveFirebaseConfig) {
+        btnSaveFirebaseConfig.addEventListener('click', () => {
+            const raw = inputFirebaseConfig ? inputFirebaseConfig.value.trim() : '';
+            if (!raw) {
+                alert('Vui lòng dán mã cấu hình Firebase trước khi lưu!');
+                return;
+            }
+            const cfg = parseFirebaseConfig(raw);
+            if (!cfg || !cfg.apiKey) {
+                alert('Mã cấu hình không hợp lệ hoặc thiếu apiKey/projectId. Vui lòng kiểm tra lại!');
+                return;
+            }
+
+            try {
+                localStorage.setItem(FIREBASE_CONFIG_STORAGE_KEY, JSON.stringify(cfg));
+                const ok = initFirebaseSync();
+                if (ok) {
+                    closeCloudModal();
+                    if (typeof showToastNotification === 'function') {
+                        showToastNotification(`Đã kết nối thành công với dự án "${cfg.projectId}"!`, '☁️ Đám mây Firebase');
+                    }
+                    const user = getCurrentUser();
+                    if (user && user.email) {
+                        pushLocalDataToCloud(user.email);
+                    }
+                } else {
+                    alert('Không thể khởi tạo Firebase với cấu hình này. Vui lòng kiểm tra lại apiKey hoặc quyền truy cập mạng.');
+                }
+            } catch (err) {
+                alert('Lỗi khi lưu cấu hình: ' + err.message);
+            }
+        });
+    }
+
+    if (btnDisconnectFirebase) {
+        btnDisconnectFirebase.addEventListener('click', () => {
+            if (confirm('Bạn có chắc muốn ngắt kết nối đồng bộ đám mây Firebase trên thiết bị này?')) {
+                localStorage.removeItem(FIREBASE_CONFIG_STORAGE_KEY);
+                if (firestoreUnsubscribe) {
+                    firestoreUnsubscribe();
+                    firestoreUnsubscribe = null;
+                }
+                firestoreDb = null;
+                updateCloudUIState(false, null);
+                closeCloudModal();
+                if (typeof showToastNotification === 'function') {
+                    showToastNotification('Đã ngắt kết nối đồng bộ đám mây', '☁️ Firebase');
+                }
+            }
+        });
+    }
+
+    if (btnCloudManualSync) {
+        btnCloudManualSync.addEventListener('click', () => {
+            const user = getCurrentUser();
+            if (!user || !user.email) {
+                alert('Vui lòng đăng nhập trước khi đồng bộ!');
+                return;
+            }
+            pushLocalDataToCloud(user.email);
+            if (typeof showToastNotification === 'function') {
+                showToastNotification('Đã gửi toàn bộ dữ liệu sự kiện lên Đám mây!', '☁️ Firebase');
             }
         });
     }
@@ -1337,6 +1720,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Không thể lưu vào LocalStorage do vượt hạn mức trình duyệt:', err2);
             }
         }
+        // Tự động đẩy lên đám mây Firebase nếu đã kết nối
+        if (typeof scheduleCloudPush === 'function') {
+            scheduleCloudPush();
+        }
     }
 
     // Tính toán chữ đếm ngược: nếu từ 1 ngày trở lên dạng xdyh (VD: 17d 20h, 1d 11h),
@@ -1969,15 +2356,8 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Lỗi khi lưu timeline_track_order:', e);
         }
 
-        // Đồng bộ thứ tự hàng lên Cloud nếu có cấu hình
-        if (typeof currentFirebaseUser !== 'undefined' && currentFirebaseUser && typeof firestoreDb !== 'undefined' && firestoreDb) {
-            try {
-                firestoreDb.collection('timeline_users').doc(currentFirebaseUser.uid).set({
-                    trackOrder: order
-                }, { merge: true }).catch(err => {
-                    console.warn('Lỗi khi đồng bộ thứ tự hàng lên Cloud:', err);
-                });
-            } catch (err) { }
+        if (typeof scheduleCloudPush === 'function') {
+            scheduleCloudPush();
         }
     }
 
@@ -5470,6 +5850,9 @@ Quy tắc bóc tách:
         } catch (e) {
             console.error('Lỗi khi lưu sự kiện lịch:', e);
         }
+        if (typeof scheduleCloudPush === 'function') {
+            scheduleCloudPush();
+        }
     }
 
     function loadCalCategories() {
@@ -5489,6 +5872,9 @@ Quy tắc bóc tách:
             const key = getCalCatsStorageKey();
             localStorage.setItem(key, JSON.stringify(cats));
         } catch (e) { }
+        if (typeof scheduleCloudPush === 'function') {
+            scheduleCloudPush();
+        }
     }
 
     function deleteCalCategory(catId) {
@@ -6633,6 +7019,7 @@ Quy tắc bóc tách:
     renderEvents();
     initMonthlyCalendar();
     updateAuthUI();
+    initFirebaseSync();
 
     // Cập nhật vị trí vạch thời gian mỗi giây
     setInterval(updateCurrentTime, 1000);

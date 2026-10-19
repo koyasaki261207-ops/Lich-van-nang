@@ -24,36 +24,45 @@
             <!-- Tiêu đề Lịch Vạn Năng ở góc trên trái & Thẻ tài khoản ở góc phải -->
             <div class="calendar-top-header">
                 <h1 class="calendar-main-title">Lịch Vạn Năng</h1>
-                <div class="top-user-profile-badge" id="top-user-profile-badge" style="display: none;">
-                    <div class="user-avatar-wrap" id="user-avatar-wrap" title="Nhấp để thay đổi ảnh đại diện">
-                        <div class="user-avatar-circle" id="user-avatar-circle">G</div>
-                        <div class="avatar-edit-overlay">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                                <circle cx="12" cy="13" r="4"></circle>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="top-user-info" id="top-user-info" title="Nhấp để đổi tên tài khoản và ảnh đại diện" style="cursor: pointer;">
-                        <div class="top-user-name-row">
-                            <span class="top-user-name" id="top-user-name">Tài khoản</span>
-                            <button type="button" class="btn-quick-edit-name" id="btn-quick-edit-name" title="Chỉnh sửa tên hiển thị">
-                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M12 20h9"></path>
-                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-                                </svg>
-                            </button>
-                        </div>
-                        <span class="top-user-email" id="top-user-email">user@gmail.com</span>
-                    </div>
-                    <button type="button" class="btn-top-logout" id="btn-top-logout" title="Đăng xuất / Đổi tài khoản khác">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                            <polyline points="16 17 21 12 16 7"></polyline>
-                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                <div class="top-header-actions">
+                    <button type="button" class="btn-top-cloud-sync" id="btn-top-cloud-sync" title="Đồng bộ đám mây (Firebase)">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                            <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path>
                         </svg>
-                        <span>Đổi tài khoản</span>
+                        <span class="cloud-status-dot" id="cloud-status-dot"></span>
+                        <span class="cloud-status-text" id="cloud-status-text">Đám mây</span>
                     </button>
+                    <div class="top-user-profile-badge" id="top-user-profile-badge" style="display: none;">
+                        <div class="user-avatar-wrap" id="user-avatar-wrap" title="Nhấp để thay đổi ảnh đại diện">
+                            <div class="user-avatar-circle" id="user-avatar-circle">G</div>
+                            <div class="avatar-edit-overlay">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                    <circle cx="12" cy="13" r="4"></circle>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="top-user-info" id="top-user-info" title="Nhấp để đổi tên tài khoản và ảnh đại diện" style="cursor: pointer;">
+                            <div class="top-user-name-row">
+                                <span class="top-user-name" id="top-user-name">Tài khoản</span>
+                                <button type="button" class="btn-quick-edit-name" id="btn-quick-edit-name" title="Chỉnh sửa tên hiển thị">
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 20h9"></path>
+                                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <span class="top-user-email" id="top-user-email">user@gmail.com</span>
+                        </div>
+                        <button type="button" class="btn-top-logout" id="btn-top-logout" title="Đăng xuất / Đổi tài khoản khác">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                            <span>Đổi tài khoản</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -1374,6 +1383,89 @@
     </div>
 
     <!-- ========================================================
+         MODAL ĐỒNG BỘ ĐÁM MÂY (FIREBASE CLOUD SYNC)
+         ======================================================== -->
+    <div class="modal-overlay" id="modal-cloud-sync" aria-hidden="true">
+        <div class="modal-card modal-card-cloud-sync">
+            <div class="modal-header">
+                <div class="modal-header-icon" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path>
+                    </svg>
+                </div>
+                <div class="modal-header-text">
+                    <h2 class="modal-title">Đồng bộ Đám mây (Firebase)</h2>
+                    <p class="modal-subtitle">Tự động đồng bộ lịch và sự kiện giữa Máy tính và Điện thoại</p>
+                </div>
+                <button type="button" class="btn-close-modal" id="btn-close-cloud-modal" aria-label="Đóng">✕</button>
+            </div>
+
+            <div class="modal-body" style="padding-top: 14px;">
+                <!-- Trạng thái kết nối hiện tại -->
+                <div class="cloud-status-banner" id="cloud-status-banner">
+                    <div class="cloud-status-banner-icon" id="cloud-banner-icon">⚪</div>
+                    <div class="cloud-status-banner-text">
+                        <div class="cloud-status-banner-title" id="cloud-banner-title">Chưa kết nối Firebase</div>
+                        <div class="cloud-status-banner-desc" id="cloud-banner-desc">Dán mã cấu hình Firebase bên dưới để đồng bộ dữ liệu thời gian thực giữa các thiết bị.</div>
+                    </div>
+                    <button type="button" class="btn-cloud-manual-sync" id="btn-cloud-manual-sync" style="display: none;" title="Đồng bộ lại dữ liệu ngay bây giờ">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <polyline points="1 20 1 14 7 14"></polyline>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                        <span>Đồng bộ ngay</span>
+                    </button>
+                </div>
+
+                <!-- Ô nhập cấu hình Firebase -->
+                <div class="cloud-config-section">
+                    <label for="input-firebase-config" class="cloud-config-label">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <polyline points="16 18 22 12 16 6"></polyline>
+                            <polyline points="8 6 2 12 8 18"></polyline>
+                        </svg>
+                        <span>Mã cấu hình Firebase (firebaseConfig):</span>
+                    </label>
+                    <textarea id="input-firebase-config" class="cloud-config-textarea" rows="5" placeholder="Dán đoạn mã const firebaseConfig = { ... } hoặc JSON cấu hình từ Firebase Console vào đây..."></textarea>
+                </div>
+
+                <!-- Hướng dẫn nhanh các bước -->
+                <div class="cloud-quick-guide">
+                    <div class="cloud-guide-title">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                        <span>Cách lấy mã cấu hình miễn phí từ Google (chỉ mất 2 phút):</span>
+                    </div>
+                    <ol class="cloud-guide-steps">
+                        <li>Vào <a href="https://console.firebase.google.com" target="_blank" rel="noopener noreferrer">console.firebase.google.com</a>, bấm <strong>Add project</strong> (Tạo dự án).</li>
+                        <li>Bấm <strong>Build &gt; Firestore Database &gt; Create Database</strong> (chọn <em>Start in test mode</em>).</li>
+                        <li>Vào <strong>Project Settings (Cài đặt bánh răng) &gt; Your apps &gt; Web (&lt;/&gt;)</strong>, copy đoạn <code>firebaseConfig = { ... }</code> dán vào ô trên.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+                <button type="button" class="btn-secondary" id="btn-cancel-cloud-modal">Đóng</button>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" class="btn-danger-text" id="btn-disconnect-firebase" style="display: none; padding: 6px 12px; font-size: 12px;">Ngắt kết nối</button>
+                    <button type="button" class="btn-primary" id="btn-save-firebase-config">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        <span>Lưu & Kết Nối Đám Mây</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================
          MÀN HÌNH ĐĂNG NHẬP / CHÀO MỪNG (Login Gate Overlay)
          ======================================================== -->
     <div class="login-gate-overlay" id="login-gate-overlay">
@@ -1499,6 +1591,10 @@
         </div>
     </div>
 
+    <!-- Firebase SDK v9 compat -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
     <script src="app.js"></script>
 </body>
 

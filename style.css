@@ -6396,3 +6396,211 @@ body.is-reordering-tracks * {
     display: none;
   }
 }
+
+/* ========================================================
+   GIAO DIỆN ĐỒNG BỘ ĐÁM MÂY (FIREBASE CLOUD SYNC)
+   ======================================================== */
+.top-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-top-cloud-sync {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  border-radius: 20px;
+  padding: 6px 12px;
+  color: #e2e8f0;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+
+.btn-top-cloud-sync:hover {
+  background: rgba(30, 41, 59, 0.9);
+  border-color: #38bdf8;
+  color: #38bdf8;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+  transform: translateY(-1px);
+}
+
+.cloud-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #94a3b8;
+  transition: all 0.25s ease;
+}
+
+.cloud-status-dot.is-connected {
+  background: #22c55e;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.7);
+}
+
+.cloud-status-dot.is-syncing {
+  background: #38bdf8;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.9);
+  animation: pulse-sync 1s infinite alternate;
+}
+
+@keyframes pulse-sync {
+  0% { transform: scale(0.9); opacity: 0.6; }
+  100% { transform: scale(1.3); opacity: 1; }
+}
+
+.modal-card-cloud-sync {
+  max-width: 540px;
+}
+
+.cloud-status-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  margin-bottom: 14px;
+}
+
+.cloud-status-banner.is-connected {
+  background: rgba(34, 197, 94, 0.08);
+  border-color: rgba(34, 197, 94, 0.35);
+}
+
+.cloud-status-banner-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.cloud-status-banner-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.cloud-status-banner-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin-bottom: 2px;
+}
+
+.cloud-status-banner.is-connected .cloud-status-banner-title {
+  color: #4ade80;
+}
+
+.cloud-status-banner-desc {
+  font-size: 11px;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+.btn-cloud-manual-sync {
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  color: #38bdf8;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.btn-cloud-manual-sync:hover {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #38bdf8;
+}
+
+.cloud-config-section {
+  margin-bottom: 14px;
+}
+
+.cloud-config-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #38bdf8;
+  margin-bottom: 6px;
+}
+
+.cloud-config-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+  color: #f1f5f9;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 10px;
+  resize: vertical;
+  line-height: 1.5;
+  transition: all 0.2s ease;
+}
+
+.cloud-config-textarea:focus {
+  outline: none;
+  border-color: #38bdf8;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.35);
+  background: rgba(15, 23, 42, 0.95);
+}
+
+.cloud-quick-guide {
+  padding: 12px 14px;
+  border-radius: 11px;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px dashed rgba(148, 163, 184, 0.25);
+  font-size: 11.5px;
+}
+
+.cloud-guide-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #e2e8f0;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.cloud-guide-steps {
+  margin: 0;
+  padding-left: 20px;
+  color: #94a3b8;
+  line-height: 1.6;
+}
+
+.cloud-guide-steps a {
+  color: #38bdf8;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.cloud-guide-steps a:hover {
+  text-decoration: underline;
+}
+
+.cloud-guide-steps strong {
+  color: #f8fafc;
+}
+
+.cloud-guide-steps code {
+  background: rgba(15, 23, 42, 0.7);
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: #38bdf8;
+  font-size: 11px;
+}
