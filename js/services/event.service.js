@@ -178,9 +178,7 @@ export function saveEvents(events) {
         }
     }
     // Tự động đẩy lên đám mây Firebase nếu đã kết nối
-    if (typeof scheduleCloudPush === 'function') {
-        scheduleCloudPush();
-    }
+    scheduleCloudPush();
 }
 
 // ========================================================
@@ -216,7 +214,5 @@ export function saveTrackOrder(order) {
         console.error('Lỗi khi lưu timeline_track_order:', e);
     }
 
-    if (typeof scheduleCloudPush === 'function') {
-        scheduleCloudPush();
-    }
+    scheduleCloudPush();
 }

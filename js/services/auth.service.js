@@ -135,3 +135,51 @@ export async function signInWithGooglePopup(cfg) {
 export function watchFirebaseAuth(callback) {
     return getFirebaseSdk().onAuthStateChanged(getFirebaseAuth(), callback);
 }
+
+// Bắt đầu phiên cho email (tự nhận diện tài khoản đã lưu nếu chỉ gõ phần trước @), trả về user
+export function startSession(email, customName, avatarUrl) {
+    let cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail.includes('@')) {
+        cleanEmail += '@gmail.com';
+    }
+    // Tự động nhận diện tài khoản đã lưu nếu người dùng chỉ nhập tên gợi nhớ (VD: gõ koyasaki tự nhận diện koyasaki261207@gmail.com)
+    const savedAccs = getSavedGoogleAccounts();
+    if (!email.includes('@')) {
+        const prefix = email.trim().toLowerCase();
+        const matched = savedAccs.find(a => 
+            a.email.toLowerCase() === cleanEmail ||
+            a.email.toLowerCase().startsWith(prefix) ||
+            prefix.startsWith(a.email.toLowerCase().split('@')[0])
+        );
+        if (matched) {
+            cleanEmail = matched.email.toLowerCase();
+        }
+    }
+
+    const usernamePart = cleanEmail.split('@')[0];
+    const existingAcc = savedAccs.find(a => a.email.toLowerCase() === cleanEmail);
+    const name = customName || (existingAcc ? existingAcc.name : '') || (usernamePart.charAt(0).toUpperCase() + usernamePart.slice(1));
+    const userAvatar = avatarUrl || (existingAcc ? existingAcc.avatar : '') || '';
+
+    const userObj = {
+        id: cleanEmail,
+        email: cleanEmail,
+        name: name,
+        avatar: userAvatar,
+        loginAt: new Date().toISOString()
+    };
+
+    S.isInitialCloudPullComplete = false;
+    setCurrentUser(userObj);
+    saveGoogleAccount(userObj); // Tự động ghi nhớ tài khoản để hiển thị trong Google Account Chooser
+    S.cachedEventsMemory = null;
+
+    return userObj;
+}
+
+// Kết thúc phiên hiện tại (đăng xuất Firebase nếu có)
+export function endSession() {
+    signOutFirebase();
+    setCurrentUser(null);
+    S.cachedEventsMemory = null;
+}

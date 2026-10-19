@@ -93,9 +93,7 @@ export function saveCalEvents(events) {
     } catch (e) {
         console.error('Lỗi khi lưu sự kiện lịch:', e);
     }
-    if (typeof scheduleCloudPush === 'function') {
-        scheduleCloudPush();
-    }
+    scheduleCloudPush();
 }
 
 export function loadCalCategories() {
@@ -115,9 +113,7 @@ export function saveCalCategories(cats) {
         const key = getCalCatsStorageKey();
         localStorage.setItem(key, JSON.stringify(cats));
     } catch (e) { }
-    if (typeof scheduleCloudPush === 'function') {
-        scheduleCloudPush();
-    }
+    scheduleCloudPush();
 }
 
 // Xoá một loại nhãn đã có kiểm tra (không hiển thị hộp thoại; UI tự xác nhận trước khi gọi)

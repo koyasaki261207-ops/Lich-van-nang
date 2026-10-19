@@ -4,8 +4,8 @@ import { S } from '../state/store.js';
 import { getActiveFirebaseConfig, loadFirebaseSdk } from '../config/firebase.js';
 import { escapeHtml } from '../core/html.js';
 import { PRESET_AVATARS } from '../data/avatar-presets.js';
-import { getCurrentUser, getSavedGoogleAccounts, removeSavedGoogleAccount, saveGoogleAccount, setCurrentUser, signInWithGooglePopup, signOutFirebase } from '../services/auth.service.js';
-import { attachFirestoreSyncForUser, scheduleCloudPush } from '../services/sync.service.js';
+import { endSession, getCurrentUser, getSavedGoogleAccounts, removeSavedGoogleAccount, saveGoogleAccount, setCurrentUser, signInWithGooglePopup, startSession } from '../services/auth.service.js';
+import { attachFirestoreSyncForUser, detachFirestoreSync, scheduleCloudPush } from '../services/sync.service.js';
 import { calSelectYear, renderMonthlyCalendar } from './calendar.view.js';
 import { renderEvents } from './timeline.view.js';
 import { showToastNotification } from './toast.js';
@@ -214,47 +214,11 @@ export function updateAuthUI() {
 
 export function performLogin(email, customName, avatarUrl) {
     if (!email) return;
-    let cleanEmail = email.trim().toLowerCase();
-    if (!cleanEmail.includes('@')) {
-        cleanEmail += '@gmail.com';
-    }
-    // Tự động nhận diện tài khoản đã lưu nếu người dùng chỉ nhập tên gợi nhớ (VD: gõ koyasaki tự nhận diện koyasaki261207@gmail.com)
-    const savedAccs = getSavedGoogleAccounts();
-    if (!email.includes('@')) {
-        const prefix = email.trim().toLowerCase();
-        const matched = savedAccs.find(a => 
-            a.email.toLowerCase() === cleanEmail ||
-            a.email.toLowerCase().startsWith(prefix) ||
-            prefix.startsWith(a.email.toLowerCase().split('@')[0])
-        );
-        if (matched) {
-            cleanEmail = matched.email.toLowerCase();
-        }
-    }
-
-    const usernamePart = cleanEmail.split('@')[0];
-    const existingAcc = savedAccs.find(a => a.email.toLowerCase() === cleanEmail);
-    const name = customName || (existingAcc ? existingAcc.name : '') || (usernamePart.charAt(0).toUpperCase() + usernamePart.slice(1));
-    const userAvatar = avatarUrl || (existingAcc ? existingAcc.avatar : '') || '';
-
-    const userObj = {
-        id: cleanEmail,
-        email: cleanEmail,
-        name: name,
-        avatar: userAvatar,
-        loginAt: new Date().toISOString()
-    };
-
-    S.isInitialCloudPullComplete = false;
-    setCurrentUser(userObj);
-    saveGoogleAccount(userObj); // Tự động ghi nhớ tài khoản để hiển thị trong Google Account Chooser
-    S.cachedEventsMemory = null;
+    const userObj = startSession(email, customName, avatarUrl);
     updateAuthUI();
 
     // Tự động kết nối đồng bộ đám mây Firebase nếu đã cấu hình
-    if (typeof attachFirestoreSyncForUser === 'function') {
-        attachFirestoreSyncForUser(userObj);
-    }
+    attachFirestoreSyncForUser(userObj);
 
     // Tự động tải lại lịch cá nhân và timeline riêng của tài khoản này
     renderEvents();
@@ -266,13 +230,8 @@ export function performLogin(email, customName, avatarUrl) {
 }
 
 export function performLogout() {
-    signOutFirebase();
-    if (S.firestoreUnsubscribe) {
-        S.firestoreUnsubscribe();
-        S.firestoreUnsubscribe = null;
-    }
-    setCurrentUser(null);
-    S.cachedEventsMemory = null;
+    detachFirestoreSync();
+    endSession();
     updateAuthUI();
     showGoogleChooserPanel(); // Hiển thị sẵn danh sách các tài khoản Google đã lưu trên máy để chuyển đổi 1-click!
 
@@ -502,12 +461,8 @@ if (btnSaveAvatarModal) {
         updateAuthUI();
         renderGoogleAccountsList();
         closeAvatarModal();
-        if (typeof scheduleCloudPush === 'function') {
-            scheduleCloudPush();
-        }
-        if (typeof showToastNotification === 'function') {
-            showToastNotification(`Đã lưu thông tin "${user.name}" và đồng bộ đám mây!`, '👤 Hồ sơ tài khoản');
-        }
+        scheduleCloudPush();
+        showToastNotification(`Đã lưu thông tin "${user.name}" và đồng bộ đám mây!`, '👤 Hồ sơ tài khoản');
     });
 }
 
@@ -518,9 +473,7 @@ async function loginWithGoogle() {
     const cfg = getActiveFirebaseConfig();
     const sdk = await loadFirebaseSdk();
     if (!cfg || !cfg.apiKey || !sdk) {
-        if (typeof showToastNotification === 'function') {
-            showToastNotification('Chưa tải được Firebase Authentication. Đang mở danh sách tài khoản...', '⚠️ Thông báo');
-        }
+        showToastNotification('Chưa tải được Firebase Authentication. Đang mở danh sách tài khoản...', '⚠️ Thông báo');
         showGoogleChooserPanel();
         return;
     }
@@ -547,9 +500,7 @@ async function loginWithGoogle() {
             const photoURL = user.photoURL || '';
 
             performLogin(email, displayName, photoURL);
-            if (typeof showToastNotification === 'function') {
-                showToastNotification(`Đăng nhập Google thành công! Xin chào "${displayName}"`, '🎉 Google Sign-in');
-            }
+            showToastNotification(`Đăng nhập Google thành công! Xin chào "${displayName}"`, '🎉 Google Sign-in');
         }
     } catch (error) {
         console.error('Lỗi khi đăng nhập Google qua Firebase:', error);

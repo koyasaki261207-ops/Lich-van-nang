@@ -215,9 +215,7 @@ if (btnSaveFirebaseConfig) {
             const ok = await initFirebaseSync();
             if (ok) {
                 closeCloudModal();
-                if (typeof showToastNotification === 'function') {
-                    showToastNotification(`Đã kết nối thành công với dự án "${cfg.projectId}"!`, '☁️ Đám mây Firebase');
-                }
+                showToastNotification(`Đã kết nối thành công với dự án "${cfg.projectId}"!`, '☁️ Đám mây Firebase');
                 const user = getCurrentUser();
                 if (user && user.email) {
                     pushLocalDataToCloud(user.email);
@@ -238,9 +236,7 @@ if (btnDisconnectFirebase) {
             disconnectCloud();
             updateCloudUIState(false, null);
             closeCloudModal();
-            if (typeof showToastNotification === 'function') {
-                showToastNotification('Đã ngắt kết nối đồng bộ đám mây', '☁️ Firebase');
-            }
+            showToastNotification('Đã ngắt kết nối đồng bộ đám mây', '☁️ Firebase');
         }
     });
 }
@@ -253,9 +249,7 @@ if (btnCloudManualSync) {
             return;
         }
         pushLocalDataToCloud(user.email);
-        if (typeof showToastNotification === 'function') {
-            showToastNotification('Đã gửi toàn bộ dữ liệu sự kiện lên Đám mây!', '☁️ Firebase');
-        }
+        showToastNotification('Đã gửi toàn bộ dữ liệu sự kiện lên Đám mây!', '☁️ Firebase');
     });
 }
 
@@ -280,11 +274,7 @@ if (btnCloudRestoreBackup) {
         }
 
         if (restoredTL || restoredCal) {
-            if (typeof showToastNotification === 'function') {
-                showToastNotification('Đã khôi phục thành công toàn bộ sự kiện gốc!', '🔄 Khôi phục hoàn tất');
-            } else {
-                alert('Đã khôi phục thành công toàn bộ sự kiện gốc!');
-            }
+            showToastNotification('Đã khôi phục thành công toàn bộ sự kiện gốc!', '🔄 Khôi phục hoàn tất');
             closeCloudModal();
         } else {
             alert('Không tìm thấy bản sao lưu cũ nào trên thiết bị này.');

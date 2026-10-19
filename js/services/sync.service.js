@@ -26,6 +26,14 @@ export function connectCloud() {
     S.firestoreDb = getFirestoreDb();
 }
 
+// Ngừng lắng nghe tài liệu Firestore của người dùng hiện tại
+export function detachFirestoreSync() {
+    if (S.firestoreUnsubscribe) {
+        S.firestoreUnsubscribe();
+        S.firestoreUnsubscribe = null;
+    }
+}
+
 export function disconnectCloud() {
     if (S.firestoreUnsubscribe) {
         S.firestoreUnsubscribe();
