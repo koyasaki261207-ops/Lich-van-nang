@@ -1,7 +1,7 @@
 // Service Worker cho PWA & Thông báo đẩy (Web Push / Local Push) - Lịch Vạn Năng
-const CACHE_NAME = 'lich-van-nang-v1';
+const CACHE_NAME = 'lich-van-nang-v2';
 
-// Danh sách các tệp giao diện cốt lõi cần lưu vào bộ nhớ cache
+// Danh sách các tệp giao diện cốt lõi cần lưu vào bộ nhớ cache để chạy Offline 100%
 const STATIC_ASSETS = [
     './',
     './index.html',
@@ -16,7 +16,42 @@ const STATIC_ASSETS = [
     './css/calendar.css',
     './css/responsive.css',
     './css/auth.css',
-    './js/main.js'
+    './js/main.js',
+    './js/config/firebase.js',
+    './js/core/banner-catalog.js',
+    './js/core/calendar-events.js',
+    './js/core/color.js',
+    './js/core/constants.js',
+    './js/core/date-utils.js',
+    './js/core/event-layout.js',
+    './js/core/holidays.js',
+    './js/core/html.js',
+    './js/core/lunar.js',
+    './js/core/recurrence.js',
+    './js/data/avatar-presets.js',
+    './js/services/ai.service.js',
+    './js/services/auth.service.js',
+    './js/services/calendar.service.js',
+    './js/services/event.service.js',
+    './js/services/notification.service.js',
+    './js/services/sync.service.js',
+    './js/state/store.js',
+    './js/ui/ai-scan.view.js',
+    './js/ui/auth.view.js',
+    './js/ui/calendar-event-form.js',
+    './js/ui/calendar-event-view.js',
+    './js/ui/calendar.view.js',
+    './js/ui/cloud.view.js',
+    './js/ui/day-detail.view.js',
+    './js/ui/day-timeline.view.js',
+    './js/ui/event-detail.view.js',
+    './js/ui/event-form.js',
+    './js/ui/image-cropper.view.js',
+    './js/ui/notification.view.js',
+    './js/ui/tag-filter.view.js',
+    './js/ui/timeline.view.js',
+    './js/ui/toast.js',
+    './js/ui/track-manager.view.js'
 ];
 
 // 1. Cài đặt Service Worker và nạp trước cache
