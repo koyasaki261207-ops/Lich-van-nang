@@ -7,7 +7,7 @@ const FIREBASE_VERSION = '10.14.1';
 const SDK_BASE = `https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}`;
 
 export const DEFAULT_FIREBASE_CONFIG = {
-    apiKey: 'AIzaSyBpW-HumKLjtaclatO_V65OWi_sS3J3a7w',
+    apiKey: 'AIzaSyBpW-HumKLjtac1atO_V65OWi_sS3J3a7w',
     authDomain: 'lich-van-nang.firebaseapp.com',
     projectId: 'lich-van-nang',
     storageBucket: 'lich-van-nang.firebasestorage.app',
@@ -103,9 +103,6 @@ export function parseFirebaseConfig(raw) {
 }
 
 export function getActiveFirebaseConfig() {
-    if (DEFAULT_FIREBASE_CONFIG.apiKey) {
-        return DEFAULT_FIREBASE_CONFIG;
-    }
     try {
         const stored = localStorage.getItem(FIREBASE_CONFIG_STORAGE_KEY);
         if (stored) {
@@ -113,5 +110,8 @@ export function getActiveFirebaseConfig() {
             if (parsed && parsed.apiKey) return parsed;
         }
     } catch (e) { }
+    if (DEFAULT_FIREBASE_CONFIG.apiKey) {
+        return DEFAULT_FIREBASE_CONFIG;
+    }
     return null;
 }

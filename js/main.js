@@ -3,6 +3,7 @@
 import { updateAuthUI } from './ui/auth.view.js';
 import { initMonthlyCalendar } from './ui/calendar.view.js';
 import { initFirebaseSync } from './ui/cloud.view.js';
+import { initNotificationUI } from './ui/notification.view.js';
 import { handleScreenResize, renderEvents, renderTimelineScale, scrollToToday, syncColWidthCss, timelineViewport, updateCurrentTime, updatePinnedMonth } from './ui/timeline.view.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -26,6 +27,8 @@ document.addEventListener('DOMContentLoaded', () => {
     updateAuthUI();
 
     initFirebaseSync();
+
+    initNotificationUI();
 
     // Cập nhật vị trí vạch thời gian mỗi giây
     setInterval(updateCurrentTime, 1000);

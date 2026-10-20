@@ -1,0 +1,217 @@
+// Giao diện điều khiển Thông báo & Cài đặt PWA cho Lịch Vạn Năng
+
+import {
+    getNotificationPermission,
+    initPwaInstallPrompt,
+    isIosDevice,
+    isNotificationSupported,
+    isStandaloneApp,
+    promptPwaInstall,
+    registerServiceWorker,
+    requestNotificationPermission,
+    sendTestNotification
+} from '../services/notification.service.js';
+import { showToastNotification } from './toast.js';
+
+export function initNotificationUI() {
+    // 1. Đăng ký Service Worker
+    registerServiceWorker();
+
+    // 2. Tham chiếu các phần tử DOM
+    const btnInstallPwa = document.getElementById('btn-install-pwa');
+    const btnNotificationToggle = document.getElementById('btn-notification-toggle');
+    const notiBadgeDot = document.getElementById('noti-badge-dot');
+    const btnNotiLabel = document.getElementById('btn-noti-label');
+
+    const modalNotification = document.getElementById('modal-notification-center');
+    const btnCloseNotiModal = document.getElementById('btn-close-noti-modal');
+    const btnModalRequestNoti = document.getElementById('btn-modal-request-noti');
+    const btnModalTestNoti = document.getElementById('btn-modal-test-noti');
+    const notiStatusBadge = document.getElementById('noti-status-badge');
+    const notiStatusText = document.getElementById('noti-status-text');
+
+    const modalIosInstall = document.getElementById('modal-ios-install');
+    const btnCloseIosModal = document.getElementById('btn-close-ios-modal');
+
+    // 3. Cập nhật giao diện trạng thái thông báo
+    function updateNotificationStateUI() {
+        const perm = getNotificationPermission();
+
+        if (notiBadgeDot) {
+            notiBadgeDot.className = 'noti-badge-dot';
+            if (perm === 'granted') {
+                notiBadgeDot.classList.add('is-granted');
+            } else if (perm === 'denied') {
+                notiBadgeDot.classList.add('is-denied');
+            } else {
+                notiBadgeDot.classList.add('is-default');
+            }
+        }
+
+        if (notiStatusBadge && notiStatusText) {
+            if (perm === 'granted') {
+                notiStatusBadge.className = 'noti-modal-badge status-granted';
+                notiStatusBadge.innerHTML = '● Đã cho phép';
+                notiStatusText.textContent = 'Thiết bị của bạn đã sẵn sàng nhận thông báo khi có sự kiện hoặc nhắc lịch!';
+                if (btnModalRequestNoti) btnModalRequestNoti.style.display = 'none';
+                if (btnModalTestNoti) btnModalTestNoti.style.display = 'inline-flex';
+            } else if (perm === 'denied') {
+                notiStatusBadge.className = 'noti-modal-badge status-denied';
+                notiStatusBadge.innerHTML = '● Bị chặn';
+                notiStatusText.textContent = 'Quyền thông báo đang bị chặn trong trình duyệt. Hãy nhấp vào biểu tượng Ổ khóa / Cài đặt cạnh thanh địa chỉ URL để Bật lại.';
+                if (btnModalRequestNoti) {
+                    btnModalRequestNoti.style.display = 'inline-flex';
+                    btnModalRequestNoti.textContent = 'Xem cách mở lại';
+                }
+                if (btnModalTestNoti) btnModalTestNoti.style.display = 'none';
+            } else {
+                notiStatusBadge.className = 'noti-modal-badge status-default';
+                notiStatusBadge.innerHTML = '● Chưa bật';
+                notiStatusText.textContent = 'Bật thông báo để nhận nhắc nhở sự kiện, lịch âm/dương trực tiếp trên màn hình máy tính hoặc điện thoại.';
+                if (btnModalRequestNoti) {
+                    btnModalRequestNoti.style.display = 'inline-flex';
+                    btnModalRequestNoti.textContent = 'Bật thông báo ngay';
+                }
+                if (btnModalTestNoti) btnModalTestNoti.style.display = 'inline-flex';
+            }
+        }
+    }
+
+    // 4. Xử lý nút Thông báo ở Header
+    if (btnNotificationToggle) {
+        btnNotificationToggle.addEventListener('click', () => {
+            const perm = getNotificationPermission();
+            // Nếu chưa xin quyền bao giờ, xin quyền trực tiếp trước
+            if (perm === 'default') {
+                requestNotificationPermission()
+                    .then((newPerm) => {
+                        updateNotificationStateUI();
+                        if (newPerm === 'granted') {
+                            showToastNotification('Đã bật quyền thông báo thành công!', 'Thông báo');
+                            sendTestNotification('Lịch Vạn Năng', 'Chào mừng bạn! Hệ thống thông báo đã sẵn sàng. 🎉');
+                        } else if (newPerm === 'denied') {
+                            showToastNotification('Bạn đã từ chối nhận thông báo.', 'Thông báo');
+                        }
+                    })
+                    .catch(() => {
+                        openNotiModal();
+                    });
+            } else {
+                openNotiModal();
+            }
+        });
+    }
+
+    function openNotiModal() {
+        if (!modalNotification) return;
+        updateNotificationStateUI();
+        modalNotification.classList.add('is-active');
+    }
+
+    function closeNotiModal() {
+        if (modalNotification) {
+            modalNotification.classList.remove('is-active');
+        }
+    }
+
+    if (btnCloseNotiModal) {
+        btnCloseNotiModal.addEventListener('click', closeNotiModal);
+    }
+
+    if (modalNotification) {
+        modalNotification.addEventListener('click', (e) => {
+            if (e.target === modalNotification) closeNotiModal();
+        });
+    }
+
+    // Nút xin cấp quyền trong Modal
+    if (btnModalRequestNoti) {
+        btnModalRequestNoti.addEventListener('click', async () => {
+            const perm = getNotificationPermission();
+            if (perm === 'denied') {
+                alert('Quyền thông báo hiện đang bị chặn. Vui lòng nhấp vào biểu tượng Ổ khóa trên thanh địa chỉ URL của trình duyệt, chọn "Quyền riêng tư" hoặc "Thông báo" rồi gạt sang "Cho phép".');
+                return;
+            }
+
+            try {
+                const res = await requestNotificationPermission();
+                updateNotificationStateUI();
+                if (res === 'granted') {
+                    showToastNotification('Đã cho phép thông báo thành công!', 'Thành công');
+                    await sendTestNotification('Lịch Vạn Năng', 'Chào mừng bạn! Thiết bị đã sẵn sàng nhận thông báo. 🎉');
+                }
+            } catch (err) {
+                console.warn(err);
+            }
+        });
+    }
+
+    // Nút Bắn thông báo thử nghiệm (Test)
+    if (btnModalTestNoti) {
+        btnModalTestNoti.addEventListener('click', async () => {
+            try {
+                await sendTestNotification('Lịch Vạn Năng 🎉', 'Kiểm tra thông báo thành công trên ' + (isIosDevice() ? 'iPhone' : 'thiết bị của bạn') + '!');
+                showToastNotification('Đã gửi thông báo thử nghiệm!', 'Thành công');
+            } catch (err) {
+                showToastNotification('Chưa thể gửi thông báo: ' + (err.message || 'Chưa cấp quyền'), 'Lỗi');
+            }
+        });
+    }
+
+    // 5. Xử lý nút Cài đặt Ứng dụng (PWA)
+    const isIOS = isIosDevice();
+    const isStandalone = isStandaloneApp();
+
+    if (btnInstallPwa) {
+        if (isStandalone) {
+            // Đã cài đặt làm App rồi thì ẩn nút
+            btnInstallPwa.style.display = 'none';
+        } else if (isIOS) {
+            // Nếu dùng iOS Safari, hiển thị nút "Cài vào iPhone"
+            btnInstallPwa.style.display = 'inline-flex';
+            const label = btnInstallPwa.querySelector('.btn-install-label');
+            if (label) label.textContent = 'Cài vào iPhone';
+
+            btnInstallPwa.addEventListener('click', () => {
+                if (modalIosInstall) modalIosInstall.classList.add('is-active');
+            });
+        } else {
+            // Trên Android / Windows / Mac: Lắng nghe prompt
+            initPwaInstallPrompt((isReady) => {
+                if (isReady && !isStandaloneApp()) {
+                    btnInstallPwa.style.display = 'inline-flex';
+                    const label = btnInstallPwa.querySelector('.btn-install-label');
+                    if (label) label.textContent = 'Cài đặt App';
+                } else {
+                    btnInstallPwa.style.display = 'none';
+                }
+            });
+
+            btnInstallPwa.addEventListener('click', async () => {
+                const success = await promptPwaInstall();
+                if (success) {
+                    showToastNotification('Đang cài đặt ứng dụng vào thiết bị...', 'Thành công');
+                    btnInstallPwa.style.display = 'none';
+                }
+            });
+        }
+    }
+
+    // Xử lý đóng modal hướng dẫn iOS
+    if (btnCloseIosModal) {
+        btnCloseIosModal.addEventListener('click', () => {
+            if (modalIosInstall) modalIosInstall.classList.remove('is-active');
+        });
+    }
+
+    if (modalIosInstall) {
+        modalIosInstall.addEventListener('click', (e) => {
+            if (e.target === modalIosInstall) {
+                modalIosInstall.classList.remove('is-active');
+            }
+        });
+    }
+
+    // Khởi tạo trạng thái ban đầu
+    updateNotificationStateUI();
+}

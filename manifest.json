@@ -1,0 +1,32 @@
+{
+  "name": "Lịch Vạn Năng",
+  "short_name": "Lịch Vạn Năng",
+  "description": "Lịch Vạn Năng & Quản lý tiến độ sự kiện đa tầng",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#181d33",
+  "theme_color": "#181d33",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

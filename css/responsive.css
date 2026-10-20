@@ -22,6 +22,17 @@
     font-size: 22px;
   }
 
+  .calendar-top-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .calendar-top-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+
   .monthly-cal-container {
     padding: 14px 10px;
     border-radius: 14px;
