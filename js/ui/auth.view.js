@@ -9,6 +9,8 @@ import { attachFirestoreSyncForUser, detachFirestoreSync, scheduleCloudPush } fr
 import { calSelectYear, renderMonthlyCalendar } from './calendar.view.js';
 import { renderEvents } from './timeline.view.js';
 import { showToastNotification } from './toast.js';
+import { openCloudModal } from './cloud.view.js';
+import { getNotificationPermission } from '../services/notification.service.js';
 
 export const loginGateOverlay = document.getElementById('login-gate-overlay');
 
@@ -51,6 +53,19 @@ export const topUserInfo = document.getElementById('top-user-info');
 export const btnQuickEditName = document.getElementById('btn-quick-edit-name');
 
 export const btnTopLogout = document.getElementById('btn-top-logout');
+
+// Các phần tử trong Menu Bung Ra (Account Popover Card)
+export const accountPopoverCard = document.getElementById('account-popover-card');
+export const popoverBackdrop = document.getElementById('popover-backdrop');
+export const btnPopoverClose = document.getElementById('btn-popover-close');
+export const popoverAvatarCircle = document.getElementById('popover-avatar-circle');
+export const btnPopoverNoti = document.getElementById('btn-popover-noti');
+export const popoverNotiStatus = document.getElementById('popover-noti-status');
+export const btnPopoverSettings = document.getElementById('btn-popover-settings');
+export const btnPopoverAddAccount = document.getElementById('btn-popover-add-account');
+export const btnPopoverCloud = document.getElementById('btn-popover-cloud');
+export const popoverCloudStatus = document.getElementById('popover-cloud-status');
+export const topAvatarDot = document.getElementById('top-avatar-dot');
 
 // Các phần tử trong Modal Hồ Sơ & Đổi Tên / Ảnh Đại Diện
 export const modalUserAvatar = document.getElementById('modal-user-avatar');
@@ -168,6 +183,76 @@ export function renderGoogleAccountsList() {
     });
 }
 
+export function openAccountPopover() {
+    if (!accountPopoverCard) return;
+    accountPopoverCard.classList.remove('is-hidden');
+    if (popoverBackdrop) popoverBackdrop.classList.remove('is-hidden');
+    if (userAvatarWrap) {
+        userAvatarWrap.classList.add('is-active');
+        userAvatarWrap.setAttribute('aria-expanded', 'true');
+    }
+    updatePopoverExtraState();
+}
+
+export function closeAccountPopover() {
+    if (!accountPopoverCard) return;
+    accountPopoverCard.classList.add('is-hidden');
+    if (popoverBackdrop) popoverBackdrop.classList.add('is-hidden');
+    if (userAvatarWrap) {
+        userAvatarWrap.classList.remove('is-active');
+        userAvatarWrap.setAttribute('aria-expanded', 'false');
+    }
+}
+
+export function toggleAccountPopover() {
+    if (!accountPopoverCard) return;
+    if (accountPopoverCard.classList.contains('is-hidden')) {
+        openAccountPopover();
+    } else {
+        closeAccountPopover();
+    }
+}
+
+export function updatePopoverExtraState() {
+    if (popoverNotiStatus) {
+        try {
+            const perm = getNotificationPermission();
+            if (perm === 'granted') {
+                popoverNotiStatus.textContent = 'Đã bật';
+                popoverNotiStatus.className = 'popover-action-badge is-granted';
+                if (topAvatarDot) topAvatarDot.style.display = 'none';
+            } else if (perm === 'denied') {
+                popoverNotiStatus.textContent = 'Bị chặn';
+                popoverNotiStatus.className = 'popover-action-badge';
+                if (topAvatarDot) {
+                    topAvatarDot.style.display = 'block';
+                    topAvatarDot.style.background = '#ef4444';
+                    topAvatarDot.style.boxShadow = '0 0 6px #ef4444';
+                }
+            } else {
+                popoverNotiStatus.textContent = 'Bật';
+                popoverNotiStatus.className = 'popover-action-badge';
+                if (topAvatarDot) {
+                    topAvatarDot.style.display = 'block';
+                    topAvatarDot.style.background = '#38bdf8';
+                    topAvatarDot.style.boxShadow = '0 0 6px #38bdf8';
+                }
+            }
+        } catch (e) { }
+    }
+
+    if (popoverCloudStatus) {
+        const isConnected = !!(S.firestoreDb && getActiveFirebaseConfig());
+        if (isConnected) {
+            popoverCloudStatus.textContent = 'Đã nối';
+            popoverCloudStatus.className = 'popover-action-badge cloud-badge is-granted';
+        } else {
+            popoverCloudStatus.textContent = 'Kết nối';
+            popoverCloudStatus.className = 'popover-action-badge cloud-badge';
+        }
+    }
+}
+
 export function updateAuthUI() {
     const user = getCurrentUser();
     if (user) {
@@ -175,7 +260,7 @@ export function updateAuthUI() {
             loginGateOverlay.classList.add('is-hidden');
         }
         if (topUserProfileBadge) {
-            topUserProfileBadge.style.display = 'flex';
+            topUserProfileBadge.style.display = 'inline-flex';
         }
         if (topUserName) {
             topUserName.textContent = user.name || 'Người dùng';
@@ -194,7 +279,20 @@ export function updateAuthUI() {
                 userAvatarCircle.style.background = `linear-gradient(135deg, hsl(${hue}, 75%, 55%), hsl(${(hue + 40) % 360}, 85%, 45%))`;
             }
         }
+        if (popoverAvatarCircle) {
+            if (user.avatar) {
+                popoverAvatarCircle.innerHTML = `<img src="${escapeHtml(user.avatar)}" alt="${escapeHtml(user.name)}">`;
+                popoverAvatarCircle.style.background = 'transparent';
+            } else {
+                const initial = (user.name || user.email || 'U').trim().charAt(0).toUpperCase();
+                popoverAvatarCircle.textContent = initial;
+                const hue = (initial.charCodeAt(0) * 47) % 360;
+                popoverAvatarCircle.style.background = `linear-gradient(135deg, hsl(${hue}, 75%, 55%), hsl(${(hue + 40) % 360}, 85%, 45%))`;
+            }
+        }
+        updatePopoverExtraState();
     } else {
+        closeAccountPopover();
         if (loginGateOverlay) {
             loginGateOverlay.classList.remove('is-hidden');
         }
@@ -355,24 +453,129 @@ export function processImageFileToAvatar(file) {
     reader.readAsDataURL(file);
 }
 
-// Sự kiện mở Modal Hồ sơ khi nhấp vào Avatar hoặc Tên người dùng ở góc trên phải
+// ========================================================
+// SỰ KIỆN MENU TÀI KHOẢN (ACCOUNT POPOVER & MODAL HỒ SƠ)
+// Hoạt động mượt mà trên cả Điện thoại & Máy tính
+// ========================================================
+
+// 1. Nhấp vào Avatar trên Header: Bung hoặc đóng Menu Tài khoản
 if (userAvatarWrap) {
-    userAvatarWrap.addEventListener('click', () => openAvatarModal(false));
+    userAvatarWrap.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleAccountPopover();
+    });
+}
+
+// 2. Nút X đóng Menu Popover
+if (btnPopoverClose) {
+    btnPopoverClose.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeAccountPopover();
+    });
+}
+
+// 3. Chạm vào lớp nền mờ (Backdrop) trên điện thoại để đóng
+if (popoverBackdrop) {
+    popoverBackdrop.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeAccountPopover();
+    });
+}
+
+// 4. Nhấp vào Khối thông tin người dùng trong Popover để mở Modal đổi Tên & Avatar
+if (topUserInfo) {
+    topUserInfo.addEventListener('click', (e) => {
+        if (e.target.closest('#btn-quick-edit-name') || e.target.closest('#popover-avatar-circle')) return;
+        closeAccountPopover();
+        openAvatarModal(true);
+    });
 }
 
 if (btnQuickEditName) {
     btnQuickEditName.addEventListener('click', (e) => {
         e.stopPropagation();
+        closeAccountPopover();
         openAvatarModal(true);
     });
 }
 
-if (topUserInfo) {
-    topUserInfo.addEventListener('click', (e) => {
-        if (e.target.closest('#btn-top-logout')) return;
-        openAvatarModal(true);
+if (popoverAvatarCircle) {
+    popoverAvatarCircle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeAccountPopover();
+        openAvatarModal(false);
     });
 }
+
+// 5. Nút Thông báo trong Popover: kích hoạt mở cài đặt Thông báo
+if (btnPopoverNoti) {
+    btnPopoverNoti.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeAccountPopover();
+        const mainNotiBtn = document.getElementById('btn-notification-toggle');
+        if (mainNotiBtn) {
+            mainNotiBtn.click();
+        }
+    });
+}
+
+// 6. Nút Cài đặt trong Popover: hiện thông báo tạm thời theo yêu cầu
+if (btnPopoverSettings) {
+    btnPopoverSettings.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeAccountPopover();
+        showToastNotification('Tính năng Cài đặt đang được phát triển trong phiên bản tới!', '⚙️ Cài đặt');
+    });
+}
+
+// 7. Nút Thêm tài khoản khác trong Popover: mở bảng chọn tài khoản
+if (btnPopoverAddAccount) {
+    btnPopoverAddAccount.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeAccountPopover();
+        showGoogleChooserPanel();
+        if (loginGateOverlay) {
+            loginGateOverlay.classList.remove('is-hidden');
+        }
+    });
+}
+
+// 8. Nút Đồng bộ Đám mây (Firebase) trong Popover: mở popup cấu hình Cloud
+if (btnPopoverCloud) {
+    btnPopoverCloud.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeAccountPopover();
+        openCloudModal();
+    });
+}
+
+// 9. Nút Đăng xuất trong Popover
+if (btnTopLogout) {
+    btnTopLogout.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeAccountPopover();
+        if (confirm('Bạn có muốn đăng xuất khỏi tài khoản Google này không?')) {
+            performLogout();
+        }
+    });
+}
+
+// 10. Đóng Popover khi nhấp ra ngoài hoặc nhấn phím Escape
+document.addEventListener('click', (e) => {
+    if (accountPopoverCard && !accountPopoverCard.classList.contains('is-hidden')) {
+        if (!accountPopoverCard.contains(e.target) && !userAvatarWrap?.contains(e.target)) {
+            closeAccountPopover();
+        }
+    }
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        if (accountPopoverCard && !accountPopoverCard.classList.contains('is-hidden')) {
+            closeAccountPopover();
+        }
+    }
+});
 
 if (inputUserDisplayName) {
     inputUserDisplayName.addEventListener('keydown', (e) => {
@@ -596,12 +799,6 @@ if (formQuickLogin) {
     });
 }
 
-if (btnTopLogout) {
-    btnTopLogout.addEventListener('click', () => {
-        if (confirm('Bạn có muốn đổi sang tài khoản Google khác không?')) {
-            performLogout();
-        }
-    });
-}
+
 
 export const calSelectMonth = document.getElementById('cal-select-month');

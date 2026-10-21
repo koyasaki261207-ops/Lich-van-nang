@@ -8,46 +8,55 @@
   gap: 12px;
 }
 
-/* Thẻ hồ sơ người dùng góc trên phải */
+/* Thẻ hồ sơ người dùng góc trên phải (chỉ hiện Avatar duy nhất trên thanh Header) */
 .top-user-profile-badge {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  padding: 4px 12px 4px 5px;
-  border-radius: 999px;
-  background: rgba(30, 41, 59, 0.7);
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  transition: all 0.2s ease;
+  justify-content: center;
 }
 
-.top-user-profile-badge:hover {
-  border-color: rgba(56, 189, 248, 0.6);
-  box-shadow: 0 4px 18px rgba(56, 189, 248, 0.25);
-}
-
-.user-avatar-wrap {
+/* Nút bấm Avatar trên Header */
+.user-avatar-wrap.btn-avatar-trigger {
   position: relative;
-  cursor: pointer;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  flex-shrink: 0;
+  padding: 0;
+  background: transparent;
+  border: 2.5px solid rgba(56, 189, 248, 0.45);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.3);
+  outline: none;
+}
+
+.user-avatar-wrap.btn-avatar-trigger:hover {
+  transform: scale(1.08);
+  border-color: #38bdf8;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.6);
+}
+
+.user-avatar-wrap.btn-avatar-trigger.is-active {
+  border-color: #38bdf8;
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.8);
+  transform: scale(1.05);
 }
 
 .user-avatar-circle {
-  width: 29px;
-  height: 29px;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--accent-cyan), #818cf8);
   color: var(--color-white);
   font-weight: 800;
-  font-size: 13px;
+  font-size: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.4);
-  flex-shrink: 0;
   text-transform: uppercase;
   overflow: hidden;
   transition: all 0.2s ease;
@@ -60,102 +69,408 @@
   display: block;
 }
 
-.avatar-edit-overlay {
+/* Chấm thông báo nhỏ đè trên Avatar ở Header */
+.top-avatar-dot {
   position: absolute;
-  inset: 0;
+  top: -1px;
+  right: -1px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: rgba(15, 23, 42, 0.65);
+  background: #10b981;
+  border: 2px solid #181d33;
+  box-shadow: 0 0 6px #10b981;
+}
+
+/* =====================================================================
+   POPOVER TÀI KHOẢN GOOGLE BUNG RA (NHƯ HÌNH 1)
+   ===================================================================== */
+.account-popover-card {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 360px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: #f0f4f9;
+  border-radius: 28px;
+  padding: 16px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45), 0 4px 16px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  z-index: 10000;
+  font-family: var(--font-body);
+  transform-origin: top right;
+  transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.22s;
+  box-sizing: border-box;
+}
+
+.account-popover-card::-webkit-scrollbar {
+  width: 5px;
+}
+
+.account-popover-card::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+
+.account-popover-card.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.92) translateY(-8px);
+  pointer-events: none;
+}
+
+/* Thanh đầu Popover */
+.popover-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding: 0 6px;
+}
+
+.popover-brand-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.btn-popover-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--accent-cyan);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  backdrop-filter: blur(2px);
+  transition: all 0.2s ease;
 }
 
-.user-avatar-wrap:hover .avatar-edit-overlay {
-  opacity: 1;
+.btn-popover-close:hover {
+  background: #e2e8f0;
+  color: #0f172a;
 }
 
-.user-avatar-wrap:hover .user-avatar-circle {
-  transform: scale(1.08);
-  box-shadow: 0 0 14px rgba(56, 189, 248, 0.6);
+/* Thẻ hồ sơ người dùng trong Popover */
+.popover-profile-box {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 18px 16px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
 }
 
-.top-user-info {
+.popover-profile-box:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.07);
+  transform: translateY(-1px);
+}
+
+.popover-avatar-wrap {
+  position: relative;
+  width: 62px;
+  height: 62px;
+  flex-shrink: 0;
+}
+
+.popover-avatar-circle {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-cyan), #818cf8);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 800;
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+  text-transform: uppercase;
+}
+
+.popover-avatar-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Icon bút chì chỉnh sửa đè góc dưới avatar */
+.popover-avatar-edit-btn {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.popover-avatar-edit-btn:hover {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+  transform: scale(1.12);
+}
+
+.popover-profile-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.popover-user-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--font-heading);
+}
+
+.popover-user-email {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.popover-user-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid #bfdbfe;
+  letter-spacing: 0.2px;
+}
+
+/* Danh sách các nút chức năng dạng viên thuốc */
+.popover-actions-list {
   display: flex;
   flex-direction: column;
-  line-height: 1.2;
+  gap: 6px;
 }
 
-.top-user-name-row {
+.popover-action-item {
+  width: 100%;
+  background: #ffffff;
+  border-radius: 999px;
+  padding: 12px 18px;
+  border: 1px solid transparent;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: space-between;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1e293b;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
 }
 
-.top-user-name {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--slate-50);
-  max-width: 125px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.popover-action-item:hover {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+  color: #0284c7;
 }
 
-.btn-quick-edit-name {
-  background: transparent;
-  border: none;
-  padding: 2px 4px;
-  border-radius: 4px;
-  color: var(--slate-400);
-  cursor: pointer;
-  display: inline-flex;
+.popover-action-item:active {
+  transform: translateY(0);
+}
+
+.popover-action-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.popover-action-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.5;
-  transition: all 0.2s ease;
+  flex-shrink: 0;
+  transition: transform 0.2s;
 }
 
-.top-user-name-row:hover .btn-quick-edit-name,
-.btn-quick-edit-name:hover {
-  opacity: 1;
-  color: var(--accent-cyan);
-  background: rgba(56, 189, 248, 0.15);
+.popover-action-item:hover .popover-action-icon {
+  transform: scale(1.08);
 }
 
-.top-user-email {
-  font-size: 10px;
-  color: var(--slate-400);
-  max-width: 130px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.popover-action-icon.noti-icon {
+  color: #0284c7;
+  background: #e0f2fe;
 }
 
-.btn-top-logout {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #f87171;
-  background: rgba(239, 68, 68, 0.12);
-  border: 1px solid rgba(239, 68, 68, 0.25);
+.popover-action-icon.settings-icon {
+  color: #475569;
+  background: #f1f5f9;
+}
+
+.popover-action-icon.add-icon {
+  color: #2563eb;
+  background: #eff6ff;
+}
+
+.popover-action-icon.logout-icon {
+  color: #dc2626;
+  background: #fef2f2;
+}
+
+.popover-action-item#btn-top-logout:hover {
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+
+.popover-action-icon.cloud-icon {
+  color: #0891b2;
+  background: #ecfeff;
+}
+
+.popover-action-badge {
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 2px 9px;
   border-radius: 999px;
-  padding: 4px 10px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
+  background: #f1f5f9;
+  color: #475569;
 }
 
-.btn-top-logout:hover {
-  background: rgba(239, 68, 68, 0.25);
-  color: var(--color-white);
-  border-color: #ef4444;
-  transform: translateY(-1px);
+.popover-action-badge.is-granted {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.popover-action-badge.cloud-badge {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.popover-action-hint {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+/* Footer nhỏ */
+.popover-footer {
+  margin-top: 14px;
+  padding-top: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* Lớp phủ mờ nền khi mở Popover (đặc biệt mượt mà trên Điện thoại) */
+.popover-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background: rgba(10, 15, 30, 0.45);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  transition: opacity 0.22s ease, visibility 0.22s;
+}
+
+.popover-backdrop.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Tối ưu hóa Popover trên Điện thoại & Tablet (< 640px) */
+@media (max-width: 640px) {
+  .account-popover-card {
+    position: fixed;
+    top: 60px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+    max-width: 380px;
+    margin: 0 auto;
+    border-radius: 24px;
+    padding: 14px;
+    max-height: calc(100dvh - 75px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55), 0 4px 20px rgba(0, 0, 0, 0.25);
+  }
+
+  .btn-avatar-trigger,
+  .popover-action-item,
+  .btn-popover-close {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .popover-profile-box {
+    padding: 14px 12px;
+    gap: 12px;
+  }
+
+  .popover-avatar-wrap {
+    width: 52px;
+    height: 52px;
+  }
+
+  .popover-avatar-circle {
+    width: 52px;
+    height: 52px;
+    font-size: 20px;
+  }
+
+  .popover-user-name {
+    font-size: 15.5px;
+  }
+
+  .popover-user-email {
+    font-size: 12px;
+  }
+
+  .popover-action-item {
+    padding: 12px 16px;
+    font-size: 13px;
+    min-height: 48px;
+  }
 }
 
 /* Lớp phủ toàn màn hình Đăng Nhập */
@@ -877,10 +1192,6 @@
     padding: 11px 16px;
     font-size: 13px;
   }
-
-  .top-user-info {
-    display: none;
-  }
 }
 
 /* ========================================================
@@ -1090,3 +1401,13 @@
   color: var(--accent-cyan);
   font-size: 11px;
 }
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+

@@ -23,13 +23,19 @@
   }
 
   .calendar-top-header {
-    flex-wrap: wrap;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: nowrap;
     gap: 10px;
+    width: 100%;
   }
 
   .calendar-top-actions {
-    flex-wrap: wrap;
+    display: flex;
+    align-items: center;
     gap: 8px;
+    flex-shrink: 0;
   }
 
 

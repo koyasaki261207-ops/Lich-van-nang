@@ -48,6 +48,32 @@ export function initNotificationUI() {
             }
         }
 
+        const popoverNotiStatus = document.getElementById('popover-noti-status');
+        const topAvatarDot = document.getElementById('top-avatar-dot');
+        if (popoverNotiStatus) {
+            if (perm === 'granted') {
+                popoverNotiStatus.textContent = 'Đã bật';
+                popoverNotiStatus.className = 'popover-action-badge is-granted';
+                if (topAvatarDot) topAvatarDot.style.display = 'none';
+            } else if (perm === 'denied') {
+                popoverNotiStatus.textContent = 'Bị chặn';
+                popoverNotiStatus.className = 'popover-action-badge';
+                if (topAvatarDot) {
+                    topAvatarDot.style.display = 'block';
+                    topAvatarDot.style.background = '#ef4444';
+                    topAvatarDot.style.boxShadow = '0 0 6px #ef4444';
+                }
+            } else {
+                popoverNotiStatus.textContent = 'Bật';
+                popoverNotiStatus.className = 'popover-action-badge';
+                if (topAvatarDot) {
+                    topAvatarDot.style.display = 'block';
+                    topAvatarDot.style.background = '#38bdf8';
+                    topAvatarDot.style.boxShadow = '0 0 6px #38bdf8';
+                }
+            }
+        }
+
         if (notiStatusBadge && notiStatusText) {
             if (perm === 'granted') {
                 notiStatusBadge.className = 'noti-modal-badge status-granted';
