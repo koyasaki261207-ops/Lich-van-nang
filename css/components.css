@@ -3124,74 +3124,6 @@ body.is-reordering-tracks * {
 }
 
 /* ========================================================
-   CHẾ ĐỘ BÁO THỨC & CHUÔNG NHẸ TRONG FORM SỰ KIỆN
-   ======================================================== */
-.cal-reminder-subrow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.cal-alert-mode-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.alert-mode-label {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--slate-400);
-}
-
-.cal-alert-toggle-group {
-  display: inline-flex;
-  background: rgba(15, 23, 42, 0.7);
-  padding: 3px;
-  border-radius: 9px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  gap: 4px;
-}
-
-.btn-alert-mode-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border-radius: 6px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--slate-300);
-  font-family: var(--font-body);
-  font-size: 11.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  user-select: none;
-}
-
-.btn-alert-mode-chip:hover {
-  color: var(--color-white);
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.btn-alert-mode-chip.is-active[data-type="alarm"] {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(239, 68, 68, 0.25));
-  color: #fbbf24;
-  border-color: rgba(245, 158, 11, 0.55);
-  box-shadow: 0 0 12px rgba(245, 158, 11, 0.35);
-}
-
-.btn-alert-mode-chip.is-active[data-type="notification"] {
-  background: rgba(56, 189, 248, 0.2);
-  color: #38bdf8;
-  border-color: rgba(56, 189, 248, 0.55);
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
-}
-
-/* ========================================================
    MÀN HÌNH BÁO THỨC ĐANG REO TOÀN DIỆN (ALARM OVERLAY)
    ======================================================== */
 .alarm-overlay {
@@ -3425,8 +3357,438 @@ body.is-reordering-tracks * {
 }
 
 @keyframes alarmCardPop {
-  0% { opacity: 0; transform: scale(0.85) translateY(20px); }
+  0% { transform: scale(0.85) translateY(20px); }
   100% { opacity: 1; transform: scale(1) translateY(0); }
 }
+
+/* ========================================================
+   MODAL ĐỒNG HỒ & CHUÔNG THÔNG BÁO (CLOCK & NOTIFICATION CENTER)
+   ======================================================== */
+.clock-noti-modal-card {
+  max-width: 580px !important;
+  background: rgba(15, 23, 42, 0.92) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  border: 1px solid rgba(56, 189, 248, 0.25) !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.75), 0 0 35px rgba(56, 189, 248, 0.15) !important;
+  border-radius: 20px !important;
+}
+
+.clock-modal-header-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.25) 0%, rgba(59, 130, 246, 0.25) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  color: var(--accent-cyan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+}
+
+.clock-noti-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 20px 24px;
+  max-height: calc(85vh - 75px);
+  overflow-y: auto;
+}
+
+/* 1. Widget Đồng hồ số thời gian thực (Live Digital Clock Widget) */
+.clock-live-widget {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.75) 0%, rgba(15, 23, 42, 0.9) 100%);
+  border: 1.5px solid rgba(56, 189, 248, 0.35);
+  box-shadow: inset 0 0 20px rgba(56, 189, 248, 0.08), 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.clock-live-glow-bg {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 220px;
+  height: 120px;
+  background: radial-gradient(ellipse, rgba(56, 189, 248, 0.25) 0%, transparent 70%);
+  filter: blur(25px);
+  pointer-events: none;
+}
+
+.clock-live-digits-box {
+  position: relative;
+  z-index: 1;
+}
+
+.clock-live-digits {
+  font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
+  font-size: 2.35rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #ffffff;
+  text-shadow: 0 0 16px rgba(56, 189, 248, 0.7), 0 0 30px rgba(56, 189, 248, 0.35);
+}
+
+.clock-live-meta {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.clock-live-date {
+  font-size: 13px;
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+.clock-live-lunar {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: rgba(245, 158, 11, 0.16);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #fbbf24;
+}
+
+/* Nhóm nút bấm test chức năng đồng hồ */
+.btn-modal-test-vibrate {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35);
+}
+
+/* Khối mục cài đặt (Clock Setting Section) */
+.clock-setting-section {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
+  padding: 14px 16px;
+  transition: border-color 0.2s;
+}
+
+.clock-setting-section:hover {
+  border-color: rgba(56, 189, 248, 0.25);
+}
+
+.clock-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.clock-section-title-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.clock-section-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.clock-section-title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.clock-section-subtitle {
+  margin: 3px 0 0 0;
+  font-size: 12px;
+  color: var(--slate-400);
+  line-height: 1.45;
+}
+
+.clock-setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.clock-setting-meta {
+  flex: 1;
+}
+
+/* 2. Danh sách chọn tiếng chuông báo (Ringtone Picker) */
+.ringtone-picker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.ringtone-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(30, 41, 59, 0.45);
+  border: 1.5px solid rgba(255, 255, 255, 0.06);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.ringtone-item:hover {
+  background: rgba(56, 189, 248, 0.08);
+  border-color: rgba(56, 189, 248, 0.35);
+  transform: translateY(-1px);
+}
+
+.ringtone-item.is-selected {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: #38bdf8;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.22);
+}
+
+.ringtone-label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.ringtone-label input[type="radio"] {
+  display: none;
+}
+
+.ringtone-radio-custom {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(148, 163, 184, 0.6);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.ringtone-item.is-selected .ringtone-radio-custom {
+  border-color: #38bdf8;
+  background: #38bdf8;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+}
+
+.ringtone-item.is-selected .ringtone-radio-custom::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #0f172a;
+}
+
+.ringtone-icon {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.ringtone-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ringtone-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.ringtone-desc {
+  font-size: 11.5px;
+  color: #94a3b8;
+}
+
+.btn-preview-ringtone {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(56, 189, 248, 0.14);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-preview-ringtone:hover {
+  background: #38bdf8;
+  color: #0f172a;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+  transform: scale(1.03);
+}
+
+/* 3. Công tắc chuyển đổi hiện đại (Switch Toggle) */
+.switch-toggle {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.switch-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch-slider {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(71, 85, 105, 0.6);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.switch-slider::before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 2.5px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.switch-toggle input:checked + .switch-slider {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-color: #34d399;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.45);
+}
+
+.switch-toggle input:checked + .switch-slider::before {
+  transform: translateX(22px);
+  background-color: #ffffff;
+}
+
+/* 4. Khối chi tiết Thông báo tổng hợp sự kiện */
+.daily-briefing-details {
+  display: none;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
+.daily-briefing-time-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.daily-briefing-time-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #e2e8f0;
+  cursor: pointer;
+}
+
+.daily-briefing-input-wrap {
+  display: flex;
+  align-items: center;
+}
+
+.input-clock-time {
+  padding: 6px 14px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1.5px solid rgba(56, 189, 248, 0.45);
+  color: #38bdf8;
+  font-family: monospace;
+  font-size: 15px;
+  font-weight: 800;
+  outline: none;
+  transition: all 0.2s;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.15);
+}
+
+.input-clock-time:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.45);
+}
+
+.daily-briefing-preview-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(30, 41, 59, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.daily-briefing-hint {
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.4;
+  flex: 1;
+}
+
+.btn-preview-briefing {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+  white-space: nowrap;
+}
+
+.btn-preview-briefing:hover {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.6);
+  transform: translateY(-1px);
+}
+
 
 

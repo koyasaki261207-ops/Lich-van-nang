@@ -213,8 +213,48 @@ export async function promptPwaInstall() {
 }
 
 // ========================================================
-// 7. ÂM THANH CHUÔNG BÁO & RUNG THIẾT BỊ (VIBRATION & AUDIO)
+// 7. CẤU HÌNH TIẾNG CHUÔNG BÁO, RUNG & THÔNG BÁO TỔNG HỢP
 // ========================================================
+
+export const RINGTONES = [
+    { id: 'classic-chime', name: 'Chuông ngân vang', desc: 'Trong trẻo, tươi sáng (Marimba)', icon: '🔔' },
+    { id: 'melodic', name: 'Điện tử réo rắt', desc: 'Réo rắt, dồn dập, dễ thức giấc', icon: '⏰' },
+    { id: 'radar', name: 'Kỹ thuật số xung nhịp', desc: 'Âm thanh hiện đại, dứt khoát', icon: '📟' },
+    { id: 'gentle-morning', name: 'Bình minh êm dịu', desc: 'Nhẹ nhàng, thư thái, bình yên', icon: '🕊️' },
+    { id: 'cosmic-glow', name: 'Vũ trụ huyền ảo', desc: 'Âm ngân vang không gian ngân hà', icon: '🌌' }
+];
+
+export function getSelectedRingtone() {
+    return localStorage.getItem('cal_alarm_ringtone') || 'classic-chime';
+}
+
+export function setSelectedRingtone(id) {
+    localStorage.setItem('cal_alarm_ringtone', id || 'classic-chime');
+}
+
+export function isVibrationEnabled() {
+    return localStorage.getItem('cal_vibration_enabled') !== 'false';
+}
+
+export function setVibrationEnabled(enabled) {
+    localStorage.setItem('cal_vibration_enabled', enabled ? 'true' : 'false');
+}
+
+export function isDailyBriefingEnabled() {
+    return localStorage.getItem('cal_daily_briefing_enabled') === 'true';
+}
+
+export function setDailyBriefingEnabled(enabled) {
+    localStorage.setItem('cal_daily_briefing_enabled', enabled ? 'true' : 'false');
+}
+
+export function getDailyBriefingTime() {
+    return localStorage.getItem('cal_daily_briefing_time') || '07:00';
+}
+
+export function setDailyBriefingTime(timeStr) {
+    localStorage.setItem('cal_daily_briefing_time', timeStr || '07:00');
+}
 
 let alarmVibrationIntervalId = null;
 let alarmAudioCtx = null;
@@ -230,6 +270,9 @@ let activeSnoozeList = [];
  * @param {number|number[]} pattern - Khoảng thời gian rung tính bằng mili-giây
  */
 export function triggerDeviceVibration(pattern = [200, 100, 200]) {
+    // Nếu người dùng tắt rung trong cài đặt, không rung
+    if (!isVibrationEnabled()) return false;
+
     try {
         if ('vibrate' in navigator) {
             return navigator.vibrate(pattern);
@@ -245,6 +288,8 @@ export function triggerDeviceVibration(pattern = [200, 100, 200]) {
  */
 export function startAlarmVibration() {
     stopAlarmVibration();
+    if (!isVibrationEnabled()) return;
+
     // Pattern: Rung 600ms, nghỉ 200ms, rung 600ms, nghỉ 200ms, rung 600ms, nghỉ 600ms
     const alarmPattern = [600, 200, 600, 200, 600, 600];
     triggerDeviceVibration(alarmPattern);
@@ -271,11 +316,117 @@ export function stopAlarmVibration() {
 }
 
 /**
- * Phát âm thanh chuông "Ding-Dong" trong trẻo chuẩn Apple/Slack (thông báo thường)
+ * Tổng hợp phát nốt nhạc cụ thể với Web Audio API
+ */
+function synthesizeNote(ctx, freq, type, startTime, duration, maxGain = 0.28) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, startTime);
+
+    gain.gain.setValueAtTime(0.0001, startTime);
+    gain.gain.linearRampToValueAtTime(maxGain, startTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(startTime);
+    osc.stop(startTime + duration);
+}
+
+/**
+ * Phát 1 chu kỳ giai điệu của kiểu chuông đã chọn
+ */
+export function playRingtoneById(id, ctx, startTime) {
+    const ringtone = id || getSelectedRingtone();
+
+    switch (ringtone) {
+        case 'melodic': {
+            // Điện tử réo rắt: C6 -> E6 -> G6 -> C7
+            synthesizeNote(ctx, 1046.5, 'triangle', startTime, 0.12, 0.3);
+            synthesizeNote(ctx, 1318.5, 'triangle', startTime + 0.14, 0.12, 0.3);
+            synthesizeNote(ctx, 1567.98, 'triangle', startTime + 0.28, 0.14, 0.3);
+            synthesizeNote(ctx, 2093.0, 'triangle', startTime + 0.44, 0.28, 0.32);
+            break;
+        }
+        case 'radar': {
+            // Kỹ thuật số xung nhịp: Beep Beep kép dứt khoát
+            synthesizeNote(ctx, 880, 'square', startTime, 0.08, 0.18);
+            synthesizeNote(ctx, 1760, 'square', startTime + 0.10, 0.12, 0.2);
+            synthesizeNote(ctx, 880, 'square', startTime + 0.30, 0.08, 0.18);
+            synthesizeNote(ctx, 1760, 'square', startTime + 0.40, 0.18, 0.22);
+            break;
+        }
+        case 'gentle-morning': {
+            // Bình minh êm dịu: Hợp âm D5 -> F#5 -> A5 -> D6 ngân nga
+            synthesizeNote(ctx, 587.33, 'sine', startTime, 0.6, 0.22);
+            synthesizeNote(ctx, 739.99, 'sine', startTime + 0.15, 0.7, 0.24);
+            synthesizeNote(ctx, 880.0, 'sine', startTime + 0.30, 0.8, 0.25);
+            synthesizeNote(ctx, 1174.66, 'sine', startTime + 0.48, 1.1, 0.28);
+            break;
+        }
+        case 'cosmic-glow': {
+            // Vũ trụ huyền ảo: Tần số quét âm vang không gian
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(523.25, startTime);
+            osc.frequency.exponentialRampToValueAtTime(1046.5, startTime + 0.35);
+            osc.frequency.exponentialRampToValueAtTime(1318.5, startTime + 0.7);
+
+            gain.gain.setValueAtTime(0.001, startTime);
+            gain.gain.linearRampToValueAtTime(0.26, startTime + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.9);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(startTime);
+            osc.stop(startTime + 0.9);
+            break;
+        }
+        case 'classic-chime':
+        default: {
+            // Chuông ngân vang: G5 -> C6 -> E6 -> G6
+            synthesizeNote(ctx, 783.99, 'sine', startTime, 0.3, 0.25);
+            synthesizeNote(ctx, 1046.5, 'sine', startTime + 0.12, 0.35, 0.28);
+            synthesizeNote(ctx, 1318.51, 'sine', startTime + 0.26, 0.4, 0.28);
+            synthesizeNote(ctx, 1567.98, 'sine', startTime + 0.42, 0.65, 0.3);
+            break;
+        }
+    }
+}
+
+/**
+ * Nghe thử 1 kiểu chuông bất kỳ khi người dùng bấm vào danh sách âm thanh
+ */
+export function previewRingtone(ringtoneId) {
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        if (ctx.state === 'suspended') {
+            ctx.resume();
+        }
+        playRingtoneById(ringtoneId, ctx, ctx.currentTime);
+
+        // Kèm rung nhẹ nếu đang bật rung
+        if (isVibrationEnabled()) {
+            triggerDeviceVibration([80, 50, 80]);
+        }
+    } catch (e) {
+        console.warn('Lỗi nghe thử chuông:', e);
+    }
+}
+
+/**
+ * Phát âm thanh chuông thông báo thường
  */
 export function playNotificationChime() {
-    // Kích hoạt thêm rung nhẹ cùng tiếng chuông
-    triggerDeviceVibration([150, 80, 150]);
+    if (isVibrationEnabled()) {
+        triggerDeviceVibration([150, 80, 150]);
+    }
 
     try {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -284,38 +435,14 @@ export function playNotificationChime() {
         if (ctx.state === 'suspended') {
             ctx.resume();
         }
-        const now = ctx.currentTime;
-
-        // Note 1: A5 (880Hz)
-        const osc1 = ctx.createOscillator();
-        const gain1 = ctx.createGain();
-        osc1.type = 'sine';
-        osc1.frequency.setValueAtTime(880, now);
-        gain1.gain.setValueAtTime(0.2, now);
-        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
-        osc1.connect(gain1);
-        gain1.connect(ctx.destination);
-        osc1.start(now);
-        osc1.stop(now + 0.5);
-
-        // Note 2: E6 (1318.5Hz) - âm hưởng thanh tao, sang trọng
-        const osc2 = ctx.createOscillator();
-        const gain2 = ctx.createGain();
-        osc2.type = 'sine';
-        osc2.frequency.setValueAtTime(1318.5, now + 0.1);
-        gain2.gain.setValueAtTime(0.22, now + 0.1);
-        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
-        osc2.connect(gain2);
-        gain2.connect(ctx.destination);
-        osc2.start(now + 0.1);
-        osc2.stop(now + 0.8);
+        playRingtoneById(getSelectedRingtone(), ctx, ctx.currentTime);
     } catch (e) {
         console.warn('Không thể phát âm thanh chuông thông báo:', e);
     }
 }
 
 /**
- * Phát 1 chu kỳ âm chuông báo thức điện tử réo rắt (Melodic Alarm Chime)
+ * Phát 1 chu kỳ âm chuông báo thức theo kiểu chuông người dùng đã chọn
  */
 function playAlarmChimeStep() {
     try {
@@ -331,33 +458,7 @@ function playAlarmChimeStep() {
 
         const ctx = alarmAudioCtx;
         const now = ctx.currentTime;
-
-        // Giai điệu chuông báo thức 4 nốt liên hồi tươi sáng, réo rắt:
-        // C6 (1046.5Hz) -> E6 (1318.5Hz) -> G6 (1567.98Hz) -> C7 (2093Hz)
-        const notes = [
-            { freq: 1046.5, time: now, dur: 0.12 },
-            { freq: 1318.5, time: now + 0.14, dur: 0.12 },
-            { freq: 1567.98, time: now + 0.28, dur: 0.14 },
-            { freq: 2093.0, time: now + 0.44, dur: 0.28 }
-        ];
-
-        notes.forEach(({ freq, time, dur }) => {
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-
-            osc.type = 'triangle'; // Âm sắc dày dặn, ngân vang như chuông thức giấc
-            osc.frequency.setValueAtTime(freq, time);
-
-            gain.gain.setValueAtTime(0.001, time);
-            gain.gain.linearRampToValueAtTime(0.28, time + 0.02);
-            gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
-
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-
-            osc.start(time);
-            osc.stop(time + dur);
-        });
+        playRingtoneById(getSelectedRingtone(), ctx, now);
     } catch (e) {
         console.warn('Lỗi phát âm báo thức:', e);
     }
@@ -632,10 +733,123 @@ export async function sendEventNotification(evt, reminderMinutes) {
 }
 
 /**
+ * Gửi thông báo tổng hợp lịch trình các sự kiện trong ngày
+ */
+export async function sendDailyBriefingNotification(isTest = false) {
+    try {
+        const now = new Date();
+        const curYear = now.getFullYear();
+        const curMonth = now.getMonth();
+        const curDate = now.getDate();
+
+        const { loadCalEvents } = await import('./calendar.service.js');
+        const { isCalEventOnDate } = await import('../core/calendar-events.js');
+        const { getLunarDate } = await import('../core/lunar.js');
+        const { SOLAR_HOLIDAYS, LUNAR_HOLIDAYS } = await import('../core/holidays.js');
+
+        const allEvents = loadCalEvents() || [];
+        const todayEvents = allEvents.filter(e => e && e.id && isCalEventOnDate(e, curYear, curMonth, curDate));
+
+        const lunar = getLunarDate(curDate, curMonth + 1, curYear);
+        const solarKey = `${curDate}-${curMonth + 1}`;
+        const lunarKey = `${lunar.day}-${lunar.month}`;
+        const holiday = SOLAR_HOLIDAYS[solarKey] || LUNAR_HOLIDAYS[lunarKey] || (lunar.day === 1 ? 'Mùng một Âm lịch' : (lunar.day === 15 ? 'Ngày Rằm Âm lịch' : ''));
+
+        const title = isTest 
+            ? `📋 [Thử nghiệm] Tổng hợp lịch trình (${curDate}/${curMonth + 1})`
+            : `📋 Lịch trình hôm nay (${curDate}/${curMonth + 1})`;
+
+        let body = '';
+        if (holiday) {
+            body += `🎉 Hôm nay là ${holiday}.\n`;
+        }
+
+        if (todayEvents.length === 0) {
+            body += 'Hôm nay bạn không có lịch trình nào. Chúc bạn một ngày mới an lành, thảnh thơi và tràn đầy năng lượng!';
+        } else {
+            const previewTitles = todayEvents.slice(0, 3).map(e => {
+                const time = e.allDay ? 'Cả ngày' : (e.startTime || '09:00');
+                return `• ${e.title} (${time})`;
+            }).join('\n');
+            const moreCount = todayEvents.length - 3;
+            const moreText = moreCount > 0 ? `\n... và ${moreCount} sự kiện khác.` : '';
+            body += `Bạn có ${todayEvents.length} sự kiện & công việc:\n${previewTitles}${moreText}`;
+        }
+
+        // Phát chuông báo và rung
+        playNotificationChime();
+
+        // Hiển thị Toast
+        try {
+            const { showToastNotification } = await import('../ui/toast.js');
+            showToastNotification(body, title);
+        } catch (e) { }
+
+        // Bắn thông báo hệ thống
+        if (getNotificationPermission() === 'granted') {
+            const options = {
+                body,
+                icon: './icon-192.png',
+                badge: './favicon.svg',
+                vibrate: isVibrationEnabled() ? [250, 100, 250] : undefined,
+                tag: `daily-briefing-${curDate}-${curMonth + 1}-${isTest ? Date.now() : ''}`,
+                data: { url: window.location.href }
+            };
+
+            if (swRegistration && swRegistration.showNotification) {
+                swRegistration.showNotification(title, options).catch(() => {});
+            } else if ('Notification' in window) {
+                try {
+                    const noti = new Notification(title, options);
+                    noti.onclick = () => {
+                        window.focus();
+                        noti.close();
+                    };
+                } catch (err) { }
+            }
+        }
+        return true;
+    } catch (err) {
+        console.warn('Lỗi khi gửi thông báo tổng hợp sự kiện:', err);
+        return false;
+    }
+}
+
+/**
+ * Kiểm tra mốc giờ gửi thông báo tổng hợp hằng ngày
+ */
+export function checkDailyBriefing() {
+    if (!isDailyBriefingEnabled()) return;
+
+    const targetTime = getDailyBriefingTime(); // 'HH:mm'
+    if (!targetTime) return;
+
+    const now = new Date();
+    const curHour = String(now.getHours()).padStart(2, '0');
+    const curMin = String(now.getMinutes()).padStart(2, '0');
+    const curTimeStr = `${curHour}:${curMin}`;
+
+    const curYear = now.getFullYear();
+    const curMonth = String(now.getMonth() + 1).padStart(2, '0');
+    const curDate = String(now.getDate()).padStart(2, '0');
+    const todayStr = `${curYear}-${curMonth}-${curDate}`;
+
+    const lastSentDate = localStorage.getItem('cal_daily_briefing_last_sent');
+
+    if (curTimeStr === targetTime && lastSentDate !== todayStr) {
+        localStorage.setItem('cal_daily_briefing_last_sent', todayStr);
+        sendDailyBriefingNotification(false);
+    }
+}
+
+/**
  * Quét toàn bộ sự kiện hôm nay và kiểm tra mốc thời gian nhắc nhở / Báo thức
  */
 export async function checkEventReminders() {
     try {
+        // Kiểm tra thông báo tổng hợp đầu ngày
+        checkDailyBriefing();
+
         const now = new Date();
         const curTimeMs = now.getTime();
 

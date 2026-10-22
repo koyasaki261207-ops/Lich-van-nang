@@ -1,4 +1,5 @@
-// Giao diện điều khiển Cài đặt, Thông báo & Cài đặt PWA cho Lịch Vạn Năng
+// Giao diện điều khiển Trung tâm Đồng hồ & Chuông thông báo (Clock & Notification Center)
+// Chuyên biệt: Đồng hồ số thời gian thực, Tiếng chuông báo, Rung, Báo thức & Bản tin tổng hợp sự kiện
 
 import {
     dismissAlarm,
@@ -13,9 +14,23 @@ import {
     sendTestNotification,
     snoozeAlarm,
     startEventReminderEngine,
-    triggerAlarm
+    triggerAlarm,
+    RINGTONES,
+    getSelectedRingtone,
+    setSelectedRingtone,
+    previewRingtone,
+    isVibrationEnabled,
+    setVibrationEnabled,
+    triggerDeviceVibration,
+    isDailyBriefingEnabled,
+    setDailyBriefingEnabled,
+    getDailyBriefingTime,
+    setDailyBriefingTime,
+    sendDailyBriefingNotification
 } from '../services/notification.service.js';
 import { showToastNotification } from './toast.js';
+
+let liveClockIntervalId = null;
 
 // Cập nhật giao diện trạng thái thông báo
 export function updateNotificationStateUI() {
@@ -93,6 +108,131 @@ export function updateNotificationStateUI() {
     }
 }
 
+// Cập nhật widget đồng hồ số thời gian thực trong Modal
+export function updateLiveClock() {
+    const digitsEl = document.getElementById('modal-clock-live-digits');
+    const dateEl = document.getElementById('modal-clock-live-date');
+    const lunarEl = document.getElementById('modal-clock-live-lunar');
+
+    if (!digitsEl && !dateEl) return;
+
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const s = String(now.getSeconds()).padStart(2, '0');
+
+    if (digitsEl) {
+        digitsEl.textContent = `${h}:${m}:${s}`;
+    }
+
+    if (dateEl) {
+        const weekdays = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+        const dayOfWeek = weekdays[now.getDay()];
+        const d = now.getDate();
+        const mon = now.getMonth() + 1;
+        const y = now.getFullYear();
+        dateEl.textContent = `${dayOfWeek}, ${d}/${mon}/${y}`;
+    }
+
+    if (lunarEl) {
+        import('../core/lunar.js').then(({ getLunarDate }) => {
+            const lunar = getLunarDate(now.getDate(), now.getMonth() + 1, now.getFullYear());
+            lunarEl.textContent = `Âm lịch: ${lunar.day}/${lunar.month} (${lunar.yearName || 'Năm mới'})`;
+        }).catch(() => { });
+    }
+}
+
+function startClockTicker() {
+    updateLiveClock();
+    if (liveClockIntervalId) clearInterval(liveClockIntervalId);
+    liveClockIntervalId = setInterval(updateLiveClock, 1000);
+}
+
+function stopClockTicker() {
+    if (liveClockIntervalId) {
+        clearInterval(liveClockIntervalId);
+        liveClockIntervalId = null;
+    }
+}
+
+// Render danh sách chọn tiếng chuông báo (Ringtone Selector)
+export function renderRingtonePicker() {
+    const listEl = document.getElementById('ringtone-picker-list');
+    if (!listEl) return;
+
+    const currentRingtone = getSelectedRingtone();
+    listEl.innerHTML = '';
+
+    RINGTONES.forEach(r => {
+        const isSelected = r.id === currentRingtone;
+        const item = document.createElement('div');
+        item.className = `ringtone-item ${isSelected ? 'is-selected' : ''}`;
+        item.dataset.ringtoneId = r.id;
+
+        item.innerHTML = `
+            <label class="ringtone-label" for="ringtone-radio-${r.id}">
+                <input type="radio" name="cal-ringtone-choice" id="ringtone-radio-${r.id}" value="${r.id}" ${isSelected ? 'checked' : ''}>
+                <span class="ringtone-radio-custom"></span>
+                <span class="ringtone-icon">${r.icon || '🔔'}</span>
+                <div class="ringtone-text">
+                    <span class="ringtone-name">${r.name}</span>
+                    <span class="ringtone-desc">${r.desc}</span>
+                </div>
+            </label>
+            <button type="button" class="btn-preview-ringtone" data-ringtone="${r.id}" title="Nghe thử âm thanh này">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                <span>Nghe thử</span>
+            </button>
+        `;
+
+        // Sự kiện khi chọn radio hoặc click vào toàn bộ thẻ chuông
+        const radio = item.querySelector('input[type="radio"]');
+        radio.addEventListener('change', () => {
+            setSelectedRingtone(r.id);
+            document.querySelectorAll('.ringtone-item').forEach(el => el.classList.remove('is-selected'));
+            item.classList.add('is-selected');
+            previewRingtone(r.id);
+            showToastNotification(`Đã chọn chuông: "${r.name}"`, 'Tiếng chuông');
+        });
+
+        // Nút bấm Nghe thử riêng biệt
+        const btnPreview = item.querySelector('.btn-preview-ringtone');
+        btnPreview.addEventListener('click', (e) => {
+            e.stopPropagation();
+            previewRingtone(r.id);
+        });
+
+        listEl.appendChild(item);
+    });
+}
+
+// Cập nhật cấu hình Rung và Thông báo tổng hợp trên giao diện
+export function syncClockSettingsUI() {
+    // 1. Tùy chọn rung
+    const chkVibration = document.getElementById('chk-vibration-toggle');
+    if (chkVibration) {
+        chkVibration.checked = isVibrationEnabled();
+    }
+
+    // 2. Tùy chọn thông báo tổng hợp
+    const chkDailyBriefing = document.getElementById('chk-daily-briefing-toggle');
+    const briefingDetails = document.getElementById('daily-briefing-details');
+    const inputTime = document.getElementById('input-daily-briefing-time');
+
+    const isBriefingOn = isDailyBriefingEnabled();
+    if (chkDailyBriefing) {
+        chkDailyBriefing.checked = isBriefingOn;
+    }
+    if (briefingDetails) {
+        briefingDetails.style.display = isBriefingOn ? 'block' : 'none';
+    }
+    if (inputTime) {
+        inputTime.value = getDailyBriefingTime();
+    }
+}
+
 // Render danh sách sự kiện có chuông nhắc hôm nay
 export function renderUpcomingReminders() {
     const listEl = document.getElementById('noti-upcoming-list');
@@ -119,7 +259,7 @@ export function renderUpcomingReminders() {
             }
 
             if (!todayEvents.length) {
-                listEl.innerHTML = `<div class="noti-upcoming-empty">Chưa có sự kiện nào đặt nhắc nhở hôm nay. Bấm vào bất kỳ sự kiện nào để hẹn chuông nhắc hoặc báo thức!</div>`;
+                listEl.innerHTML = `<div class="noti-upcoming-empty">Chưa có sự kiện nào đặt chuông nhắc hôm nay. Bạn có thể mở bất kỳ ngày nào để tạo sự kiện kèm báo thức!</div>`;
                 return;
             }
 
@@ -155,48 +295,32 @@ export function renderUpcomingReminders() {
     });
 }
 
-// Chuyển tab trong Modal Cài đặt
+// Chuyển tab (giữ để tương thích ngược nếu các module khác còn gọi)
 export function switchSettingsTab(targetTabId) {
-    const tabs = document.querySelectorAll('.settings-tab-btn');
-    const panes = document.querySelectorAll('.settings-tab-pane');
-
-    tabs.forEach(btn => {
-        const isMatch = btn.getAttribute('data-tab') === targetTabId;
-        btn.classList.toggle('is-active', isMatch);
-        btn.setAttribute('aria-selected', isMatch ? 'true' : 'false');
-    });
-
-    panes.forEach(pane => {
-        const isMatch = pane.id === targetTabId;
-        pane.classList.toggle('is-active', isMatch);
-    });
-
-    if (targetTabId === 'tab-settings-noti') {
-        updateNotificationStateUI();
-        renderUpcomingReminders();
-    }
+    updateNotificationStateUI();
+    renderUpcomingReminders();
+    renderRingtonePicker();
+    syncClockSettingsUI();
 }
 
-// Mở Modal Cài đặt (Mặc định mở tab Thông báo)
+// Mở Modal Đồng hồ & Chuông thông báo
 export function openSettingsModal(tabId = 'tab-settings-noti') {
     const modalSettings = document.getElementById('modal-settings') || document.getElementById('modal-notification-center');
     if (!modalSettings) return;
 
-    if (tabId === 'notifications' || tabId === 'noti') tabId = 'tab-settings-noti';
-    if (tabId === 'app' || tabId === 'pwa') tabId = 'tab-settings-app';
-    if (tabId === 'cloud') tabId = 'tab-settings-cloud';
-    if (tabId === 'ai') tabId = 'tab-settings-ai';
-
-    switchSettingsTab(tabId);
+    startClockTicker();
     updateNotificationStateUI();
+    renderRingtonePicker();
+    syncClockSettingsUI();
     renderUpcomingReminders();
 
     modalSettings.classList.add('is-active');
     modalSettings.setAttribute('aria-hidden', 'false');
 }
 
-// Đóng Modal Cài đặt
+// Đóng Modal Đồng hồ & Chuông thông báo
 export function closeSettingsModal() {
+    stopClockTicker();
     const modalSettings = document.getElementById('modal-settings') || document.getElementById('modal-notification-center');
     if (modalSettings) {
         modalSettings.classList.remove('is-active');
@@ -206,7 +330,7 @@ export function closeSettingsModal() {
 
 // Tương thích ngược
 export function openNotiModal() {
-    openSettingsModal('tab-settings-noti');
+    openSettingsModal();
 }
 
 export function closeNotiModal() {
@@ -228,6 +352,7 @@ export function initNotificationUI() {
     const btnModalRequestNoti = document.getElementById('btn-modal-request-noti');
     const btnModalTestNoti = document.getElementById('btn-modal-test-noti');
     const btnModalTestAlarm = document.getElementById('btn-modal-test-alarm');
+    const btnModalTestVibrate = document.getElementById('btn-modal-test-vibrate');
 
     // Nút điều khiển màn hình Báo thức (Alarm Ringing Modal)
     const btnAlarmDismiss = document.getElementById('btn-alarm-dismiss');
@@ -250,7 +375,7 @@ export function initNotificationUI() {
         });
     }
 
-    // Nhấn phím Escape để tắt báo thức hoặc đóng Cài đặt
+    // Nhấn phím Escape để tắt báo thức hoặc đóng Modal
     window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             const alarmModal = document.getElementById('modal-alarm-ringing');
@@ -264,16 +389,7 @@ export function initNotificationUI() {
         }
     });
 
-    // 4. Xử lý chuyển tab trong Modal Cài đặt
-    const tabBtns = document.querySelectorAll('.settings-tab-btn');
-    tabBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const targetTab = btn.getAttribute('data-tab');
-            if (targetTab) switchSettingsTab(targetTab);
-        });
-    });
-
-    // 5. Đóng Modal Cài đặt
+    // 4. Đóng Modal Đồng hồ & Chuông báo
     if (btnCloseSettingsModal) {
         btnCloseSettingsModal.addEventListener('click', closeSettingsModal);
     }
@@ -286,7 +402,7 @@ export function initNotificationUI() {
         });
     }
 
-    // 6. Xử lý nút Thông báo ở Header (nếu có kích hoạt)
+    // 5. Xử lý nút Thông báo ở Header (nếu người dùng bấm vào)
     if (btnNotificationToggle) {
         btnNotificationToggle.addEventListener('click', () => {
             const perm = getNotificationPermission();
@@ -296,21 +412,21 @@ export function initNotificationUI() {
                         updateNotificationStateUI();
                         if (newPerm === 'granted') {
                             showToastNotification('Đã bật quyền thông báo thành công!', 'Thông báo');
-                            sendTestNotification('Lịch Vạn Năng', 'Chào mừng bạn! Hệ thống thông báo & báo thức đã sẵn sàng. 🎉');
+                            sendTestNotification('Lịch Vạn Năng', 'Chào mừng bạn! Hệ thống chuông báo & đồng hồ đã sẵn sàng. 🎉');
                         } else if (newPerm === 'denied') {
                             showToastNotification('Bạn đã từ chối nhận thông báo.', 'Thông báo');
                         }
                     })
                     .catch(() => {
-                        openSettingsModal('tab-settings-noti');
+                        openSettingsModal();
                     });
             } else {
-                openSettingsModal('tab-settings-noti');
+                openSettingsModal();
             }
         });
     }
 
-    // 7. Nút xin cấp quyền trong Modal Cài đặt (Tab Thông báo)
+    // 6. Nút xin cấp quyền trong Modal
     if (btnModalRequestNoti) {
         btnModalRequestNoti.addEventListener('click', async () => {
             const perm = getNotificationPermission();
@@ -324,7 +440,7 @@ export function initNotificationUI() {
                 updateNotificationStateUI();
                 if (res === 'granted') {
                     showToastNotification('Đã cho phép thông báo thành công!', 'Thành công');
-                    await sendTestNotification('Lịch Vạn Năng', 'Chào mừng bạn! Thiết bị đã sẵn sàng nhận thông báo và báo thức. 🎉');
+                    await sendTestNotification('Lịch Vạn Năng 🎉', 'Chào mừng bạn! Thiết bị đã sẵn sàng nhận thông báo và báo thức.');
                 }
             } catch (err) {
                 console.warn(err);
@@ -332,19 +448,19 @@ export function initNotificationUI() {
         });
     }
 
-    // 8. Nút Bắn thông báo thử nghiệm (Test Notification)
+    // 7. Nút Bắn thông báo thử nghiệm (Test Notification)
     if (btnModalTestNoti) {
         btnModalTestNoti.addEventListener('click', async () => {
             try {
-                await sendTestNotification('Lịch Vạn Năng 🎉', 'Kiểm tra thông báo thành công trên ' + (isIosDevice() ? 'iPhone' : 'thiết bị của bạn') + '!');
-                showToastNotification('Đã gửi thông báo thử nghiệm!', 'Thành công');
+                await sendTestNotification('Lịch Vạn Năng 🎉', 'Kiểm tra chuông thông báo thành công trên ' + (isIosDevice() ? 'iPhone' : 'thiết bị của bạn') + '!');
+                showToastNotification('Đã phát chuông & gửi thông báo thử nghiệm!', 'Thành công');
             } catch (err) {
                 showToastNotification('Chưa thể gửi thông báo: ' + (err.message || 'Chưa cấp quyền'), 'Lỗi');
             }
         });
     }
 
-    // 9. Nút Thử nghiệm Báo thức & Rung (Test Alarm & Vibration)
+    // 8. Nút Thử nghiệm Báo thức & Rung (Test Alarm & Vibration)
     if (btnModalTestAlarm) {
         btnModalTestAlarm.addEventListener('click', () => {
             closeSettingsModal();
@@ -352,54 +468,88 @@ export function initNotificationUI() {
             const nowTimeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
             triggerAlarm({
                 id: 'test-alarm-sample',
-                title: 'Báo thức mẫu: Họp giao ban 🎯',
+                title: 'Báo thức mẫu: Lịch Vạn Năng ⏰',
                 startTime: nowTimeStr,
                 categoryName: 'Công việc',
                 categoryColor: '#38bdf8',
-                note: 'Chuông reo liên tục, điện thoại rung theo nhịp giật và hiển thị nút Báo lại 5 phút / Tắt báo thức.'
+                note: 'Chuông reo to theo kiểu chuông bạn đã chọn, điện thoại rung dồn dập và có nút Hoãn 5 phút / Tắt báo thức.'
             }, 0);
         });
     }
 
-    // 10. Xử lý nút Cài đặt App trong Tab 2 của Cài đặt
-    const btnSettingsInstallPwa = document.getElementById('btn-settings-install-pwa');
-    if (btnSettingsInstallPwa) {
-        btnSettingsInstallPwa.addEventListener('click', async () => {
-            if (isIosDevice()) {
-                showToastNotification('Hãy làm theo hướng dẫn 3 bước bên dưới trên Safari iPhone.', 'iPhone');
+    // 9. Nút Thử nghiệm Rung thiết bị (Test Vibration)
+    if (btnModalTestVibrate) {
+        btnModalTestVibrate.addEventListener('click', () => {
+            if (!isVibrationEnabled()) {
+                showToastNotification('Bạn đang TẮT tùy chọn rung. Hãy gạt công tắc rung bên dưới để bật.', 'Lưu ý');
                 return;
             }
-            const success = await promptPwaInstall();
-            if (success) {
-                showToastNotification('Đang cài đặt ứng dụng vào thiết bị...', 'Thành công');
-                btnSettingsInstallPwa.style.display = 'none';
+            const ok = triggerDeviceVibration([250, 100, 250, 100, 450]);
+            if (ok) {
+                showToastNotification('Thiết bị đang rung thử nghiệm! 📳', 'Rung thiết bị');
+            } else {
+                showToastNotification('Trình duyệt đã gửi lệnh rung (chỉ có tác dụng trên thiết bị có motor rung như điện thoại).', 'Rung thiết bị');
             }
         });
     }
 
-    // 11. Xử lý nút Mở Cấu hình Đám mây trong Tab 3
-    const btnSettingsOpenCloud = document.getElementById('btn-settings-open-cloud');
-    if (btnSettingsOpenCloud) {
-        btnSettingsOpenCloud.addEventListener('click', () => {
-            closeSettingsModal();
-            import('./cloud.view.js').then(({ openCloudModal }) => {
-                if (openCloudModal) openCloudModal();
-            });
+    // 10. Sự kiện Toggle Rung thiết bị
+    const chkVibrationToggle = document.getElementById('chk-vibration-toggle');
+    if (chkVibrationToggle) {
+        chkVibrationToggle.addEventListener('change', (e) => {
+            const enabled = e.target.checked;
+            setVibrationEnabled(enabled);
+            if (enabled) {
+                triggerDeviceVibration([100]);
+                showToastNotification('Đã BẬT rung khi có thông báo & báo thức 📳', 'Rung thiết bị');
+            } else {
+                showToastNotification('Đã TẮT rung thiết bị', 'Rung thiết bị');
+            }
         });
     }
 
-    // 12. Xử lý nút Mở Cấu hình AI trong Tab 4
-    const btnSettingsOpenAi = document.getElementById('btn-settings-open-ai');
-    if (btnSettingsOpenAi) {
-        btnSettingsOpenAi.addEventListener('click', () => {
-            closeSettingsModal();
-            import('./ai-scan.view.js').then(({ openAiConfigModal }) => {
-                if (openAiConfigModal) openAiConfigModal();
-            });
+    // 11. Sự kiện Toggle Thông báo tổng hợp hằng ngày
+    const chkDailyBriefingToggle = document.getElementById('chk-daily-briefing-toggle');
+    const briefingDetails = document.getElementById('daily-briefing-details');
+    const inputDailyBriefingTime = document.getElementById('input-daily-briefing-time');
+    const btnPreviewDailyBriefing = document.getElementById('btn-preview-daily-briefing');
+
+    if (chkDailyBriefingToggle) {
+        chkDailyBriefingToggle.addEventListener('change', (e) => {
+            const enabled = e.target.checked;
+            setDailyBriefingEnabled(enabled);
+            if (briefingDetails) {
+                briefingDetails.style.display = enabled ? 'block' : 'none';
+            }
+            if (enabled) {
+                const timeStr = getDailyBriefingTime();
+                showToastNotification(`Đã BẬT thông báo tổng hợp lịch trình lúc ${timeStr} mỗi ngày!`, 'Tổng hợp lịch');
+            } else {
+                showToastNotification('Đã TẮT thông báo tổng hợp lịch trình hằng ngày.', 'Tổng hợp lịch');
+            }
         });
     }
 
-    // 13. Xử lý nút Cài đặt Ứng dụng PWA trên Header (nếu có)
+    if (inputDailyBriefingTime) {
+        inputDailyBriefingTime.addEventListener('change', (e) => {
+            const val = e.target.value || '07:30';
+            setDailyBriefingTime(val);
+            showToastNotification(`Đã đổi giờ nhận thông báo tổng hợp thành: ${val}`, 'Cài đặt giờ');
+        });
+    }
+
+    if (btnPreviewDailyBriefing) {
+        btnPreviewDailyBriefing.addEventListener('click', async () => {
+            try {
+                await sendDailyBriefingNotification(true);
+                showToastNotification('Đã gửi thông báo tổng hợp lịch trình hôm nay!', 'Thành công');
+            } catch (err) {
+                showToastNotification('Chưa thể gửi tổng hợp: ' + (err.message || 'Lỗi quyền'), 'Lỗi');
+            }
+        });
+    }
+
+    // 12. Xử lý nút Cài đặt Ứng dụng PWA trên Header (nếu có)
     const isIOS = isIosDevice();
     const isStandalone = isStandaloneApp();
 

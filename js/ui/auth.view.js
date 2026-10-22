@@ -571,10 +571,20 @@ if (btnPopoverNoti) {
 // Tùy chọn Cài đặt App con bên dưới Cài đặt
 const btnPopoverApp = document.getElementById('btn-popover-app');
 if (btnPopoverApp) {
-    btnPopoverApp.addEventListener('click', (e) => {
+    btnPopoverApp.addEventListener('click', async (e) => {
         e.stopPropagation();
         closeAccountPopover();
-        openSettingsModal('tab-settings-app');
+        const { isIosDevice, promptPwaInstall } = await import('../services/notification.service.js');
+        if (isIosDevice()) {
+            const modalIos = document.getElementById('modal-ios-install');
+            if (modalIos) modalIos.classList.add('is-active');
+        } else {
+            const ok = await promptPwaInstall();
+            if (!ok) {
+                const modalIos = document.getElementById('modal-ios-install');
+                if (modalIos) modalIos.classList.add('is-active');
+            }
+        }
     });
 }
 
