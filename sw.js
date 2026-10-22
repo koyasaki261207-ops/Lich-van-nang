@@ -1,5 +1,5 @@
 // Service Worker cho PWA & Thông báo đẩy (Web Push / Local Push) - Lịch Vạn Năng
-const CACHE_NAME = 'lich-van-nang-v5';
+const CACHE_NAME = 'lich-van-nang-v8';
 
 // Danh sách các tệp giao diện cốt lõi cần lưu vào bộ nhớ cache để chạy Offline 100%
 const STATIC_ASSETS = [

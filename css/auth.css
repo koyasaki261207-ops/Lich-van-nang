@@ -388,6 +388,123 @@
   font-weight: 500;
 }
 
+.popover-action-arrow {
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.popover-action-item:hover .popover-action-arrow {
+  color: #0284c7;
+}
+
+/* ========================================================
+   ACCORDION CÀI ĐẶT TRONG POPOVER
+   ======================================================== */
+.popover-settings-accordion {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.btn-settings-accordion .popover-chevron-icon {
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s ease;
+}
+
+.popover-settings-accordion.is-expanded .btn-settings-accordion {
+  border-bottom-left-radius: 14px;
+  border-bottom-right-radius: 14px;
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #0284c7;
+}
+
+.popover-settings-accordion.is-expanded .popover-chevron-icon {
+  transform: rotate(180deg);
+  color: #0284c7;
+}
+
+.popover-settings-submenu {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  margin-top: 0;
+  padding: 0 4px 0 10px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 18px;
+  border: 1px solid transparent;
+  pointer-events: none;
+  transition: max-height 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.25s ease,
+              margin 0.25s ease,
+              padding 0.25s ease,
+              border-color 0.25s ease;
+}
+
+.popover-settings-accordion.is-expanded .popover-settings-submenu {
+  max-height: 280px;
+  opacity: 1;
+  overflow: visible;
+  margin-top: 5px;
+  padding: 6px 4px 6px 10px;
+  border-color: rgba(203, 213, 225, 0.8);
+  pointer-events: auto;
+}
+
+/* Các tùy chọn con bên dưới Cài đặt */
+.popover-sub-item {
+  width: 100%;
+  background: transparent;
+  border-radius: 999px;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
+}
+
+.popover-sub-item:hover {
+  background: #ffffff;
+  color: #0284c7;
+  transform: translateX(3px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.popover-sub-item:active {
+  transform: translateX(1px);
+}
+
+.popover-sub-item .popover-action-icon {
+  width: 25px;
+  height: 25px;
+}
+
+.popover-sub-text {
+  font-size: 12.8px;
+  font-weight: 600;
+}
+
+.popover-action-icon.app-icon {
+  color: #0284c7;
+  background: #e0f2fe;
+}
+
+.popover-action-icon.ai-icon {
+  color: #7c3aed;
+  background: #ede9fe;
+}
+
 /* Footer nhỏ */
 .popover-footer {
   margin-top: 14px;

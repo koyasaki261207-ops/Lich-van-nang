@@ -13,7 +13,7 @@
         rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#181d33">
+    <meta name="theme-color" content="#060813">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -108,41 +108,86 @@
                                     <div class="popover-user-email" id="top-user-email">user@gmail.com</div>
                                     <div class="popover-user-badge">
                                         <span>Pro</span>
-                                                         <!-- 1. Thông báo (Đã chuyển vào trong Cài đặt theo yêu cầu) -->
-                                <button type="button" class="popover-action-item" id="btn-popover-noti" style="display: none !important;">
-                                    <div class="popover-action-left">
-                                        <div class="popover-action-icon noti-icon">
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                                            </svg>
-                                        </div>
-                                        <span class="popover-action-text">Thông báo</span>
                                     </div>
-                                    <div class="popover-action-badge" id="popover-noti-status">Bật</div>
-                                </button>
+                                </div>
+                            </div>
 
-                                <!-- 2. Cài đặt (Chứa Cài đặt Thông báo & Báo thức, Cài đặt App, Đám mây & AI) -->
-                                <button type="button" class="popover-action-item" id="btn-popover-settings" title="Cài đặt hệ thống & Thông báo">
-                                    <div class="popover-action-left">
-                                        <div class="popover-action-icon settings-icon">
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <circle cx="12" cy="12" r="3"></circle>
-                                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                            <!-- Danh sách các nút chức năng dạng viên thuốc (như Hình 1) -->
+                            <div class="popover-actions-list">
+                                <!-- Khối Cài đặt (nhấn vào bung ra tùy chọn bên dưới) -->
+                                <div class="popover-settings-accordion" id="popover-settings-accordion">
+                                    <button type="button" class="popover-action-item btn-settings-accordion" id="btn-popover-settings" title="Cài đặt hệ thống" aria-expanded="false">
+                                        <div class="popover-action-left">
+                                            <div class="popover-action-icon settings-icon">
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <circle cx="12" cy="12" r="3"></circle>
+                                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                                </svg>
+                                            </div>
+                                            <span class="popover-action-text">Cài đặt</span>
+                                        </div>
+                                        <div class="popover-action-arrow">
+                                            <svg class="popover-chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="6 9 12 15 18 9"></polyline>
                                             </svg>
                                         </div>
-                                        <span class="popover-action-text">Cài đặt</span>
+                                    </button>
+
+                                    <!-- Menu con bung ra bên dưới khi nhấn Cài đặt -->
+                                    <div class="popover-settings-submenu" id="popover-settings-submenu">
+                                        <!-- Tùy chọn Thông báo & Báo thức -->
+                                        <button type="button" class="popover-sub-item" id="btn-popover-noti" title="Cài đặt thông báo & báo thức">
+                                            <div class="popover-action-left">
+                                                <div class="popover-action-icon noti-icon">
+                                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                                                    </svg>
+                                                </div>
+                                                <span class="popover-sub-text">Thông báo</span>
+                                            </div>
+                                            <div class="popover-action-badge" id="popover-noti-status">Bật</div>
+                                        </button>
+
+                                        <!-- Tùy chọn Cài đặt Ứng dụng (PWA) -->
+                                        <button type="button" class="popover-sub-item" id="btn-popover-app" title="Cài đặt ứng dụng về máy">
+                                            <div class="popover-action-left">
+                                                <div class="popover-action-icon app-icon">
+                                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                                                        <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                                                    </svg>
+                                                </div>
+                                                <span class="popover-sub-text">Cài đặt Ứng dụng</span>
+                                            </div>
+                                        </button>
+
+                                        <!-- Tùy chọn Đồng bộ Đám mây -->
+                                        <button type="button" class="popover-sub-item" id="btn-popover-cloud" title="Đồng bộ dữ liệu Firebase">
+                                            <div class="popover-action-left">
+                                                <div class="popover-action-icon cloud-icon">
+                                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
+                                                    </svg>
+                                                </div>
+                                                <span class="popover-sub-text">Đồng bộ Đám mây</span>
+                                            </div>
+                                        </button>
+
+                                        <!-- Tùy chọn AI Vision Key -->
+                                        <button type="button" class="popover-sub-item" id="btn-popover-ai" title="Cấu hình Google Gemini AI">
+                                            <div class="popover-action-left">
+                                                <div class="popover-action-icon ai-icon">
+                                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>
+                                                        <path d="M19 3v4"/><path d="M21 5h-4"/>
+                                                    </svg>
+                                                </div>
+                                                <span class="popover-sub-text">Cấu hình AI Vision</span>
+                                            </div>
+                                        </button>
                                     </div>
-                                    <div class="popover-action-arrow">
-                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                            <polyline points="9 18 15 12 9 6"></polyline>
-                                        </svg>
-                                    </div>
-                                </button>                      </div>
-                                        <span class="popover-action-text">Cài đặt</span>
-                                    </div>
-                                    <div class="popover-action-hint">Sắp có</div>
-                                </button>
+                                </div>
 
                                 <!-- 3. Thêm tài khoản khác -->
                                 <button type="button" class="popover-action-item" id="btn-popover-add-account">
@@ -1746,21 +1791,22 @@
     </div>
 
     <!-- ========================================================
-         MODAL TRUNG TÂM THÔNG BÁO (NOTIFICATION CENTER)
+         MODAL CÀI ĐẶT ỨNG DỤNG (SETTINGS CENTER)
+         Chứa: Cài đặt Thông báo & Báo thức, Cài đặt App (PWA), Đám mây & AI
          ======================================================== -->
-    <div class="modal-overlay" id="modal-notification-center">
-        <div class="modal-card" style="max-width: 520px;">
+    <div class="modal-overlay" id="modal-settings">
+        <div class="modal-card settings-modal-card">
             <div class="modal-header">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; color: var(--accent-cyan);">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div class="settings-modal-header-icon">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                         </svg>
                     </div>
-                    <h2 class="modal-title">Cài đặt Thông báo</h2>
+                    <h2 class="modal-title">Cài đặt</h2>
                 </div>
-                <button type="button" class="modal-close-btn" id="btn-close-noti-modal" title="Đóng">
+                <button type="button" class="modal-close-btn" id="btn-close-settings-modal" title="Đóng">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -1768,80 +1814,224 @@
                 </button>
             </div>
 
-            <div class="modal-body noti-modal-body">
-                <!-- Thẻ trạng thái hiện tại -->
-                <div class="noti-status-card">
-                    <div class="noti-status-icon-box">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                        </svg>
-                    </div>
-                    <div class="noti-status-info">
-                        <div class="noti-status-header">
-                            <span class="noti-status-title">Trạng thái trên thiết bị này</span>
-                            <span class="noti-modal-badge status-default" id="noti-status-badge">● Đang kiểm tra</span>
-                        </div>
-                        <p class="noti-status-text" id="noti-status-text">
-                            Đang kết nối đến hệ thống thông báo...
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Tính năng & Thông tin -->
-                <div style="background: rgba(15, 20, 38, 0.45); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 14px; font-size: 12.5px; line-height: 1.6; color: var(--slate-300);">
-                    <div style="font-weight: 700; color: var(--color-white); margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <line x1="12" y1="16" x2="12" y2="12"></line>
-                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                        </svg>
-                        Khả năng hoạt động của thông báo:
-                    </div>
-                    <ul style="padding-left: 18px; margin: 0; display: flex; flex-direction: column; gap: 4px;">
-                        <li><strong>Máy tính (PC/Mac):</strong> Nhận banner ở góc màn hình ngay cả khi đóng tab.</li>
-                        <li><strong>Điện thoại Android:</strong> Nhận thông báo trên thanh trạng thái như app CH Play.</li>
-                        <li><strong>Điện thoại iPhone:</strong> Cần thêm ứng dụng vào Màn hình chính (iOS 16.4+) để nhận thông báo.</li>
-                    </ul>
-                </div>
-
-                <!-- Danh sách sự kiện sắp tới có chuông nhắc -->
-                <div class="noti-upcoming-section" id="noti-upcoming-section">
-                    <div class="noti-upcoming-header">
-                        <span class="noti-upcoming-title">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <polyline points="12 6 12 12 16 14"></polyline>
-                            </svg>
-                            Sự kiện sắp tới có chuông nhắc
-                        </span>
-                        <span class="noti-upcoming-count" id="noti-upcoming-count">0 sự kiện</span>
-                    </div>
-                    <div class="noti-upcoming-list" id="noti-upcoming-list">
-                        <!-- Render động qua JavaScript -->
-                    </div>
-                </div>
+            <!-- THANH ĐIỀU HƯỚNG TABS CÀI ĐẶT -->
+            <div class="settings-tabs-nav" role="tablist">
+                <button type="button" class="settings-tab-btn is-active" data-tab="tab-settings-noti" role="tab" aria-selected="true">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <span>Thông báo</span>
+                </button>
+                <button type="button" class="settings-tab-btn" data-tab="tab-settings-app" role="tab" aria-selected="false">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                        <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                    </svg>
+                    <span>Cài đặt App</span>
+                </button>
+                <button type="button" class="settings-tab-btn" data-tab="tab-settings-cloud" role="tab" aria-selected="false">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
+                    </svg>
+                    <span>Đám mây</span>
+                </button>
+                <button type="button" class="settings-tab-btn" data-tab="tab-settings-ai" role="tab" aria-selected="false">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>
+                        <path d="M19 3v4"/><path d="M21 5h-4"/>
+                    </svg>
+                    <span>AI Vision</span>
+                </button>
             </div>
 
-            <div class="modal-footer noti-actions-row">
-                <button type="button" class="btn-primary" id="btn-modal-request-noti" style="background: linear-gradient(135deg, #38bdf8 0%, #3b82f6 100%);">
-                    Bật thông báo ngay
-                </button>
-                <button type="button" class="btn-primary" id="btn-modal-test-noti" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                    </svg>
-                    <span>Gửi thông báo thử</span>
-                </button>
-                <button type="button" class="btn-primary btn-test-alarm-trigger" id="btn-modal-test-alarm" style="background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="13" r="8"></circle>
-                        <path d="M12 9v4l2 2"></path>
-                        <path d="m5 3 2 2"></path>
-                        <path d="m19 3-2 2"></path>
-                    </svg>
-                    <span>Thử Báo thức & Rung ⏰</span>
-                </button>
+            <!-- NỘI DUNG TỪNG TAB -->
+            <div class="modal-body settings-modal-body">
+                <!-- TAB 1: THÔNG BÁO & BÁO THỨC (Mặc định hiển thị) -->
+                <div class="settings-tab-pane is-active" id="tab-settings-noti" role="tabpanel">
+                    <!-- Thẻ trạng thái hiện tại -->
+                    <div class="noti-status-card">
+                        <div class="noti-status-icon-box">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                        </div>
+                        <div class="noti-status-info">
+                            <div class="noti-status-header">
+                                <span class="noti-status-title">Trạng thái thông báo thiết bị</span>
+                                <span class="noti-modal-badge status-default" id="noti-status-badge">● Đang kiểm tra</span>
+                            </div>
+                            <p class="noti-status-text" id="noti-status-text">
+                                Đang kết nối đến hệ thống thông báo...
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Nút thao tác nhanh Thông báo & Báo thức -->
+                    <div class="settings-actions-group">
+                        <button type="button" class="btn-primary" id="btn-modal-request-noti" style="background: linear-gradient(135deg, #38bdf8 0%, #3b82f6 100%);">
+                            Bật thông báo ngay
+                        </button>
+                        <button type="button" class="btn-primary" id="btn-modal-test-noti" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                            </svg>
+                            <span>Gửi thông báo thử</span>
+                        </button>
+                        <button type="button" class="btn-primary btn-test-alarm-trigger" id="btn-modal-test-alarm" style="background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="13" r="8"></circle>
+                                <path d="M12 9v4l2 2"></path>
+                                <path d="m5 3 2 2"></path>
+                                <path d="m19 3-2 2"></path>
+                            </svg>
+                            <span>Thử Báo thức & Rung ⏰</span>
+                        </button>
+                    </div>
+
+                    <!-- Hướng dẫn khả năng hoạt động của thông báo -->
+                    <div class="settings-info-box">
+                        <div class="settings-info-header">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="16" x2="12" y2="12"></line>
+                                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                            </svg>
+                            Khả năng hoạt động của thông báo:
+                        </div>
+                        <ul class="settings-info-list">
+                            <li><strong>Máy tính (PC/Mac):</strong> Nhận banner ở góc màn hình ngay cả khi đóng tab.</li>
+                            <li><strong>Điện thoại Android:</strong> Nhận thông báo trên thanh trạng thái như app CH Play.</li>
+                            <li><strong>Điện thoại iPhone:</strong> Cần thêm ứng dụng vào Màn hình chính (iOS 16.4+) để nhận thông báo.</li>
+                        </ul>
+                    </div>
+
+                    <!-- Danh sách sự kiện hôm nay có chuông nhắc -->
+                    <div class="noti-upcoming-section" id="noti-upcoming-section">
+                        <div class="noti-upcoming-header">
+                            <span class="noti-upcoming-title">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                                Sự kiện hôm nay có chuông nhắc
+                            </span>
+                            <span class="noti-upcoming-count" id="noti-upcoming-count">0 sự kiện</span>
+                        </div>
+                        <div class="noti-upcoming-list" id="noti-upcoming-list">
+                            <!-- Render động qua JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: CÀI ĐẶT ỨNG DỤNG (PWA) -->
+                <div class="settings-tab-pane" id="tab-settings-app" role="tabpanel">
+                    <div class="settings-feature-card">
+                        <div class="settings-feature-icon" style="color: #38bdf8; background: rgba(56, 189, 248, 0.15);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                                <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                            </svg>
+                        </div>
+                        <div class="settings-feature-content">
+                            <h4 class="settings-feature-title">Trải nghiệm như Ứng dụng gốc</h4>
+                            <p class="settings-feature-desc">
+                                Cài đặt Lịch Vạn Năng về máy tính hoặc điện thoại để mở nhanh từ màn hình chính, khởi động mượt mà không thanh địa chỉ URL và chạy offline 100% khi mất mạng.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="settings-actions-group">
+                        <button type="button" class="btn-primary" id="btn-settings-install-pwa" style="background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            <span id="btn-settings-install-label">Cài đặt ứng dụng về thiết bị</span>
+                        </button>
+                    </div>
+
+                    <!-- Hướng dẫn iOS -->
+                    <div class="settings-ios-guide-box">
+                        <div class="settings-info-header" style="color: #f1f5f9; font-weight: 700;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.61-.75 1.04-1.8 1.01-2.87-.96.04-2.1.65-2.76 1.43-.58.67-1.09 1.74-1 2.79 1.07.08 2.14-.58 2.75-1.35z"/>
+                            </svg>
+                            Cách cài đặt trên iPhone & iPad (Safari):
+                        </div>
+                        <div class="ios-install-steps" style="margin-top: 10px;">
+                            <div class="ios-step-item">
+                                <span class="ios-step-num">1</span>
+                                <div class="ios-step-content">Mở trang web này bằng trình duyệt <strong>Safari</strong> trên iPhone.</div>
+                            </div>
+                            <div class="ios-step-item">
+                                <span class="ios-step-num">2</span>
+                                <div class="ios-step-content">Bấm nút <strong>Chia sẻ</strong> (biểu tượng hình vuông có mũi tên trỏ lên <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>) ở thanh dưới cùng Safari.</div>
+                            </div>
+                            <div class="ios-step-item">
+                                <span class="ios-step-num">3</span>
+                                <div class="ios-step-content">Cuộn xuống và chọn <strong>"Thêm vào MH chính" (Add to Home Screen)</strong>.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: ĐỒNG BỘ ĐÁM MÂY (FIREBASE) -->
+                <div class="settings-tab-pane" id="tab-settings-cloud" role="tabpanel">
+                    <div class="settings-feature-card">
+                        <div class="settings-feature-icon" style="color: #60a5fa; background: rgba(96, 165, 250, 0.15);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
+                            </svg>
+                        </div>
+                        <div class="settings-feature-content">
+                            <h4 class="settings-feature-title">Đồng bộ Đám mây (Firebase Firestore)</h4>
+                            <p class="settings-feature-desc">
+                                Kết nối kho lưu trữ đám mây miễn phí để tự động sao lưu lịch và đồng bộ hai chiều thời gian thực giữa máy tính và điện thoại.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="settings-actions-group">
+                        <button type="button" class="btn-primary" id="btn-settings-open-cloud" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                            </svg>
+                            <span>Mở Cấu hình Đồng bộ Đám mây</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TAB 4: CẤU HÌNH AI VISION (GOOGLE GEMINI) -->
+                <div class="settings-tab-pane" id="tab-settings-ai" role="tabpanel">
+                    <div class="settings-feature-card">
+                        <div class="settings-feature-icon" style="color: #a855f7; background: rgba(168, 85, 247, 0.15);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>
+                                <path d="M19 3v4"/><path d="M21 5h-4"/>
+                            </svg>
+                        </div>
+                        <div class="settings-feature-content">
+                            <h4 class="settings-feature-title">Trí tuệ nhân tạo (Google Gemini)</h4>
+                            <p class="settings-feature-desc">
+                                Tự động đọc và trích xuất ngày giờ sự kiện từ ảnh chụp văn bản, vé máy bay, thiệp cưới hoặc lịch thi bằng mô hình Gemini Flash Lite tiên tiến.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="settings-actions-group">
+                        <button type="button" class="btn-primary" id="btn-settings-open-ai" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                            </svg>
+                            <span>Mở Cấu hình Gemini API Key</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

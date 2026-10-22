@@ -10,18 +10,22 @@
   width: 100vw;
   overflow-x: hidden;
   overflow-y: visible;
+  position: relative;
+  z-index: 1;
 }
 
 /* ========================================================
    KHU VỰC HEADER & TIÊU ĐỀ
    ======================================================== */
 .app-header {
-  background: rgba(37, 41, 74, 1);
-  border-bottom: none;
+  background: var(--bg-header);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   padding: 14px 24px 8px 24px;
   flex-shrink: 0;
   z-index: 50;
-  box-shadow: none;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
 }
 
 .header-main {
@@ -141,12 +145,12 @@
 }
 
 .monthly-cal-container {
-  background: rgba(22, 27, 49, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(14, 19, 44, 0.74);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 18px;
   padding: 22px 24px 24px 24px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), 0 0 24px rgba(59, 130, 246, 0.08);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.52), 0 0 35px rgba(56, 189, 248, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.12);
   margin-bottom: 24px;
 }

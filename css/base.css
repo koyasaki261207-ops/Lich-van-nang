@@ -5,22 +5,33 @@
    Theme: Deep Indigo/Navy Dark Mode (Hoyo-style Event Calendar)
    ======================================================== */
 :root {
-  /* Nền chính & Bảng màu Dark Mode */
-  --bg-page: rgba(37, 41, 74, 1);
-  --bg-header: rgba(37, 41, 74, 1);
-  --bg-canvas: rgba(37, 41, 74, 1);
-  --bg-card: #202947;
-  --bg-card-hover: #29345a;
+  /* ========================================================
+     BẢNG MÀU VŨ TRỤ HUYỀN ẢO (DEEP SPACE / COSMIC THEME)
+     ======================================================== */
+  --bg-page: #060813;
+  --bg-header: rgba(9, 13, 30, 0.78);
+  --bg-canvas: rgba(10, 14, 34, 0.65);
+  --bg-card: rgba(15, 20, 48, 0.75);
+  --bg-card-hover: rgba(28, 38, 82, 0.85);
+  --bg-navy: #080c1d;
 
-  /* Đường lưới dọc chia ngày */
-  --grid-line-day: rgba(255, 255, 255, 0.23);
-  --border-subtle: rgba(255, 255, 255, 0.09);
+  /* Tinh vân & Ánh sáng thiên hà */
+  --cosmic-cyan: #38bdf8;
+  --cosmic-purple: #a855f7;
+  --cosmic-indigo: #818cf8;
+  --cosmic-blue: #3b82f6;
+  --cosmic-gold: #facc15;
+  --cosmic-pink: #ec4899;
+
+  /* Đường lưới dọc chia ngày & Viền kính vũ trụ */
+  --grid-line-day: rgba(255, 255, 255, 0.18);
+  --border-subtle: rgba(255, 255, 255, 0.08);
 
   /* Màu chữ (Typography) */
   --text-primary: #ffffff;
-  --text-secondary: #8fa0c2;
-  --text-muted: #5e6f96;
-  --text-gold: #f59e0b;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-gold: #fbbf24;
 
   /* Màu điểm nhấn (Accents) */
   --accent-blue: #3b82f6;
@@ -33,7 +44,6 @@
   --slate-200: #e2e8f0;
   --slate-300: #cbd5e1;
   --slate-400: #94a3b8;
-  --bg-navy: #181d33;
 
   /* Cấu hình kích thước trục ngày: Tự động vừa vặn hiển thị 44 ngày chuẩn như Hình 1 */
   --visible-days: 44;
@@ -63,7 +73,21 @@
 }
 
 body {
-  background-color: var(--bg-page);
+  background-color: #060813;
+  background-image: 
+    /* Tinh vân xanh Cyan rực rỡ góc trên bên trái */
+    radial-gradient(circle 750px at 12% 10%, rgba(56, 189, 248, 0.13), transparent 70%),
+    /* Cụm thiên hà tím - hồng sâu thẳm góc trên bên phải */
+    radial-gradient(circle 850px at 88% 18%, rgba(168, 85, 247, 0.14), transparent 65%),
+    /* Đám mây tinh vân Indigo chính giữa tạo chiều sâu không gian */
+    radial-gradient(circle 950px at 50% 55%, rgba(99, 102, 241, 0.11), transparent 70%),
+    /* Vầng cực quang xanh lam lung linh ở chân trời đáy trang */
+    radial-gradient(circle 1100px at 50% 100%, rgba(14, 165, 233, 0.15), transparent 75%),
+    /* Dải ngân hà nền sâu thẳm vô tận */
+    linear-gradient(180deg, #060813 0%, #0a0e28 35%, #080c20 70%, #050711 100%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-size: cover;
   color: var(--text-primary);
   font-family: var(--font-body);
   font-size: 14px;
@@ -71,8 +95,78 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   overflow-y: auto;
+  position: relative;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Lớp bụi sao mịn lấp lánh (Starfield Layer 1 - Micro Stardust) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.75;
+  background-image: 
+    radial-gradient(1px 1px at 25px 35px, #ffffff, rgba(0, 0, 0, 0)),
+    radial-gradient(1px 1px at 85px 130px, rgba(255, 255, 255, 0.9), rgba(0, 0, 0, 0)),
+    radial-gradient(1.5px 1.5px at 155px 50px, rgba(56, 189, 248, 0.95), rgba(0, 0, 0, 0)),
+    radial-gradient(1px 1px at 230px 185px, rgba(255, 255, 255, 0.75), rgba(0, 0, 0, 0)),
+    radial-gradient(1.5px 1.5px at 310px 90px, rgba(168, 85, 247, 0.9), rgba(0, 0, 0, 0)),
+    radial-gradient(1px 1px at 380px 270px, rgba(255, 255, 255, 0.8), rgba(0, 0, 0, 0)),
+    radial-gradient(1.5px 1.5px at 45px 320px, rgba(250, 204, 21, 0.9), rgba(0, 0, 0, 0)),
+    radial-gradient(1px 1px at 145px 395px, rgba(255, 255, 255, 0.75), rgba(0, 0, 0, 0)),
+    radial-gradient(2px 2px at 285px 345px, rgba(56, 189, 248, 1), rgba(0, 0, 0, 0)),
+    radial-gradient(1px 1px at 395px 440px, rgba(255, 255, 255, 0.8), rgba(0, 0, 0, 0)),
+    radial-gradient(1.5px 1.5px at 200px 480px, rgba(192, 132, 252, 0.85), rgba(0, 0, 0, 0));
+  background-size: 440px 440px;
+  animation: cosmicStarDrift 160s linear infinite;
+}
+
+/* Lớp các ngôi sao lớn phát sáng và nhấp nháy êm dịu (Starfield Layer 2 - Twinkling Stars) */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.85;
+  background-image: 
+    radial-gradient(1.5px 1.5px at 50px 90px, #ffffff, rgba(0, 0, 0, 0)),
+    radial-gradient(2px 2px at 135px 240px, rgba(192, 132, 252, 0.95), rgba(0, 0, 0, 0)),
+    radial-gradient(2.5px 2.5px at 220px 75px, rgba(56, 189, 248, 1), rgba(0, 0, 0, 0)),
+    radial-gradient(1.5px 1.5px at 350px 165px, rgba(254, 240, 138, 0.95), rgba(0, 0, 0, 0)),
+    radial-gradient(3px 3px at 430px 330px, rgba(255, 255, 255, 1), rgba(0, 0, 0, 0)),
+    radial-gradient(1.5px 1.5px at 170px 370px, rgba(56, 189, 248, 0.85), rgba(0, 0, 0, 0)),
+    radial-gradient(2px 2px at 320px 440px, rgba(244, 114, 182, 0.9), rgba(0, 0, 0, 0)),
+    radial-gradient(2px 2px at 90px 460px, rgba(56, 189, 248, 0.9), rgba(0, 0, 0, 0));
+  background-size: 560px 560px;
+  animation: cosmicStarTwinkle 6s ease-in-out infinite alternate;
+}
+
+@keyframes cosmicStarTwinkle {
+  0% {
+    opacity: 0.5;
+    transform: scale(0.995);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0.6;
+    transform: scale(1.005);
+  }
+}
+
+@keyframes cosmicStarDrift {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-440px);
+  }
 }
 
 /* Icon nét dùng chung: cỡ theo chữ, màu theo chữ */

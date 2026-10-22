@@ -11,6 +11,7 @@ import { renderEvents } from './timeline.view.js';
 import { showToastNotification } from './toast.js';
 import { openCloudModal } from './cloud.view.js';
 import { getNotificationPermission } from '../services/notification.service.js';
+import { openSettingsModal } from './notification.view.js';
 
 export const loginGateOverlay = document.getElementById('login-gate-overlay');
 
@@ -201,6 +202,13 @@ export function closeAccountPopover() {
     if (userAvatarWrap) {
         userAvatarWrap.classList.remove('is-active');
         userAvatarWrap.setAttribute('aria-expanded', 'false');
+    }
+    const accordion = document.getElementById('popover-settings-accordion');
+    if (accordion) {
+        accordion.classList.remove('is-expanded');
+    }
+    if (btnPopoverSettings) {
+        btnPopoverSettings.setAttribute('aria-expanded', 'false');
     }
 }
 
@@ -539,24 +547,57 @@ if (popoverAvatarCircle) {
     });
 }
 
-// 5. Nút Thông báo trong Popover: kích hoạt mở cài đặt Thông báo
-if (btnPopoverNoti) {
-    btnPopoverNoti.addEventListener('click', (e) => {
+// 5. Nút Cài đặt trong Popover: bấm vào để BUNG RA / THU GỌN tùy chọn bên dưới (Thông báo & Báo thức, App, Cloud, AI)
+if (btnPopoverSettings) {
+    btnPopoverSettings.addEventListener('click', (e) => {
         e.stopPropagation();
-        closeAccountPopover();
-        const mainNotiBtn = document.getElementById('btn-notification-toggle');
-        if (mainNotiBtn) {
-            mainNotiBtn.click();
+        const accordion = document.getElementById('popover-settings-accordion') || btnPopoverSettings.closest('.popover-settings-accordion');
+        if (accordion) {
+            const isExpanded = accordion.classList.toggle('is-expanded');
+            btnPopoverSettings.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
         }
     });
 }
 
-// 6. Nút Cài đặt trong Popover: hiện thông báo tạm thời theo yêu cầu
-if (btnPopoverSettings) {
-    btnPopoverSettings.addEventListener('click', (e) => {
+// 6. Tùy chọn Thông báo con bên dưới Cài đặt: mở Modal Cài đặt tab Thông báo
+if (btnPopoverNoti) {
+    btnPopoverNoti.addEventListener('click', (e) => {
         e.stopPropagation();
         closeAccountPopover();
-        showToastNotification('Tính năng Cài đặt đang được phát triển trong phiên bản tới!', '⚙️ Cài đặt');
+        openSettingsModal('tab-settings-noti');
+    });
+}
+
+// Tùy chọn Cài đặt App con bên dưới Cài đặt
+const btnPopoverApp = document.getElementById('btn-popover-app');
+if (btnPopoverApp) {
+    btnPopoverApp.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeAccountPopover();
+        openSettingsModal('tab-settings-app');
+    });
+}
+
+// Tùy chọn Đồng bộ Đám mây con bên dưới Cài đặt
+if (btnPopoverCloud) {
+    btnPopoverCloud.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeAccountPopover();
+        openCloudModal();
+    });
+}
+
+// Tùy chọn Cấu hình AI Vision con bên dưới Cài đặt
+const btnPopoverAi = document.getElementById('btn-popover-ai');
+if (btnPopoverAi) {
+    btnPopoverAi.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeAccountPopover();
+        const modalAi = document.getElementById('modal-ai-config');
+        if (modalAi) {
+            modalAi.classList.add('is-active');
+            modalAi.setAttribute('aria-hidden', 'false');
+        }
     });
 }
 
@@ -569,15 +610,6 @@ if (btnPopoverAddAccount) {
         if (loginGateOverlay) {
             loginGateOverlay.classList.remove('is-hidden');
         }
-    });
-}
-
-// 8. Nút Đồng bộ Đám mây (Firebase) trong Popover: mở popup cấu hình Cloud
-if (btnPopoverCloud) {
-    btnPopoverCloud.addEventListener('click', (e) => {
-        e.stopPropagation();
-        closeAccountPopover();
-        openCloudModal();
     });
 }
 
