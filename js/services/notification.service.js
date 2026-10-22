@@ -94,7 +94,7 @@ export async function requestNotificationPermission() {
  * Bắn một thông báo thử nghiệm (Test Notification) ngay lập tức
  */
 export async function sendTestNotification(
-    title = 'Lịch Vạn Năng 🎉',
+    title = 'Lịch Vạn Năng',
     body = 'Thông báo đã hoạt động thành công trên thiết bị của bạn!'
 ) {
     if (getNotificationPermission() !== 'granted') {
@@ -217,19 +217,20 @@ export async function promptPwaInstall() {
 // ========================================================
 
 export const RINGTONES = [
-    { id: 'classic-chime', name: 'Chuông ngân vang', desc: 'Trong trẻo, tươi sáng (Marimba)', icon: '🔔' },
-    { id: 'melodic', name: 'Điện tử réo rắt', desc: 'Réo rắt, dồn dập, dễ thức giấc', icon: '⏰' },
+    { id: 'ting', name: 'Tiếng Ting nhẹ nhàng (Mặc định)', desc: 'Ting trong trẻo, êm dịu, nhắc nhẹ', icon: '🔔' },
+    { id: 'classic-chime', name: 'Chuông ngân vang', desc: 'Trong trẻo, tươi sáng (Marimba)', icon: '🛎️' },
+    { id: 'melodic', name: 'Giai điệu du dương', desc: 'Chuỗi nốt ngũ cung êm ái', icon: '🎵' },
     { id: 'radar', name: 'Kỹ thuật số xung nhịp', desc: 'Âm thanh hiện đại, dứt khoát', icon: '📟' },
     { id: 'gentle-morning', name: 'Bình minh êm dịu', desc: 'Nhẹ nhàng, thư thái, bình yên', icon: '🕊️' },
     { id: 'cosmic-glow', name: 'Vũ trụ huyền ảo', desc: 'Âm ngân vang không gian ngân hà', icon: '🌌' }
 ];
 
 export function getSelectedRingtone() {
-    return localStorage.getItem('cal_alarm_ringtone') || 'classic-chime';
+    return localStorage.getItem('cal_alarm_ringtone') || 'ting';
 }
 
 export function setSelectedRingtone(id) {
-    localStorage.setItem('cal_alarm_ringtone', id || 'classic-chime');
+    localStorage.setItem('cal_alarm_ringtone', id || 'ting');
 }
 
 export function isVibrationEnabled() {
@@ -343,6 +344,12 @@ export function playRingtoneById(id, ctx, startTime) {
     const ringtone = id || getSelectedRingtone();
 
     switch (ringtone) {
+        case 'ting': {
+            // Tiếng Ting trong trẻo, êm dịu, nhắc nhẹ: Hai nốt hòa âm C6 và G6 ngân nga thanh tao
+            synthesizeNote(ctx, 1046.5, 'sine', startTime, 0.35, 0.22);
+            synthesizeNote(ctx, 1567.98, 'sine', startTime + 0.04, 0.45, 0.26);
+            break;
+        }
         case 'melodic': {
             // Điện tử réo rắt: C6 -> E6 -> G6 -> C7
             synthesizeNote(ctx, 1046.5, 'triangle', startTime, 0.12, 0.3);
@@ -413,7 +420,7 @@ export function previewRingtone(ringtoneId) {
 
         // Kèm rung nhẹ nếu đang bật rung
         if (isVibrationEnabled()) {
-            triggerDeviceVibration([80, 50, 80]);
+            triggerDeviceVibration([90]);
         }
     } catch (e) {
         console.warn('Lỗi nghe thử chuông:', e);
@@ -421,11 +428,11 @@ export function previewRingtone(ringtoneId) {
 }
 
 /**
- * Phát âm thanh chuông thông báo thường
+ * Phát âm thanh chuông thông báo nhắc nhẹ (Chỉ ting lên 1 cái)
  */
 export function playNotificationChime() {
     if (isVibrationEnabled()) {
-        triggerDeviceVibration([150, 80, 150]);
+        triggerDeviceVibration([90]); // Rung nhẹ một cái 90ms
     }
 
     try {
@@ -603,8 +610,8 @@ export function triggerAlarm(evt, reminderMinutes = 0) {
     // 4. Bắn Web Notification với cờ requireInteraction: true (ghim trên thiết bị)
     if (getNotificationPermission() === 'granted') {
         const timeStr = evt.allDay ? 'Cả ngày' : (evt.startTime ? `lúc ${evt.startTime}` : '');
-        const title = `⏰ BÁO THỨC: ${evt.title || 'Đến giờ sự kiện'}`;
-        const body = `Sự kiện đang diễn ra (${timeStr}). Nhấn vào đây để tắt hoặc báo lại sau 5 phút!`;
+        const title = 'Lịch Vạn Năng';
+        const body = `⏰ Báo thức: ${evt.title || 'Đến giờ sự kiện'} (${timeStr}). Nhấn vào đây để xem hoặc tắt báo thức!`;
         const options = {
             body,
             icon: './icon-192.png',
@@ -672,57 +679,55 @@ export function snoozeAlarm(minutes = 5) {
 let reminderIntervalId = null;
 
 /**
- * Gửi thông báo cho một sự kiện đến giờ nhắc (Chế độ Thông báo nhẹ)
+ * Gửi thông báo cho một sự kiện đến giờ nhắc (Chế độ Nhắc nhẹ - Ting lên 1 cái & hiện thông báo)
  */
 export async function sendEventNotification(evt, reminderMinutes) {
-    let title = `🔔 Nhắc nhở: ${evt.title}`;
     let body = '';
-
     const timeStr = evt.allDay ? 'Cả ngày' : (evt.startTime ? `lúc ${evt.startTime}` : '');
     const reminderNum = parseInt(reminderMinutes, 10);
 
     if (reminderNum === 0) {
-        title = `⏰ Đến giờ: ${evt.title}`;
-        body = `Sự kiện đang bắt đầu ${timeStr}.`;
+        body = `Đến giờ sự kiện: ${evt.title || 'Sự kiện'} (${timeStr}).`;
     } else if (reminderNum === 1440) {
-        title = `📅 Ngày mai: ${evt.title}`;
-        body = `Sự kiện sẽ diễn ra vào ngày mai ${timeStr}.`;
+        body = `Nhắc nhở ngày mai: ${evt.title || 'Sự kiện'} (${timeStr}).`;
     } else if (reminderNum >= 60) {
         const hours = Math.round(reminderNum / 60);
-        body = `Sự kiện sẽ diễn ra sau ${hours} giờ nữa (${timeStr}).`;
+        body = `Nhắc nhở: ${evt.title || 'Sự kiện'} sẽ diễn ra sau ${hours} giờ nữa (${timeStr}).`;
     } else {
-        body = `Sự kiện sẽ diễn ra sau ${reminderNum} phút nữa (${timeStr}).`;
+        body = `Nhắc nhở: ${evt.title || 'Sự kiện'} sẽ diễn ra sau ${reminderNum} phút nữa (${timeStr}).`;
     }
 
     if (evt.note) {
-        body += `\nGhi chú: ${evt.note}`;
+        body += `\n${evt.note}`;
     }
 
-    // 1. Phát âm thanh chuông êm tai & rung nhẹ
+    // 1. Chỉ ting lên một cái thanh tao & rung nhẹ 1 nhịp (không phải báo thức)
     playNotificationChime();
 
-    // 2. Hiện Toast nổi bên trong ứng dụng
+    // 2. Hiện Toast nổi nhẹ nhàng bên trong ứng dụng
     try {
         const { showToastNotification } = await import('../ui/toast.js');
-        showToastNotification(body, title);
+        showToastNotification(body, 'Lịch Vạn Năng');
     } catch (e) { }
 
     // 3. Bắn thông báo hệ thống qua Service Worker hoặc Notification API nếu đã được cấp quyền
     if (getNotificationPermission() === 'granted') {
+        const notiTitle = 'Lịch Vạn Năng';
+        const notiBody = body.trim();
         const options = {
-            body,
+            body: notiBody,
             icon: './icon-192.png',
             badge: './favicon.svg',
-            vibrate: [200, 100, 200],
+            vibrate: isVibrationEnabled() ? [90] : undefined,
             tag: `calevt-${evt.id}-${reminderNum}`,
             data: { url: window.location.href, eventId: evt.id }
         };
 
         if (swRegistration && swRegistration.showNotification) {
-            swRegistration.showNotification(title, options).catch(() => {});
+            swRegistration.showNotification(notiTitle, options).catch(() => {});
         } else if ('Notification' in window) {
             try {
-                const noti = new Notification(title, options);
+                const noti = new Notification(notiTitle, options);
                 noti.onclick = () => {
                     window.focus();
                     noti.close();
@@ -755,9 +760,7 @@ export async function sendDailyBriefingNotification(isTest = false) {
         const lunarKey = `${lunar.day}-${lunar.month}`;
         const holiday = SOLAR_HOLIDAYS[solarKey] || LUNAR_HOLIDAYS[lunarKey] || (lunar.day === 1 ? 'Mùng một Âm lịch' : (lunar.day === 15 ? 'Ngày Rằm Âm lịch' : ''));
 
-        const title = isTest 
-            ? `📋 [Thử nghiệm] Tổng hợp lịch trình (${curDate}/${curMonth + 1})`
-            : `📋 Lịch trình hôm nay (${curDate}/${curMonth + 1})`;
+        const title = 'Lịch Vạn Năng';
 
         let body = '';
         if (holiday) {
@@ -927,13 +930,8 @@ export async function checkEventReminders() {
                 if (!sessionStorage.getItem(dedupeKey)) {
                     sessionStorage.setItem(dedupeKey, String(Date.now()));
                     
-                    // Phân biệt kiểu Báo thức (Alarm + Rung + Popup) hay Thông báo thường
-                    const alertType = evt.alertType || 'alarm';
-                    if (alertType === 'alarm') {
-                        triggerAlarm(evt, reminderMinutes);
-                    } else {
-                        sendEventNotification(evt, reminderMinutes);
-                    }
+                    // Nhắc nhẹ người dùng: Chỉ ting lên một cái rồi hiện thông báo ra, không phải báo thức
+                    sendEventNotification(evt, reminderMinutes);
                 }
             }
         });

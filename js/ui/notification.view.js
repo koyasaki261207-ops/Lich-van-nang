@@ -26,7 +26,8 @@ import {
     setDailyBriefingEnabled,
     getDailyBriefingTime,
     setDailyBriefingTime,
-    sendDailyBriefingNotification
+    sendDailyBriefingNotification,
+    playNotificationChime
 } from '../services/notification.service.js';
 import { showToastNotification } from './toast.js';
 
@@ -277,9 +278,8 @@ export function renderUpcomingReminders() {
                 else if (rVal === '60') rLabel = 'Trước 1h';
                 else if (rVal === '1440') rLabel = 'Trước 1 ngày';
 
-                const isAlarm = (evt.alertType || 'alarm') === 'alarm';
-                const iconType = isAlarm ? '⏰' : '🔔';
-                const badgeText = isAlarm ? `${iconType} Báo thức: ${rLabel}` : `${iconType} ${rLabel}`;
+                const iconType = '🔔';
+                const badgeText = `${iconType} Nhắc nhẹ: ${rLabel}`;
 
                 item.innerHTML = `
                     <div class="noti-upcoming-item-left">
@@ -440,7 +440,7 @@ export function initNotificationUI() {
                 updateNotificationStateUI();
                 if (res === 'granted') {
                     showToastNotification('Đã cho phép thông báo thành công!', 'Thành công');
-                    await sendTestNotification('Lịch Vạn Năng 🎉', 'Chào mừng bạn! Thiết bị đã sẵn sàng nhận thông báo và báo thức.');
+                    await sendTestNotification('Lịch Vạn Năng', 'Chào mừng bạn! Thiết bị đã sẵn sàng nhận thông báo và báo thức.');
                 }
             } catch (err) {
                 console.warn(err);
@@ -452,8 +452,9 @@ export function initNotificationUI() {
     if (btnModalTestNoti) {
         btnModalTestNoti.addEventListener('click', async () => {
             try {
-                await sendTestNotification('Lịch Vạn Năng 🎉', 'Kiểm tra chuông thông báo thành công trên ' + (isIosDevice() ? 'iPhone' : 'thiết bị của bạn') + '!');
-                showToastNotification('Đã phát chuông & gửi thông báo thử nghiệm!', 'Thành công');
+                playNotificationChime();
+                await sendTestNotification('Lịch Vạn Năng', 'Kiểm tra chuông thông báo thành công trên ' + (isIosDevice() ? 'iPhone' : 'thiết bị của bạn') + '!');
+                showToastNotification('Đã ting chuông & gửi thông báo nhắc nhẹ!', 'Thành công');
             } catch (err) {
                 showToastNotification('Chưa thể gửi thông báo: ' + (err.message || 'Chưa cấp quyền'), 'Lỗi');
             }
