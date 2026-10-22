@@ -30,6 +30,16 @@ export async function registerServiceWorker() {
         const reg = await navigator.serviceWorker.register('./sw.js', { scope: './' });
         swRegistration = reg;
 
+        // Chủ động kiểm tra cập nhật mới từ server
+        reg.update().catch(() => {});
+
+        // Khi người dùng quay lại tab hoặc mở lại ứng dụng trên điện thoại, tự kiểm tra cập nhật
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                reg.update().catch(() => {});
+            }
+        });
+
         // Lắng nghe cập nhật của Service Worker nếu có
         reg.addEventListener('updatefound', () => {
             const installingWorker = reg.installing;
@@ -39,6 +49,16 @@ export async function registerServiceWorker() {
                         console.log('Phiên bản mới của Lịch Vạn Năng đã sẵn sàng!');
                     }
                 });
+            }
+        });
+
+        // Lắng nghe khi Service Worker mới đã active và chiếm quyền điều khiển (controllerchange)
+        // Tự động reload để người dùng (đặc biệt là trên điện thoại di động) nhận ngay phiên bản mới
+        let isReloading = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (!isReloading) {
+                isReloading = true;
+                window.location.reload();
             }
         });
 

@@ -788,23 +788,23 @@
   }
 }
 
-/* Hiệu ứng phát sáng trên thanh timeline 24h khi vừa được kích hoạt */
-.day-h-timeline-section.timeline-focus-pulse {
-  animation: timelineFocusGlow 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+/* Hiệu ứng viền phát sáng nhẹ nhàng, êm dịu cho khung timeline 24h khi kích hoạt */
+.day-h-timeline-section.timeline-soft-glow {
+  animation: timelineSoftBorderGlow 1.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
-@keyframes timelineFocusGlow {
+@keyframes timelineSoftBorderGlow {
   0% {
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), 0 0 0 0 rgba(56, 189, 248, 0.85);
-    border-color: rgba(56, 189, 248, 0.9);
+    border-color: rgba(56, 189, 248, 0.2);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), 0 0 0 rgba(56, 189, 248, 0);
   }
   30% {
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 32px 8px rgba(56, 189, 248, 0.55);
-    border-color: #38bdf8;
+    border-color: rgba(56, 189, 248, 0.75);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), 0 0 24px rgba(56, 189, 248, 0.35), inset 0 0 12px rgba(56, 189, 248, 0.08);
   }
   100% {
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), 0 0 24px rgba(59, 130, 246, 0.08);
     border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), 0 0 24px rgba(59, 130, 246, 0.08), inset 0 0 0 rgba(56, 189, 248, 0);
   }
 }
 

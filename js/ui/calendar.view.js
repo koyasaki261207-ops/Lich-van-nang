@@ -11,6 +11,7 @@ import { calSelectMonth } from './auth.view.js';
 import { calAddCustomCatBox, calAttachmentLabel, calAttachmentName, calAttachmentPreviewBox, calEndTimeInputs, calRepeatIntervalGroup, calStartTimeInputs, closeCalAddEventModal, formCalAddEvent, initAlertModeUI, inputCalEndTime, inputCalRepeatInterval, inputCalTitle, inputCalUrl, modalCalAddEvent, openCalAddEventModal, renderCategoryChips, selectCalReminder, selectCalRepeat, textareaCalNote } from './calendar-event-form.js';
 import { closeDayDetailModal, openDayDetailModal, renderDayDetailEvents } from './day-detail.view.js';
 import { buildHorizontalTimelineRuler, renderHorizontalDailyTimeline, updateHorizontalNowNeedle } from './day-timeline.view.js';
+import { scrollToToday } from './timeline.view.js';
 
 export const calMonthTitle = document.getElementById('cal-month-title');
 
@@ -222,39 +223,45 @@ function onDayCellClick(cell, cellData) {
     document.querySelectorAll('.cal-day-cell.is-selected').forEach(c => c.classList.remove('is-selected'));
     cell.classList.add('is-selected');
 
+    // Cập nhật State ngày đang chọn
+    S.activeTimelineDate = cellData;
+
     renderHorizontalDailyTimeline(cellData);
     openDayDetailModal(cellData);
 }
 
-// Xử lý khi người dùng nhấn giữ cỡ 0.5s: hiển thị ngay thanh timeline 24h của ngày đó, KHÔNG mở popup thông tin ngày
+// Xử lý khi người dùng nhấn giữ cỡ 0.5s: hiển thị ngay thanh timeline 24h của ngày đó với hiệu ứng viền phát sáng êm dịu, KHÔNG mở popup thông tin ngày, KHÔNG tự động cuộn trang
 function onDayCellLongPress(cell, cellData) {
     // 1. Phản hồi xúc giác rung nhẹ trên thiết bị di động (nếu có hỗ trợ)
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
         try {
-            navigator.vibrate(45);
+            navigator.vibrate(30);
         } catch (e) {}
     }
 
-    // 2. Đánh dấu ô ngày được chọn
+    // 2. Đánh dấu ô ngày được chọn (biến đổi bình thường)
     document.querySelectorAll('.cal-day-cell.is-selected').forEach(c => c.classList.remove('is-selected'));
     cell.classList.add('is-selected');
 
-    // 3. Hiệu ứng xung nhịp thành công trên ô ngày
-    cell.classList.remove('longpress-activated');
-    void cell.offsetWidth;
-    cell.classList.add('longpress-activated');
-    setTimeout(() => {
-        cell.classList.remove('longpress-activated');
-    }, 650);
-
-    // 4. Nếu popup chi tiết ngày đang mở thì đóng lại
+    // 3. Nếu popup chi tiết ngày đang mở thì đóng lại
     closeDayDetailModal();
 
-    // 5. Cập nhật State
+    // 4. Cập nhật State
     S.activeTimelineDate = cellData;
 
-    // 6. Cập nhật nội dung thanh timeline 24h của ngày đó (không tự động cuộn trang)
+    // 5. Cập nhật nội dung thanh timeline 24h của ngày đó (không cuộn trang)
     renderHorizontalDailyTimeline(cellData);
+
+    // 6. Kích hoạt hiệu ứng viền phát sáng nhẹ nhàng, êm dịu cho khung timeline 24h
+    const timelineSec = document.getElementById('day-h-timeline-section');
+    if (timelineSec) {
+        timelineSec.classList.remove('timeline-soft-glow');
+        void timelineSec.offsetWidth;
+        timelineSec.classList.add('timeline-soft-glow');
+        setTimeout(() => {
+            timelineSec.classList.remove('timeline-soft-glow');
+        }, 1900);
+    }
 }
 
 // Gắn tương tác cảm ứng & chuột: Hỗ trợ cả Desktop (chuột) và Mobile (cảm ứng)
@@ -697,10 +704,44 @@ export function initMonthlyCalendar() {
 
     if (btnCalToday) {
         btnCalToday.addEventListener('click', () => {
-            const now = new Date();
-            S.currentCalMonth = now.getMonth();
-            S.currentCalYear = now.getFullYear();
+            // Phản hồi rung xúc giác nhẹ trên điện thoại di động
+            if (typeof navigator !== 'undefined' && navigator.vibrate) {
+                try {
+                    navigator.vibrate(25);
+                } catch (e) {}
+            }
+
+            const todayData = getTodayData();
+            S.currentCalMonth = todayData.cellMonth;
+            S.currentCalYear = todayData.cellYear;
+            S.activeTimelineDate = todayData;
+
+            // Đóng modal chi tiết ngày nếu đang mở (không hiển thị thông tin ngày khi nhấn Hôm nay)
+            closeDayDetailModal();
+
+            // Cập nhật lại dropdown tháng và năm trên thanh điều khiển
+            if (calSelectMonth) calSelectMonth.value = String(S.currentCalMonth);
+            if (calSelectYear) calSelectYear.value = String(S.currentCalYear);
+
+            // Vẽ lại lịch: ngày hôm nay được đánh dấu là ô được chọn (.is-selected), bỏ chọn toàn bộ các ngày cũ
             renderMonthlyCalendar(S.currentCalMonth, S.currentCalYear);
+
+            // Đồng bộ thanh timeline 24h về ngày hôm nay
+            renderHorizontalDailyTimeline(todayData);
+
+            // Đồng bộ trục timeline lớn bên dưới cuộn đến ngày hôm nay
+            scrollToToday(true);
+
+            // Hiệu ứng viền phát sáng nhẹ nhàng trên khung timeline 24h
+            const timelineSec = document.getElementById('day-h-timeline-section');
+            if (timelineSec) {
+                timelineSec.classList.remove('timeline-soft-glow');
+                void timelineSec.offsetWidth;
+                timelineSec.classList.add('timeline-soft-glow');
+                setTimeout(() => {
+                    timelineSec.classList.remove('timeline-soft-glow');
+                }, 1900);
+            }
         });
     }
 
