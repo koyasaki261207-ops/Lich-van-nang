@@ -718,6 +718,94 @@
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   box-sizing: border-box;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: pan-y;
+}
+
+/* Ánh sáng mềm tỏa ra từ tâm khi người dùng đang nhấn giữ */
+.cal-day-cell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9px;
+  background: radial-gradient(circle at center, rgba(56, 189, 248, 0.22) 0%, transparent 75%);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 1;
+  transition: opacity 0.2s ease;
+}
+
+/* Thanh neon tiến trình chạy qua đáy ô lịch trong đúng 0.5s */
+.cal-day-cell::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  width: 0%;
+  background: linear-gradient(90deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.9), 0 0 18px rgba(129, 140, 248, 0.7);
+  pointer-events: none;
+  z-index: 10;
+  transition: none;
+  opacity: 0;
+}
+
+/* Trạng thái đang nhấn giữ ô ngày (0.5s) */
+.cal-day-cell.is-holding-day {
+  transform: scale(0.972);
+  border-color: rgba(56, 189, 248, 0.85) !important;
+  box-shadow: 0 0 22px rgba(56, 189, 248, 0.45), inset 0 0 14px rgba(56, 189, 248, 0.2) !important;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cal-day-cell.is-holding-day::before {
+  opacity: 1;
+}
+
+.cal-day-cell.is-holding-day::after {
+  opacity: 1;
+  width: 100%;
+  transition: width 0.5s linear, opacity 0.15s ease;
+}
+
+/* Phát sáng viền nhẹ khi hoàn tất nhấn giữ */
+.cal-day-cell.longpress-activated {
+  animation: dayCellSoftGlow 0.45s ease-out forwards;
+}
+
+@keyframes dayCellSoftGlow {
+  0% {
+    box-shadow: 0 0 18px rgba(56, 189, 248, 0.6), 0 4px 14px rgba(0, 0, 0, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 22px rgba(56, 189, 248, 0.65), 0 4px 14px rgba(0, 0, 0, 0.35);
+  }
+  100% {
+    box-shadow: 0 0 16px rgba(56, 189, 248, 0.45), 0 4px 14px rgba(0, 0, 0, 0.35);
+  }
+}
+
+/* Hiệu ứng phát sáng trên thanh timeline 24h khi vừa được kích hoạt */
+.day-h-timeline-section.timeline-focus-pulse {
+  animation: timelineFocusGlow 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes timelineFocusGlow {
+  0% {
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), 0 0 0 0 rgba(56, 189, 248, 0.85);
+    border-color: rgba(56, 189, 248, 0.9);
+  }
+  30% {
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 32px 8px rgba(56, 189, 248, 0.55);
+    border-color: #38bdf8;
+  }
+  100% {
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), 0 0 24px rgba(59, 130, 246, 0.08);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
 }
 
 .cal-day-cell:hover {
@@ -1115,37 +1203,6 @@
   letter-spacing: 0.6px;
 }
 
-/* Can Chi Grid */
-.day-canchi-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-
-.canchi-item {
-  background: rgba(15, 20, 38, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  padding: 8px 10px;
-  text-align: center;
-}
-
-.canchi-label {
-  display: block;
-  font-size: 10px;
-  font-weight: 700;
-  color: #64748b;
-  letter-spacing: 0.5px;
-  margin-bottom: 3px;
-}
-
-.canchi-value {
-  display: block;
-  font-size: 13.5px;
-  font-weight: 700;
-  color: var(--slate-200);
-}
-
 /* Thẻ Hoàng Đạo / Hắc Đạo */
 .day-hoangdao-card {
   border-radius: 10px;
@@ -1459,10 +1516,57 @@
   font-size: 12px;
   color: var(--slate-400);
   font-weight: 600;
+  white-space: nowrap;
+}
+
+.cal-repeat-interval-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  animation: fadeInRepeat 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeInRepeat {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.cal-repeat-interval-group .repeat-interval-prefix {
+  font-size: 12px;
+  color: var(--slate-300);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.cal-repeat-interval-input {
+  width: 52px;
+  height: 31px;
+  padding: 4px 6px;
+  text-align: center;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(15, 20, 38, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 6px;
+  outline: none;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.cal-repeat-interval-input:focus {
+  border-color: var(--accent-cyan, #38bdf8);
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.35);
 }
 
 .cal-repeat-select-wrap {
-  min-width: 130px;
+  min-width: 95px;
 }
 
 .cal-select-repeat {
@@ -1471,6 +1575,164 @@
   background: rgba(15, 20, 38, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 6px;
+}
+
+/* Hàng Nhắc nhở thông báo (Reminder) */
+.cal-reminder-subrow {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+}
+
+.cal-reminder-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cal-reminder-control .reminder-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--slate-300);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.cal-reminder-control .reminder-label svg {
+  color: #38bdf8;
+}
+
+.cal-reminder-select-wrap {
+  min-width: 175px;
+}
+
+.cal-select-reminder {
+  padding: 6px 26px 6px 10px;
+  font-size: 12px;
+  background: rgba(15, 20, 38, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 6px;
+  color: #f1f5f9;
+}
+
+.cal-select-reminder:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+}
+
+/* Khu vực danh sách sự kiện sắp tới trong Trung tâm thông báo */
+.noti-upcoming-section {
+  background: rgba(15, 20, 38, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-top: 12px;
+}
+
+.noti-upcoming-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.noti-upcoming-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.noti-upcoming-count {
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  padding: 2px 8px;
+  border-radius: 99px;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+.noti-upcoming-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 180px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.noti-upcoming-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  gap: 10px;
+  transition: all 0.2s ease;
+}
+
+.noti-upcoming-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+.noti-upcoming-item-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.noti-upcoming-item-color {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.noti-upcoming-item-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #f1f5f9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.noti-upcoming-item-time {
+  font-size: 11.5px;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.noti-upcoming-item-badge {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.noti-upcoming-empty {
+  font-size: 12px;
+  color: #94a3b8;
+  text-align: center;
+  padding: 12px 6px;
+  font-style: italic;
 }
 
 /* Dòng 3: Loại nhãn */

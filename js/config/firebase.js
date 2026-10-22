@@ -38,9 +38,20 @@ export function getFirebaseSdk() {
     return sdk;
 }
 
-// Khởi tạo app mặc định (chỉ một lần). SDK phải đã được nạp.
+// Khởi tạo app mặc định. Nếu app cũ có apiKey khác với cfg hiện tại thì khởi tạo lại.
 export function initFirebaseApp(cfg) {
-    return sdk.getApps().length ? sdk.getApp() : sdk.initializeApp(cfg);
+    if (!sdk) return null;
+    if (sdk.getApps().length) {
+        const currentApp = sdk.getApp();
+        if (currentApp.options && cfg && currentApp.options.apiKey !== cfg.apiKey) {
+            try {
+                sdk.deleteApp(currentApp);
+            } catch (e) { }
+            return sdk.initializeApp(cfg);
+        }
+        return currentApp;
+    }
+    return sdk.initializeApp(cfg);
 }
 
 export function getFirebaseAuth() {
@@ -107,7 +118,22 @@ export function getActiveFirebaseConfig() {
         const stored = localStorage.getItem(FIREBASE_CONFIG_STORAGE_KEY);
         if (stored) {
             const parsed = parseFirebaseConfig(stored);
-            if (parsed && parsed.apiKey) return parsed;
+            if (parsed && parsed.apiKey) {
+                // Tự động khắc phục lỗi typo cũ 'jtaclatO' (chữ l) thành 'jtac1atO' (số 1)
+                if (parsed.apiKey.includes('jtaclatO')) {
+                    parsed.apiKey = parsed.apiKey.replace(/jtaclatO/g, 'jtac1atO');
+                    try {
+                        localStorage.setItem(FIREBASE_CONFIG_STORAGE_KEY, JSON.stringify(parsed));
+                    } catch (e) { }
+                }
+                // Nếu là dự án chính 'lich-van-nang', luôn ưu tiên cấu hình chính thức từ DEFAULT_FIREBASE_CONFIG
+                if (!parsed.projectId || parsed.projectId === DEFAULT_FIREBASE_CONFIG.projectId) {
+                    if (DEFAULT_FIREBASE_CONFIG.apiKey) {
+                        return DEFAULT_FIREBASE_CONFIG;
+                    }
+                }
+                return parsed;
+            }
         }
     } catch (e) { }
     if (DEFAULT_FIREBASE_CONFIG.apiKey) {

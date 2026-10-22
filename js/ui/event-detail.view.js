@@ -10,6 +10,7 @@ import { closeModal, modalAddEvent, updateTagSuggestions, updateTitleSuggestions
 import { closeCropper, modalCropImage } from './image-cropper.view.js';
 import { deleteEvent, renderEvents } from './timeline.view.js';
 import { closeReorderModal, modalReorderTracks, openReorderModal } from './track-manager.view.js';
+import { deleteCalEvent, excludeCalEventDate, stopCalEventRepeatFrom } from './calendar-event-view.js';
 
 // Các phần tử trong Modal Chi tiết Sự kiện
 export const modalEventDetail = document.getElementById('modal-event-detail');
@@ -54,6 +55,16 @@ export const btnDeleteFromHere = document.getElementById('btn-delete-from-here')
 export const btnDeleteAllRepeat = document.getElementById('btn-delete-all-repeat');
 
 export const deleteRepeatSubtitle = document.getElementById('delete-repeat-subtitle');
+
+// Các phần tử trong Modal Xác Nhận Xóa Sự Kiện Đơn Lẻ
+export const modalConfirmDelete = document.getElementById('modal-confirm-delete');
+export const btnCloseConfirmDelete = document.getElementById('btn-close-confirm-delete');
+export const btnCancelConfirmDelete = document.getElementById('btn-cancel-confirm-delete');
+export const btnSubmitConfirmDelete = document.getElementById('btn-submit-confirm-delete');
+export const confirmDeleteTitle = document.getElementById('confirm-delete-title');
+export const confirmDeleteSubtitle = document.getElementById('confirm-delete-subtitle');
+export const confirmDeleteEventName = document.getElementById('confirm-delete-event-name');
+export const confirmDeleteEventMeta = document.getElementById('confirm-delete-event-meta');
 
 export const detailTrackBadge = document.getElementById('detail-track-badge');
 
@@ -223,12 +234,26 @@ export function closeEventDetail() {
     S.currentDetailEvent = null;
 }
 
-export function openDeleteRepeatModal(evt) {
+export function openDeleteRepeatModal(evt, meta = {}) {
     S.pendingRepeatEventToDelete = evt;
+    S.pendingRepeatDeleteMeta = meta;
     if (!modalDeleteRepeat) return;
+
+    const isCal = meta.type === 'calendar';
+    const title = evt.title || (isCal ? 'sự kiện này' : 'hoạt động này');
+    const typeLabel = isCal ? 'Sự kiện' : 'Hoạt động';
+
     if (deleteRepeatSubtitle) {
-        deleteRepeatSubtitle.textContent = `Hoạt động "${evt.title || 'này'}" thuộc một chuỗi lặp lại. Bạn muốn xóa như thế nào?`;
+        deleteRepeatSubtitle.textContent = `${typeLabel} "${title}" thuộc một chuỗi lặp lại. Bạn muốn xóa như thế nào?`;
     }
+
+    const descAll = document.getElementById('delete-all-repeat-desc');
+    if (descAll) {
+        descAll.textContent = isCal
+            ? 'Xóa sạch toàn bộ chuỗi sự kiện này (cả quá khứ và tương lai) khỏi lịch.'
+            : 'Xóa sạch toàn bộ chuỗi sự kiện này (cả quá khứ và tương lai) khỏi timeline.';
+    }
+
     modalDeleteRepeat.classList.add('is-active');
     modalDeleteRepeat.setAttribute('aria-hidden', 'false');
 }
@@ -238,6 +263,7 @@ export function closeDeleteRepeatModal() {
     modalDeleteRepeat.classList.remove('is-active');
     modalDeleteRepeat.setAttribute('aria-hidden', 'true');
     S.pendingRepeatEventToDelete = null;
+    S.pendingRepeatDeleteMeta = null;
 }
 
 if (btnCloseDeleteRepeat) btnCloseDeleteRepeat.addEventListener('click', closeDeleteRepeatModal);
@@ -254,9 +280,18 @@ if (modalDeleteRepeat) {
 if (btnDeleteThisOnly) {
     btnDeleteThisOnly.addEventListener('click', () => {
         if (!S.pendingRepeatEventToDelete) return;
-        const idToDelete = S.pendingRepeatEventToDelete.id;
-        closeDeleteRepeatModal();
-        deleteEvent(idToDelete);
+        const evt = S.pendingRepeatEventToDelete;
+        const meta = S.pendingRepeatDeleteMeta || {};
+
+        if (meta.type === 'calendar') {
+            const dateStr = meta.dateStr;
+            closeDeleteRepeatModal();
+            excludeCalEventDate(evt.id, dateStr);
+        } else {
+            const idToDelete = evt.id;
+            closeDeleteRepeatModal();
+            deleteEvent(idToDelete);
+        }
     });
 }
 
@@ -264,38 +299,47 @@ if (btnDeleteThisOnly) {
 if (btnDeleteFromHere) {
     btnDeleteFromHere.addEventListener('click', () => {
         if (!S.pendingRepeatEventToDelete) return;
-        const repId = S.pendingRepeatEventToDelete.repeatId;
-        const curStartMs = new Date(S.pendingRepeatEventToDelete.start).getTime();
+        const evt = S.pendingRepeatEventToDelete;
+        const meta = S.pendingRepeatDeleteMeta || {};
 
-        let events = loadEvents();
-        const idsToDelete = [];
-        // Xóa sự kiện này và tất cả các sự kiện tương lai trong chuỗi lặp
-        events = events.filter(e => {
-            if (e.repeatId === repId && new Date(e.start).getTime() >= curStartMs) {
-                idsToDelete.push(e.id);
-                return false;
+        if (meta.type === 'calendar') {
+            const dateStr = meta.dateStr;
+            closeDeleteRepeatModal();
+            stopCalEventRepeatFrom(evt.id, dateStr);
+        } else {
+            const repId = evt.repeatId;
+            const curStartMs = new Date(evt.start).getTime();
+
+            let events = loadEvents();
+            const idsToDelete = [];
+            // Xóa sự kiện này và tất cả các sự kiện tương lai trong chuỗi lặp
+            events = events.filter(e => {
+                if (e.repeatId === repId && new Date(e.start).getTime() >= curStartMs) {
+                    idsToDelete.push(e.id);
+                    return false;
+                }
+                return true;
+            });
+            recordDeletedTimelineIds(idsToDelete);
+
+            // Tắt chế độ vĩnh viễn và dừng chuỗi lặp lại cho các sự kiện còn lại trong quá khứ
+            events.forEach(e => {
+                if (e.repeatId === repId) {
+                    e.isForever = false;
+                    e.repeatLimitEnd = e.end;
+                }
+            });
+
+            saveEvents(events);
+            closeDeleteRepeatModal();
+            renderEvents();
+            updateTitleSuggestions();
+            updateTagSuggestions();
+
+            const user = getCurrentUser();
+            if (user && user.email) {
+                pushLocalDataToCloud(user.email);
             }
-            return true;
-        });
-        recordDeletedTimelineIds(idsToDelete);
-
-        // Tắt chế độ vĩnh viễn và dừng chuỗi lặp lại cho các sự kiện còn lại trong quá khứ
-        events.forEach(e => {
-            if (e.repeatId === repId) {
-                e.isForever = false;
-                e.repeatLimitEnd = e.end;
-            }
-        });
-
-        saveEvents(events);
-        closeDeleteRepeatModal();
-        renderEvents();
-        updateTitleSuggestions();
-        updateTagSuggestions();
-
-        const user = getCurrentUser();
-        if (user && user.email) {
-            pushLocalDataToCloud(user.email);
         }
     });
 }
@@ -304,19 +348,77 @@ if (btnDeleteFromHere) {
 if (btnDeleteAllRepeat) {
     btnDeleteAllRepeat.addEventListener('click', () => {
         if (!S.pendingRepeatEventToDelete) return;
-        const repId = S.pendingRepeatEventToDelete.repeatId;
-        const allInGroup = loadEvents().filter(e => e.repeatId === repId);
-        recordDeletedTimelineIds(allInGroup.map(e => e.id));
-        let events = loadEvents().filter(e => e.repeatId !== repId);
-        saveEvents(events);
-        closeDeleteRepeatModal();
-        renderEvents();
-        updateTitleSuggestions();
-        updateTagSuggestions();
+        const evt = S.pendingRepeatEventToDelete;
+        const meta = S.pendingRepeatDeleteMeta || {};
 
-        const user = getCurrentUser();
-        if (user && user.email) {
-            pushLocalDataToCloud(user.email);
+        if (meta.type === 'calendar') {
+            closeDeleteRepeatModal();
+            deleteCalEvent(evt.id);
+        } else {
+            const repId = evt.repeatId;
+            const allInGroup = loadEvents().filter(e => e.repeatId === repId);
+            recordDeletedTimelineIds(allInGroup.map(e => e.id));
+            let events = loadEvents().filter(e => e.repeatId !== repId);
+            saveEvents(events);
+            closeDeleteRepeatModal();
+            renderEvents();
+            updateTitleSuggestions();
+            updateTagSuggestions();
+
+            const user = getCurrentUser();
+            if (user && user.email) {
+                pushLocalDataToCloud(user.email);
+            }
+        }
+    });
+}
+
+let pendingSingleDeleteCallback = null;
+
+export function openSingleDeleteConfirmModal({
+    title = 'Xóa sự kiện',
+    subtitle = 'Bạn có chắc chắn muốn xóa sự kiện này?',
+    eventName = 'Sự kiện này',
+    eventMeta = 'Hành động này sẽ xóa sự kiện khỏi lịch và không thể hoàn tác.',
+    confirmText = 'Xóa sự kiện',
+    onConfirm = null
+} = {}) {
+    pendingSingleDeleteCallback = onConfirm;
+    if (!modalConfirmDelete) return;
+
+    if (confirmDeleteTitle) confirmDeleteTitle.textContent = title;
+    if (confirmDeleteSubtitle) confirmDeleteSubtitle.textContent = subtitle;
+    if (confirmDeleteEventName) confirmDeleteEventName.textContent = eventName;
+    if (confirmDeleteEventMeta) confirmDeleteEventMeta.textContent = eventMeta;
+    if (btnSubmitConfirmDelete) btnSubmitConfirmDelete.textContent = confirmText;
+
+    modalConfirmDelete.classList.add('is-active');
+    modalConfirmDelete.setAttribute('aria-hidden', 'false');
+}
+
+export function closeSingleDeleteConfirmModal() {
+    if (!modalConfirmDelete) return;
+    modalConfirmDelete.classList.remove('is-active');
+    modalConfirmDelete.setAttribute('aria-hidden', 'true');
+    pendingSingleDeleteCallback = null;
+}
+
+if (btnCloseConfirmDelete) btnCloseConfirmDelete.addEventListener('click', closeSingleDeleteConfirmModal);
+
+if (btnCancelConfirmDelete) btnCancelConfirmDelete.addEventListener('click', closeSingleDeleteConfirmModal);
+
+if (modalConfirmDelete) {
+    modalConfirmDelete.addEventListener('click', (e) => {
+        if (e.target === modalConfirmDelete) closeSingleDeleteConfirmModal();
+    });
+}
+
+if (btnSubmitConfirmDelete) {
+    btnSubmitConfirmDelete.addEventListener('click', () => {
+        const cb = pendingSingleDeleteCallback;
+        closeSingleDeleteConfirmModal();
+        if (typeof cb === 'function') {
+            cb();
         }
     });
 }
@@ -335,12 +437,19 @@ if (btnDeleteDetailEvent) {
             closeEventDetail();
             openDeleteRepeatModal(evt);
         } else {
-            // Sự kiện đơn lẻ thông thường
-            if (confirm(`Bạn có chắc muốn xóa hoạt động "${title}" không?`)) {
-                const idToDelete = evt.id;
-                closeEventDetail();
-                deleteEvent(idToDelete);
-            }
+            // Sự kiện đơn lẻ thông thường: mở hộp thoại xác nhận đẹp mắt
+            openSingleDeleteConfirmModal({
+                title: 'Xóa hoạt động',
+                subtitle: 'Bạn có chắc chắn muốn xóa hoạt động này khỏi timeline?',
+                eventName: title,
+                eventMeta: 'Hoạt động sẽ bị xóa vĩnh viễn khỏi timeline và không thể hoàn tác.',
+                confirmText: 'Xóa hoạt động',
+                onConfirm: () => {
+                    const idToDelete = evt.id;
+                    closeEventDetail();
+                    deleteEvent(idToDelete);
+                }
+            });
         }
     });
 }
@@ -353,7 +462,9 @@ if (modalEventDetail) {
 
 window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-        if (modalDeleteRepeat && modalDeleteRepeat.classList.contains('is-active')) {
+        if (modalConfirmDelete && modalConfirmDelete.classList.contains('is-active')) {
+            closeSingleDeleteConfirmModal();
+        } else if (modalDeleteRepeat && modalDeleteRepeat.classList.contains('is-active')) {
             closeDeleteRepeatModal();
         } else if (modalReorderTracks && modalReorderTracks.classList.contains('is-active')) {
             closeReorderModal();

@@ -51,6 +51,7 @@ export const S = {
   currentDetailEvent: null,
   detailCountdownTimer: null,
   pendingRepeatEventToDelete: null,
+  pendingRepeatDeleteMeta: null,
   pendingScanFile: null,
   currentCalMonth: new Date().getMonth(),
   currentCalYear: new Date().getFullYear(),

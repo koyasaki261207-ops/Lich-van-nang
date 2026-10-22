@@ -186,10 +186,10 @@ export function updateCurrentTime() {
     updateHorizontalNowNeedle();
 }
 
-// Cuộn màn hình đưa ngày hôm nay vào chính giữa trục thời gian
-export function scrollToToday(smooth = false) {
-    const current = new Date();
-    const diffMs = current.getTime() - startDate.getTime();
+// Cuộn màn hình đưa ngày cụ thể vào chính giữa trục thời gian
+export function scrollToDate(targetDate, smooth = true) {
+    if (!targetDate || !timelineViewport) return;
+    const diffMs = targetDate.getTime() - startDate.getTime();
     const currentLeftPx = (diffMs / MS_PER_DAY + 0.5) * getColWidth();
     const viewportWidth = timelineViewport.clientWidth;
     const targetScroll = Math.max(0, currentLeftPx - (viewportWidth / 2));
@@ -202,6 +202,11 @@ export function scrollToToday(smooth = false) {
     } else {
         timelineViewport.scrollLeft = targetScroll;
     }
+}
+
+// Cuộn màn hình đưa ngày hôm nay vào chính giữa trục thời gian
+export function scrollToToday(smooth = false) {
+    scrollToDate(new Date(), smooth);
 }
 
 // Gắn sự kiện click cho nút "Hiện tại"

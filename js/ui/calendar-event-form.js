@@ -24,6 +24,50 @@ export const calEndTimeInputs = document.getElementById('cal-end-time-inputs');
 
 export const selectCalRepeat = document.getElementById('cal-event-repeat');
 
+export const inputCalRepeatInterval = document.getElementById('cal-event-repeat-interval');
+
+export const calRepeatIntervalGroup = document.getElementById('cal-repeat-interval-group');
+
+export const selectCalReminder = document.getElementById('cal-event-reminder');
+
+export const inputCalAlertType = document.getElementById('cal-event-alert-type');
+
+export const btnAlertTypeAlarm = document.getElementById('btn-alert-type-alarm');
+
+export const btnAlertTypeNotify = document.getElementById('btn-alert-type-notify');
+
+export const calAlertModeWrap = document.getElementById('cal-alert-mode-wrap');
+
+export function setAlertMode(type = 'alarm') {
+    const safeType = (type === 'notification') ? 'notification' : 'alarm';
+    if (inputCalAlertType) inputCalAlertType.value = safeType;
+    if (btnAlertTypeAlarm && btnAlertTypeNotify) {
+        if (safeType === 'alarm') {
+            btnAlertTypeAlarm.classList.add('is-active');
+            btnAlertTypeNotify.classList.remove('is-active');
+        } else {
+            btnAlertTypeNotify.classList.add('is-active');
+            btnAlertTypeAlarm.classList.remove('is-active');
+        }
+    }
+}
+
+export function initAlertModeUI() {
+    if (btnAlertTypeAlarm) {
+        btnAlertTypeAlarm.addEventListener('click', () => setAlertMode('alarm'));
+    }
+    if (btnAlertTypeNotify) {
+        btnAlertTypeNotify.addEventListener('click', () => setAlertMode('notification'));
+    }
+    if (selectCalReminder) {
+        selectCalReminder.addEventListener('change', () => {
+            if (calAlertModeWrap) {
+                calAlertModeWrap.style.display = (selectCalReminder.value === 'none') ? 'none' : 'flex';
+            }
+        });
+    }
+}
+
 export const calCategoriesList = document.getElementById('cal-categories-list');
 
 export const calAddCustomCatBox = document.getElementById('cal-add-custom-cat-box');
@@ -142,6 +186,11 @@ export function openCalAddEventModal(prefillDateStr = null, prefillStartTime = n
     if (calStartTimeInputs) calStartTimeInputs.classList.remove('is-allday');
     if (calEndTimeInputs) calEndTimeInputs.classList.remove('is-allday');
     if (selectCalRepeat) selectCalRepeat.value = 'none';
+    if (inputCalRepeatInterval) inputCalRepeatInterval.value = '1';
+    if (calRepeatIntervalGroup) calRepeatIntervalGroup.style.display = 'none';
+    if (selectCalReminder) selectCalReminder.value = '10';
+    setAlertMode('alarm');
+    if (calAlertModeWrap) calAlertModeWrap.style.display = 'flex';
     if (calAddCustomCatBox) calAddCustomCatBox.style.display = 'none';
 
     S.currentSelectedCatId = 'nha';
@@ -184,6 +233,19 @@ export function openCalEditEventModal(eventId) {
 
     // Lặp lại
     if (selectCalRepeat) selectCalRepeat.value = evt.repeat || 'none';
+    if (inputCalRepeatInterval) inputCalRepeatInterval.value = evt.repeatInterval || evt.interval || 1;
+    if (calRepeatIntervalGroup) {
+        calRepeatIntervalGroup.style.display = (evt.repeat && evt.repeat !== 'none') ? 'inline-flex' : 'none';
+    }
+
+    // Nhắc nhở (Reminder) & Kiểu báo
+    if (selectCalReminder) {
+        selectCalReminder.value = (evt.reminder !== undefined && evt.reminder !== null) ? String(evt.reminder) : '10';
+        if (calAlertModeWrap) {
+            calAlertModeWrap.style.display = (selectCalReminder.value === 'none') ? 'none' : 'flex';
+        }
+    }
+    setAlertMode(evt.alertType || 'alarm');
 
     // 3. Loại nhãn
     S.currentSelectedCatId = evt.categoryId || 'nha';

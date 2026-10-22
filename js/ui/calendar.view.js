@@ -8,7 +8,7 @@ import { escapeHtml } from '../core/html.js';
 import { getCanChiDay, getLunarDate, getTodayData, isHoangDao } from '../core/lunar.js';
 import { loadCalCategories, loadCalEvents, saveCalCategories, saveCalEvents, unmarkCalEventDeleted } from '../services/calendar.service.js';
 import { calSelectMonth } from './auth.view.js';
-import { calAddCustomCatBox, calAttachmentLabel, calAttachmentName, calAttachmentPreviewBox, calEndTimeInputs, calStartTimeInputs, closeCalAddEventModal, formCalAddEvent, inputCalEndTime, inputCalTitle, inputCalUrl, modalCalAddEvent, openCalAddEventModal, renderCategoryChips, selectCalRepeat, textareaCalNote } from './calendar-event-form.js';
+import { calAddCustomCatBox, calAttachmentLabel, calAttachmentName, calAttachmentPreviewBox, calEndTimeInputs, calRepeatIntervalGroup, calStartTimeInputs, closeCalAddEventModal, formCalAddEvent, initAlertModeUI, inputCalEndTime, inputCalRepeatInterval, inputCalTitle, inputCalUrl, modalCalAddEvent, openCalAddEventModal, renderCategoryChips, selectCalReminder, selectCalRepeat, textareaCalNote } from './calendar-event-form.js';
 import { closeDayDetailModal, openDayDetailModal, renderDayDetailEvents } from './day-detail.view.js';
 import { buildHorizontalTimelineRuler, renderHorizontalDailyTimeline, updateHorizontalNowNeedle } from './day-timeline.view.js';
 
@@ -193,35 +193,160 @@ export function renderMonthlyCalendar(month, year) {
             </div>
         `;
 
-        // Bấm vào ô lịch: cập nhật ngày được chọn, đồng bộ hiển thị Timeline ngang 24h bên dưới và mở thông tin chi tiết ngày
-        cell.addEventListener('click', () => {
-            document.querySelectorAll('.cal-day-cell.is-selected').forEach(c => c.classList.remove('is-selected'));
-            cell.classList.add('is-selected');
+        const cellData = {
+            dayNum,
+            cellMonth,
+            cellYear,
+            isOtherMonth,
+            isSat,
+            isSun,
+            lunar,
+            canChi,
+            hoangDao,
+            holiday
+        };
 
-            const cellData = {
-                dayNum,
-                cellMonth,
-                cellYear,
-                isOtherMonth,
-                isSat,
-                isSun,
-                lunar,
-                canChi,
-                hoangDao,
-                holiday
-            };
+        // Gắn tooltip hướng dẫn
+        cell.setAttribute('title', 'Nhấp để xem chi tiết ngày • Nhấn giữ 0,5s để xem ngay thanh Timeline 24h');
 
-            renderHorizontalDailyTimeline(cellData);
-            openDayDetailModal(cellData);
-        });
+        // Gắn tương tác nhấp nhanh (mở chi tiết) và nhấn giữ 0.5s (mở nhanh timeline)
+        attachDayCellInteractions(cell, cellData);
 
         calGrid.appendChild(cell);
     }
 }
 
+
+// Xử lý khi người dùng nhấp nhanh vào ô ngày: hiển thị timeline và mở popup thông tin ngày
+function onDayCellClick(cell, cellData) {
+    document.querySelectorAll('.cal-day-cell.is-selected').forEach(c => c.classList.remove('is-selected'));
+    cell.classList.add('is-selected');
+
+    renderHorizontalDailyTimeline(cellData);
+    openDayDetailModal(cellData);
+}
+
+// Xử lý khi người dùng nhấn giữ cỡ 0.5s: hiển thị ngay thanh timeline 24h của ngày đó, KHÔNG mở popup thông tin ngày
+function onDayCellLongPress(cell, cellData) {
+    // 1. Phản hồi xúc giác rung nhẹ trên thiết bị di động (nếu có hỗ trợ)
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        try {
+            navigator.vibrate(45);
+        } catch (e) {}
+    }
+
+    // 2. Đánh dấu ô ngày được chọn
+    document.querySelectorAll('.cal-day-cell.is-selected').forEach(c => c.classList.remove('is-selected'));
+    cell.classList.add('is-selected');
+
+    // 3. Hiệu ứng xung nhịp thành công trên ô ngày
+    cell.classList.remove('longpress-activated');
+    void cell.offsetWidth;
+    cell.classList.add('longpress-activated');
+    setTimeout(() => {
+        cell.classList.remove('longpress-activated');
+    }, 650);
+
+    // 4. Nếu popup chi tiết ngày đang mở thì đóng lại
+    closeDayDetailModal();
+
+    // 5. Cập nhật State
+    S.activeTimelineDate = cellData;
+
+    // 6. Cập nhật nội dung thanh timeline 24h của ngày đó (không tự động cuộn trang)
+    renderHorizontalDailyTimeline(cellData);
+}
+
+// Gắn tương tác cảm ứng & chuột: Hỗ trợ cả Desktop (chuột) và Mobile (cảm ứng)
+function attachDayCellInteractions(cell, cellData) {
+    let holdTimer = null;
+    let startX = 0;
+    let startY = 0;
+    let isHolding = false;
+    let lastLongPressTimestamp = 0;
+    const HOLD_MS = 500; // 0.5 giây theo yêu cầu người dùng
+
+    const startHold = (x, y) => {
+        isHolding = true;
+        startX = x;
+        startY = y;
+        cell.classList.add('is-holding-day');
+
+        if (holdTimer) clearTimeout(holdTimer);
+        holdTimer = setTimeout(() => {
+            if (!isHolding) return;
+            isHolding = false;
+            holdTimer = null;
+            lastLongPressTimestamp = Date.now();
+            cell.classList.remove('is-holding-day');
+            onDayCellLongPress(cell, cellData);
+        }, HOLD_MS);
+    };
+
+    const cancelHold = () => {
+        isHolding = false;
+        if (holdTimer) {
+            clearTimeout(holdTimer);
+            holdTimer = null;
+        }
+        cell.classList.remove('is-holding-day');
+    };
+
+    const checkMove = (x, y) => {
+        if (isHolding) {
+            const dist = Math.hypot(x - startX, y - startY);
+            if (dist > 10) {
+                cancelHold();
+            }
+        }
+    };
+
+    // 1. Pointer Events: Chuẩn hóa cho cả chuột và cảm ứng trên trình duyệt hiện đại
+    cell.addEventListener('pointerdown', (e) => {
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
+        startHold(e.clientX, e.clientY);
+    });
+
+    cell.addEventListener('pointermove', (e) => {
+        checkMove(e.clientX, e.clientY);
+    });
+
+    cell.addEventListener('pointerup', () => {
+        cancelHold();
+    });
+
+    cell.addEventListener('pointercancel', () => {
+        cancelHold();
+    });
+
+    cell.addEventListener('pointerleave', (e) => {
+        if (e.pointerType === 'mouse') {
+            cancelHold();
+        }
+    });
+
+    // 2. Ngăn chặn Context Menu mặc định của trình duyệt khi nhấn giữ (tránh mở menu sao chép/chia sẻ)
+    cell.addEventListener('contextmenu', (e) => {
+        if (isHolding || (Date.now() - lastLongPressTimestamp < 1000)) {
+            e.preventDefault();
+        }
+    });
+
+    // 3. Xử lý Click: nếu vừa nhấn giữ 0.5s thành công thì chặn hoàn toàn click để không mở modal thông tin ngày
+    cell.addEventListener('click', (e) => {
+        if (Date.now() - lastLongPressTimestamp < 800) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
+        onDayCellClick(cell, cellData);
+    });
+}
+
 export function initMonthlyCalendar() {
     populateCalYearSelect();
     buildHorizontalTimelineRuler();
+    initAlertModeUI();
     S.activeTimelineDate = getTodayData();
     renderMonthlyCalendar(S.currentCalMonth, S.currentCalYear);
     renderHorizontalDailyTimeline(S.activeTimelineDate);
@@ -284,6 +409,36 @@ export function initMonthlyCalendar() {
             const isAllDay = chkCalAllDay.checked;
             if (calStartTimeInputs) calStartTimeInputs.classList.toggle('is-allday', isAllDay);
             if (calEndTimeInputs) calEndTimeInputs.classList.toggle('is-allday', isAllDay);
+        });
+    }
+
+    // Lặp lại sự kiện & chu kỳ lặp
+    if (selectCalRepeat) {
+        selectCalRepeat.addEventListener('change', () => {
+            const isRepeating = selectCalRepeat.value !== 'none';
+            if (calRepeatIntervalGroup) {
+                calRepeatIntervalGroup.style.display = isRepeating ? 'inline-flex' : 'none';
+            }
+            if (isRepeating && inputCalRepeatInterval) {
+                if (!inputCalRepeatInterval.value || parseInt(inputCalRepeatInterval.value, 10) < 1) {
+                    inputCalRepeatInterval.value = '1';
+                }
+            }
+        });
+    }
+
+    if (inputCalRepeatInterval) {
+        inputCalRepeatInterval.addEventListener('input', () => {
+            const val = parseInt(inputCalRepeatInterval.value, 10);
+            if (val < 1 && inputCalRepeatInterval.value !== '') {
+                inputCalRepeatInterval.value = '1';
+            }
+        });
+        inputCalRepeatInterval.addEventListener('blur', () => {
+            const val = parseInt(inputCalRepeatInterval.value, 10);
+            if (isNaN(val) || val < 1) {
+                inputCalRepeatInterval.value = '1';
+            }
         });
     }
 
@@ -417,12 +572,19 @@ export function initMonthlyCalendar() {
             }
 
             const repeat = selectCalRepeat ? selectCalRepeat.value : 'none';
+            let repeatInterval = 1;
+            if (repeat !== 'none' && inputCalRepeatInterval) {
+                repeatInterval = parseInt(inputCalRepeatInterval.value, 10);
+                if (isNaN(repeatInterval) || repeatInterval < 1) repeatInterval = 1;
+            }
 
             const cats = loadCalCategories();
             const cat = cats.find(c => c.id === S.currentSelectedCatId) || cats[0] || { id: 'nha', name: 'Nhà', color: '#38bdf8' };
 
             const note = textareaCalNote ? textareaCalNote.value.trim() : '';
             const url = inputCalUrl ? inputCalUrl.value.trim() : '';
+            const reminder = selectCalReminder ? selectCalReminder.value : '10';
+            const alertType = document.getElementById('cal-event-alert-type') ? document.getElementById('cal-event-alert-type').value : 'alarm';
 
             const events = loadCalEvents();
             if (S.editingCalEventId) {
@@ -440,6 +602,9 @@ export function initMonthlyCalendar() {
                         time: startTime,
                         allDay,
                         repeat,
+                        repeatInterval,
+                        reminder,
+                        alertType,
                         categoryId: cat.id,
                         categoryName: cat.name,
                         categoryColor: cat.color,
@@ -463,6 +628,9 @@ export function initMonthlyCalendar() {
                     time: startTime,
                     allDay,
                     repeat,
+                    repeatInterval,
+                    reminder,
+                    alertType,
                     categoryId: cat.id,
                     categoryName: cat.name,
                     categoryColor: cat.color,
@@ -489,6 +657,14 @@ export function initMonthlyCalendar() {
     // Phím Escape đóng modal
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
+            const modalConfirmDelete = document.getElementById('modal-confirm-delete');
+            if (modalConfirmDelete && modalConfirmDelete.classList.contains('is-active')) {
+                return; // Để modal-confirm-delete xử lý đóng trước
+            }
+            const modalDeleteRepeat = document.getElementById('modal-delete-repeat');
+            if (modalDeleteRepeat && modalDeleteRepeat.classList.contains('is-active')) {
+                return; // Để modal-delete-repeat xử lý đóng trước
+            }
             if (modalCalAddEvent && modalCalAddEvent.classList.contains('is-active')) {
                 closeCalAddEventModal();
             } else if (modalDayDetail && modalDayDetail.classList.contains('is-active')) {

@@ -3,11 +3,12 @@
 import { S } from '../state/store.js';
 import { formatCalEventTimeRange, getRepeatLabel, isCalEventOnDate } from '../core/calendar-events.js';
 import { escapeHtml } from '../core/html.js';
-import { getCanChiMonth, getCanChiYear } from '../core/lunar.js';
+import { getCanChiYear } from '../core/lunar.js';
 import { loadCalEvents } from '../services/calendar.service.js';
 import { openCalEditEventModal } from './calendar-event-form.js';
 import { deleteCalEvent } from './calendar-event-view.js';
 import { modalDayDetail } from './calendar.view.js';
+import { openDeleteRepeatModal, openSingleDeleteConfirmModal } from './event-detail.view.js';
 
 export const modalDayWeekday = document.getElementById('modal-day-weekday');
 
@@ -26,12 +27,6 @@ export const modalDaySolarSub = document.getElementById('modal-day-solar-sub');
 export const modalDayLunarNum = document.getElementById('modal-day-lunar-num');
 
 export const modalDayLunarSub = document.getElementById('modal-day-lunar-sub');
-
-export const modalDayCanChiDay = document.getElementById('modal-day-canchi-day');
-
-export const modalDayCanChiMonth = document.getElementById('modal-day-canchi-month');
-
-export const modalDayCanChiYear = document.getElementById('modal-day-canchi-year');
 
 export const modalDayHoangDaoCard = document.getElementById('modal-day-hoangdao-card');
 
@@ -59,7 +54,7 @@ export function renderDayDetailEvents(data) {
         item.style.borderLeftColor = evt.categoryColor;
 
         const timeStr = formatCalEventTimeRange(evt);
-        const repeatStr = (evt.repeat && evt.repeat !== 'none') ? ` • Lặp lại: ${getRepeatLabel(evt.repeat)}` : '';
+        const repeatStr = (evt.repeat && evt.repeat !== 'none') ? ` • Lặp lại: ${getRepeatLabel(evt)}` : '';
         const noteHtml = evt.note ? `<div class="day-event-item-note">${escapeHtml(evt.note)}</div>` : '';
         const linkHtml = evt.url ? `<a href="${escapeHtml(evt.url)}" target="_blank" rel="noopener noreferrer" class="day-event-item-link">🔗 ${escapeHtml(evt.url)}</a>` : '';
         const attachHtml = evt.attachment ? `<div class="day-event-item-attachment">📎 <a href="${evt.attachment.dataUrl || '#'}" download="${escapeHtml(evt.attachment.name)}" style="color: inherit; text-decoration: underline;">${escapeHtml(evt.attachment.name)}</a></div>` : '';
@@ -95,8 +90,29 @@ export function renderDayDetailEvents(data) {
         if (btnDel) {
             btnDel.addEventListener('click', (e) => {
                 e.stopPropagation();
-                if (confirm(`Bạn có chắc muốn xóa sự kiện "${evt.title}"?`)) {
-                    deleteCalEvent(evt.id);
+                const isRepeating = evt.repeat && evt.repeat !== 'none';
+                if (isRepeating) {
+                    const cellDateStr = `${cellYear}-${String(cellMonth + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+                    openDeleteRepeatModal(evt, {
+                        type: 'calendar',
+                        dateStr: cellDateStr,
+                        cellYear,
+                        cellMonth,
+                        dayNum
+                    });
+                } else {
+                    const timeRange = formatCalEventTimeRange(evt);
+                    const metaText = timeRange ? `⏰ ${timeRange} • Không thể khôi phục sau khi xóa.` : 'Hành động này sẽ xóa sự kiện khỏi lịch vĩnh viễn.';
+                    openSingleDeleteConfirmModal({
+                        title: 'Xóa sự kiện',
+                        subtitle: 'Bạn có chắc chắn muốn xóa sự kiện này khỏi lịch?',
+                        eventName: evt.title || 'Sự kiện không tên',
+                        eventMeta: metaText,
+                        confirmText: 'Xóa sự kiện',
+                        onConfirm: () => {
+                            deleteCalEvent(evt.id);
+                        }
+                    });
                 }
             });
         }
@@ -156,16 +172,10 @@ export function openDayDetailModal(data) {
     if (modalDaySolarNum) modalDaySolarNum.textContent = String(dayNum).padStart(2, '0');
     if (modalDaySolarSub) modalDaySolarSub.textContent = `Tháng ${cellMonth + 1}, ${cellYear}`;
 
-    // Khối Âm lịch & Can Chi
+    // Khối Âm lịch
     const canChiYear = getCanChiYear(lunar.year);
-    const canChiMonth = getCanChiMonth(lunar.month, lunar.year);
     if (modalDayLunarNum) modalDayLunarNum.textContent = String(lunar.day).padStart(2, '0');
     if (modalDayLunarSub) modalDayLunarSub.textContent = `Tháng ${lunar.month}${lunar.leap ? ' (Nhuận)' : ''}, Năm ${canChiYear}`;
-
-    // Khối Can Chi Tam Trụ
-    if (modalDayCanChiDay) modalDayCanChiDay.textContent = canChi;
-    if (modalDayCanChiMonth) modalDayCanChiMonth.textContent = canChiMonth;
-    if (modalDayCanChiYear) modalDayCanChiYear.textContent = canChiYear;
 
     // Khối Hoàng Đạo / Hắc Đạo
     if (modalDayHoangDaoCard) {

@@ -2331,6 +2331,67 @@ body.is-reordering-tracks * {
   line-height: 1.4;
 }
 
+/* Xác nhận xóa sự kiện đơn lẻ */
+.delete-confirm-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: rgba(239, 68, 68, 0.06);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 12px;
+  text-align: left;
+}
+
+.delete-confirm-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.delete-confirm-text strong {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-white);
+  word-break: break-word;
+}
+
+.delete-confirm-text span {
+  font-size: 12px;
+  color: var(--slate-400);
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.btn-danger-confirm {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  border: none;
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 8px 20px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.2s, background 0.2s;
+  box-shadow: 0 2px 10px rgba(239, 68, 68, 0.4);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-danger-confirm:hover {
+  background: linear-gradient(135deg, #f87171, #ef4444);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.55);
+}
+
+.btn-danger-confirm:active {
+  transform: translateY(0);
+}
+
 /* ========================================================
    TÍNH NĂNG AI VISION (Google Gemini Image Auto-Fill)
    Tích hợp trực tiếp vào ô Ảnh minh họa sự kiện
@@ -2888,4 +2949,311 @@ body.is-reordering-tracks * {
   margin-top: 6px;
   flex-wrap: wrap;
 }
+
+/* ========================================================
+   CHẾ ĐỘ BÁO THỨC & CHUÔNG NHẸ TRONG FORM SỰ KIỆN
+   ======================================================== */
+.cal-reminder-subrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cal-alert-mode-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.alert-mode-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--slate-400);
+}
+
+.cal-alert-toggle-group {
+  display: inline-flex;
+  background: rgba(15, 23, 42, 0.7);
+  padding: 3px;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 4px;
+}
+
+.btn-alert-mode-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--slate-300);
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+
+.btn-alert-mode-chip:hover {
+  color: var(--color-white);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.btn-alert-mode-chip.is-active[data-type="alarm"] {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(239, 68, 68, 0.25));
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.55);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.35);
+}
+
+.btn-alert-mode-chip.is-active[data-type="notification"] {
+  background: rgba(56, 189, 248, 0.2);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.55);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
+}
+
+/* ========================================================
+   MÀN HÌNH BÁO THỨC ĐANG REO TOÀN DIỆN (ALARM OVERLAY)
+   ======================================================== */
+.alarm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.alarm-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 11, 24, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.alarm-modal-card {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 440px;
+  background: linear-gradient(180deg, rgba(26, 32, 54, 0.96) 0%, rgba(15, 20, 36, 0.98) 100%);
+  border: 1.5px solid rgba(245, 158, 11, 0.45);
+  border-radius: 24px;
+  padding: 28px 24px 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.75), 0 0 50px rgba(245, 158, 11, 0.25);
+  text-align: center;
+  animation: alarmCardPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.alarm-visual-header {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.alarm-pulse-rings {
+  position: absolute;
+  inset: -20px;
+  pointer-events: none;
+}
+
+.alarm-ring-wave {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(245, 158, 11, 0.7);
+  animation: alarmWavePing 2.2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+}
+
+.alarm-ring-wave.wave-2 {
+  animation-delay: 0.7s;
+  border-color: rgba(239, 68, 68, 0.6);
+}
+
+.alarm-ring-wave.wave-3 {
+  animation-delay: 1.4s;
+  border-color: rgba(251, 191, 36, 0.5);
+}
+
+.alarm-bell-circle {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 35px rgba(245, 158, 11, 0.65);
+  position: relative;
+  z-index: 2;
+}
+
+.alarm-bell-icon {
+  animation: alarmBellRinging 0.45s ease-in-out infinite alternate;
+  transform-origin: 50% 15%;
+}
+
+.alarm-clock-display {
+  margin-bottom: 16px;
+}
+
+.alarm-digits {
+  font-family: var(--font-heading);
+  font-size: 42px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #ffffff;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.4), 0 0 35px rgba(245, 158, 11, 0.55);
+  line-height: 1.1;
+}
+
+.alarm-date {
+  font-size: 13px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: capitalize;
+  margin-top: 5px;
+}
+
+.alarm-event-info {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 22px;
+}
+
+.alarm-badge-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  margin-bottom: 8px;
+}
+
+.alarm-event-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 6px 0;
+  line-height: 1.35;
+}
+
+.alarm-event-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: #38bdf8;
+  font-weight: 600;
+}
+
+.alarm-meta-dot {
+  color: #64748b;
+}
+
+.alarm-event-note {
+  font-size: 12px;
+  color: #cbd5e1;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-top: 8px;
+  text-align: left;
+  max-height: 60px;
+  overflow-y: auto;
+  line-height: 1.45;
+}
+
+.alarm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 12px;
+}
+
+.btn-alarm-snooze {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(30, 41, 70, 0.85);
+  border: 1.5px solid rgba(56, 189, 248, 0.4);
+  color: #e2e8f0;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
+.btn-alarm-snooze:hover {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: #38bdf8;
+  color: #ffffff;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-alarm-dismiss {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.45);
+}
+
+.btn-alarm-dismiss:hover {
+  background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.65);
+  transform: translateY(-2px);
+}
+
+@keyframes alarmBellRinging {
+  0% { transform: rotate(-18deg); }
+  100% { transform: rotate(18deg); }
+}
+
+@keyframes alarmWavePing {
+  0% { transform: scale(0.65); opacity: 0.95; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+@keyframes alarmCardPop {
+  0% { opacity: 0; transform: scale(0.85) translateY(20px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
 

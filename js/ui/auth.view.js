@@ -290,14 +290,26 @@ export function updateAuthUI() {
                 popoverAvatarCircle.style.background = `linear-gradient(135deg, hsl(${hue}, 75%, 55%), hsl(${(hue + 40) % 360}, 85%, 45%))`;
             }
         }
+        if (userAvatarWrap) {
+            userAvatarWrap.title = `Tài khoản: ${user.name || user.email}`;
+        }
         updatePopoverExtraState();
     } else {
         closeAccountPopover();
-        if (loginGateOverlay) {
-            loginGateOverlay.classList.remove('is-hidden');
-        }
         if (topUserProfileBadge) {
-            topUserProfileBadge.style.display = 'none';
+            topUserProfileBadge.style.display = 'inline-flex';
+        }
+        if (userAvatarCircle) {
+            userAvatarCircle.innerHTML = `
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            `;
+            userAvatarCircle.style.background = 'linear-gradient(135deg, #334155, #1e293b)';
+        }
+        if (userAvatarWrap) {
+            userAvatarWrap.title = 'Đăng nhập tài khoản Google';
         }
         const savedAccs = getSavedGoogleAccounts();
         if (btnShowSavedAccounts) {
@@ -332,6 +344,9 @@ export function performLogout() {
     endSession();
     updateAuthUI();
     showGoogleChooserPanel(); // Hiển thị sẵn danh sách các tài khoản Google đã lưu trên máy để chuyển đổi 1-click!
+    if (loginGateOverlay) {
+        loginGateOverlay.classList.remove('is-hidden');
+    }
 
     renderEvents();
     if (calSelectMonth && calSelectYear) {
@@ -458,11 +473,28 @@ export function processImageFileToAvatar(file) {
 // Hoạt động mượt mà trên cả Điện thoại & Máy tính
 // ========================================================
 
-// 1. Nhấp vào Avatar trên Header: Bung hoặc đóng Menu Tài khoản
+// 1. Nhấp vào Avatar trên Header: Bung Menu Tài khoản (nếu đã đăng nhập) hoặc Mở màn hình Đăng nhập (nếu chưa đăng nhập)
 if (userAvatarWrap) {
     userAvatarWrap.addEventListener('click', (e) => {
         e.stopPropagation();
+        const user = getCurrentUser();
+        if (!user) {
+            if (loginGateOverlay) {
+                loginGateOverlay.classList.remove('is-hidden');
+            }
+            return;
+        }
         toggleAccountPopover();
+    });
+}
+
+// Nút Tiếp tục xem lịch (Chế độ xem trước / Khách)
+const btnGuestBrowse = document.getElementById('btn-guest-browse');
+if (btnGuestBrowse) {
+    btnGuestBrowse.addEventListener('click', () => {
+        if (loginGateOverlay) {
+            loginGateOverlay.classList.add('is-hidden');
+        }
     });
 }
 
@@ -673,11 +705,35 @@ if (btnSaveAvatarModal) {
 // ĐĂNG NHẬP GOOGLE BẰNG FIREBASE AUTHENTICATION (POPUP)
 // ========================================================
 async function loginWithGoogle() {
+    const currentHost = window.location.hostname || '';
+    const isLocalNetworkOrFile = !currentHost || 
+                                 window.location.protocol === 'file:' || 
+                                 /^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/.test(currentHost);
+
+    // Tự động xử lý nếu đang mở bằng 127.0.0.1 trên máy tính:
+    // Firebase mặc định cho phép tên miền 'localhost' chứ không hỗ trợ '127.0.0.1'.
+    // Tự động chuyển mượt sang localhost để Google Popup hoạt động mà không cần hỏi xác nhận.
+    if (currentHost === '127.0.0.1') {
+        try {
+            window.location.replace(window.location.href.replace('//127.0.0.1', '//localhost'));
+            return;
+        } catch (e) { }
+    }
+
+    // Nếu đang truy cập qua IP mạng LAN trên điện thoại (VD: 192.168.x.x) hoặc mở file trực tiếp:
+    // Google OAuth chặn toàn bộ IP private theo chuẩn RFC 8252, không thể mở Popup.
+    // Chuyển thẳng sang Bộ chọn tài khoản Google để người dùng chọn hoặc nhập Gmail nhanh, không hiện alert phiền phức!
+    if (isLocalNetworkOrFile) {
+        showGoogleChooserPanel();
+        showToastNotification('Chọn tài khoản hoặc nhập Gmail để vào lịch ngay', 'Tài khoản Google');
+        return;
+    }
+
     const cfg = getActiveFirebaseConfig();
     const sdk = await loadFirebaseSdk();
     if (!cfg || !cfg.apiKey || !sdk) {
-        showToastNotification('Chưa tải được Firebase Authentication. Đang mở danh sách tài khoản...', 'Thông báo');
         showGoogleChooserPanel();
+        showToastNotification('Đang mở bộ chọn tài khoản Google...', 'Tài khoản Google');
         return;
     }
 
@@ -704,43 +760,33 @@ async function loginWithGoogle() {
 
             performLogin(email, displayName, photoURL);
             showToastNotification(`Đăng nhập Google thành công! Xin chào "${displayName}"`, 'Đăng nhập Google');
+            return;
         }
     } catch (error) {
-        console.error('Lỗi khi đăng nhập Google qua Firebase:', error);
+        console.warn('Google Popup không khả dụng trên môi trường này, chuyển sang bộ chọn Google:', error);
         if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
             return;
         }
-        if (error.code === 'auth/unauthorized-domain') {
-            const currentHost = window.location.hostname || 'localhost';
-            alert(
-                `⚠️ Tên miền "${currentHost}" chưa được thêm vào Authorized domains trong Firebase Console.\n\n` +
-                `CÁCH CẤP PHÉP TRONG 30 GIÂY:\n` +
-                `1. Mở Firebase Console > Chọn dự án "${cfg.projectId || 'lich-van-nang'}"\n` +
-                `2. Vào mục "Authentication" > chọn thẻ "Settings"\n` +
-                `3. Nhấp vào "Authorized domains" (Miền được ủy quyền)\n` +
-                `4. Bấm "Add domain" và nhập: ${currentHost}\n` +
-                `5. Bấm "Add" xong quay lại trang này bấm Đăng nhập lại là được ngay!`
-            );
-            return;
+
+        // Với mọi trường hợp lỗi (unauthorized-domain, popup-blocked, operation-not-allowed, network...):
+        // Tuyệt đối KHÔNG hiện alert kỹ thuật bắt người dùng cấu hình Firebase Console.
+        // Tự động mở Bộ chọn tài khoản Google để người dùng chọn hoặc nhập Gmail vào ngay lập tức!
+        showGoogleChooserPanel();
+        showToastNotification('Chọn tài khoản hoặc nhập Gmail để vào lịch ngay', 'Tài khoản Google');
+
+        if (formAddGoogleAccount) {
+            const accounts = getSavedGoogleAccounts();
+            if (!accounts || !accounts.length) {
+                formAddGoogleAccount.classList.remove('is-hidden');
+                if (inputNewGoogleEmail) inputNewGoogleEmail.focus();
+            }
         }
-        if (error.code === 'auth/operation-not-allowed') {
-            alert(
-                `⚠️ Đăng nhập Google chưa được kích hoạt trong Firebase Console.\n\n` +
-                `Vào: Authentication > Sign-in method > Google > Bật "Enable" và nhấn Lưu.`
-            );
-            return;
-        }
-        if (error.code === 'auth/popup-blocked') {
-            alert('Trình duyệt đã chặn cửa sổ bật lên (popup). Vui lòng cho phép popup đối với trang này để đăng nhập Google.');
-            return;
-        }
-        alert('Đăng nhập Google không thành công: ' + (error.message || error.code || 'Đã xảy ra lỗi'));
     } finally {
         setButtonsBusy(false);
     }
 }
 
-// Sự kiện khi bấm "Tiếp tục với Google": mở cửa sổ Google Sign-In chính thức
+// Sự kiện khi bấm "Tiếp tục với Google": mở cửa sổ Google Sign-In chính thức hoặc mở bộ chọn tài khoản
 if (btnLoginGateGoogle) {
     btnLoginGateGoogle.addEventListener('click', () => {
         loginWithGoogle();
@@ -756,8 +802,23 @@ if (btnShowSavedAccounts) {
 
 // Sự kiện đăng nhập bằng tài khoản Google khác trong bảng Account Chooser
 if (btnChooserGooglePopup) {
-    btnChooserGooglePopup.addEventListener('click', () => {
-        loginWithGoogle();
+    btnChooserGooglePopup.addEventListener('click', async () => {
+        const currentHost = window.location.hostname || '';
+        const isLocalNetworkOrFile = !currentHost || 
+                                     window.location.protocol === 'file:' || 
+                                     /^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/.test(currentHost);
+        if (isLocalNetworkOrFile) {
+            if (formAddGoogleAccount) {
+                formAddGoogleAccount.classList.remove('is-hidden');
+                if (inputNewGoogleEmail) inputNewGoogleEmail.focus();
+            }
+            return;
+        }
+        await loginWithGoogle();
+        if (formAddGoogleAccount) {
+            formAddGoogleAccount.classList.remove('is-hidden');
+            if (inputNewGoogleEmail) inputNewGoogleEmail.focus();
+        }
     });
 }
 

@@ -400,14 +400,14 @@
   color: #64748b;
 }
 
-/* Lớp phủ mờ nền khi mở Popover (đặc biệt mượt mà trên Điện thoại) */
+/* Lớp phủ khi mở Popover - trong suốt, không làm mờ trang nhưng vẫn nhận sự kiện chạm ra ngoài để đóng */
 .popover-backdrop {
   position: fixed;
   inset: 0;
   z-index: 9998;
-  background: rgba(10, 15, 30, 0.45);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   transition: opacity 0.22s ease, visibility 0.22s;
 }
 
@@ -415,6 +415,11 @@
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+}
+
+/* Ẩn tuỳ chọn đồng bộ đám mây trong popover */
+#btn-popover-cloud {
+  display: none !important;
 }
 
 /* Tối ưu hóa Popover trên Điện thoại & Tablet (< 640px) */

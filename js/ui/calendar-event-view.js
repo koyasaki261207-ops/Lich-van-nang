@@ -1,7 +1,7 @@
 // Modal xem chi tiết sự kiện lịch riêng.
 
 import { S } from '../state/store.js';
-import { formatCalEventTimeRange, getRepeatLabel } from '../core/calendar-events.js';
+import { formatCalEventTimeRange, getCalEventOccStartDateStr, getRepeatLabel } from '../core/calendar-events.js';
 import { DEFAULT_CAL_CATEGORIES } from '../core/constants.js';
 import { escapeHtml } from '../core/html.js';
 import { getCurrentUser } from '../services/auth.service.js';
@@ -29,6 +29,10 @@ export const viewCalTimeVal = document.getElementById('view-cal-time-val');
 export const viewCalRepeatRow = document.getElementById('view-cal-repeat-row');
 
 export const viewCalRepeatVal = document.getElementById('view-cal-repeat-val');
+
+export const viewCalReminderRow = document.getElementById('view-cal-reminder-row');
+
+export const viewCalReminderVal = document.getElementById('view-cal-reminder-val');
 
 export const viewCalNoteRow = document.getElementById('view-cal-note-row');
 
@@ -59,6 +63,7 @@ export function openCalEventViewModal(evt, isHoliday = false) {
             viewCalTimeVal.textContent = `Cả ngày (${dateStr})`;
         }
         if (viewCalRepeatRow) viewCalRepeatRow.style.display = 'none';
+        if (viewCalReminderRow) viewCalReminderRow.style.display = 'none';
         if (viewCalNoteRow) viewCalNoteRow.style.display = 'none';
         if (viewCalAttachmentRow) viewCalAttachmentRow.style.display = 'none';
         if (viewCalUrlRow) viewCalUrlRow.style.display = 'none';
@@ -95,9 +100,27 @@ export function openCalEventViewModal(evt, isHoliday = false) {
         if (viewCalRepeatRow && viewCalRepeatVal) {
             if (evt.repeat && evt.repeat !== 'none') {
                 viewCalRepeatRow.style.display = 'flex';
-                viewCalRepeatVal.textContent = getRepeatLabel(evt.repeat);
+                viewCalRepeatVal.textContent = getRepeatLabel(evt);
             } else {
                 viewCalRepeatRow.style.display = 'none';
+            }
+        }
+
+        // Nhắc nhở (Reminder)
+        if (viewCalReminderRow && viewCalReminderVal) {
+            const rVal = (evt.reminder !== undefined && evt.reminder !== null) ? String(evt.reminder) : '10';
+            if (rVal && rVal !== 'none') {
+                viewCalReminderRow.style.display = 'flex';
+                let rLabel = 'Trước 10 phút';
+                if (rVal === '0') rLabel = 'Đúng giờ diễn ra';
+                else if (rVal === '5') rLabel = 'Trước 5 phút';
+                else if (rVal === '10') rLabel = 'Trước 10 phút';
+                else if (rVal === '30') rLabel = 'Trước 30 phút';
+                else if (rVal === '60') rLabel = 'Trước 1 giờ';
+                else if (rVal === '1440') rLabel = 'Trước 1 ngày (lúc 08:00)';
+                viewCalReminderVal.textContent = `🔔 ${rLabel}`;
+            } else {
+                viewCalReminderRow.style.display = 'none';
             }
         }
 
@@ -161,6 +184,93 @@ export function deleteCalEvent(id) {
     const deletedSet = recordDeletedCalIds(id);
     let events = loadCalEvents();
     events = events.filter(e => e && e.id !== id && !deletedSet.has(e.id));
+    saveCalEvents(events);
+    renderMonthlyCalendar(S.currentCalMonth, S.currentCalYear);
+    renderHorizontalDailyTimeline(S.activeTimelineDate);
+    if (S.activeDayDetailData && modalDayDetail && modalDayDetail.classList.contains('is-active')) {
+        renderDayDetailEvents(S.activeDayDetailData);
+    }
+
+    const user = getCurrentUser();
+    if (user && user.email) {
+        pushLocalDataToCloud(user.email);
+    }
+}
+
+// 1. Chỉ xóa một kỳ cụ thể trong chuỗi lặp lại
+export function excludeCalEventDate(id, dateStr) {
+    if (!id || !dateStr) return;
+    let events = loadCalEvents();
+    const target = events.find(e => e && e.id === id);
+    if (!target) return;
+
+    if (!Array.isArray(target.excludedDates)) {
+        target.excludedDates = [];
+    }
+
+    const occStartStr = getCalEventOccStartDateStr(target, dateStr);
+    const datesToExclude = new Set([dateStr, occStartStr]);
+
+    const sDate = target.startDate || target.date;
+    const eDate = target.endDate || target.date || sDate;
+    if (sDate && eDate && eDate > sDate) {
+        const sParts = sDate.split('-').map(Number);
+        const eParts = eDate.split('-').map(Number);
+        const sD = new Date(sParts[0], sParts[1] - 1, sParts[2]);
+        const eD = new Date(eParts[0], eParts[1] - 1, eParts[2]);
+        const durationDays = Math.max(0, Math.round((eD.getTime() - sD.getTime()) / 86400000));
+        if (durationDays > 0 && occStartStr) {
+            const occParts = occStartStr.split('-').map(Number);
+            for (let i = 0; i <= durationDays; i++) {
+                const cur = new Date(occParts[0], occParts[1] - 1, occParts[2] + i);
+                datesToExclude.add(`${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, '0')}-${String(cur.getDate()).padStart(2, '0')}`);
+            }
+        }
+    }
+
+    datesToExclude.forEach(d => {
+        if (d && !target.excludedDates.includes(d)) {
+            target.excludedDates.push(d);
+        }
+    });
+
+    saveCalEvents(events);
+    renderMonthlyCalendar(S.currentCalMonth, S.currentCalYear);
+    renderHorizontalDailyTimeline(S.activeTimelineDate);
+    if (S.activeDayDetailData && modalDayDetail && modalDayDetail.classList.contains('is-active')) {
+        renderDayDetailEvents(S.activeDayDetailData);
+    }
+
+    const user = getCurrentUser();
+    if (user && user.email) {
+        pushLocalDataToCloud(user.email);
+    }
+}
+
+// 2. Dừng lặp lại từ kỳ này trở đi (giữ lại các kỳ trong quá khứ)
+export function stopCalEventRepeatFrom(id, dateStr) {
+    if (!id || !dateStr) return;
+    let events = loadCalEvents();
+    const target = events.find(e => e && e.id === id);
+    if (!target) return;
+
+    const sDate = target.startDate || target.date;
+    const occStartStr = getCalEventOccStartDateStr(target, dateStr);
+    const stopFromDate = occStartStr || dateStr;
+
+    // Nếu kỳ đang chọn là kỳ bắt đầu (hoặc trước ngày bắt đầu), thì không còn kỳ nào trong quá khứ -> xóa sạch
+    if (stopFromDate <= sDate) {
+        deleteCalEvent(id);
+        return;
+    }
+
+    // Ngày dừng lặp là ngày trước kỳ này
+    const parts = stopFromDate.split('-').map(Number);
+    const prevDate = new Date(parts[0], parts[1] - 1, parts[2] - 1);
+    const prevDayStr = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}-${String(prevDate.getDate()).padStart(2, '0')}`;
+
+    target.repeatLimitEnd = prevDayStr;
+
     saveCalEvents(events);
     renderMonthlyCalendar(S.currentCalMonth, S.currentCalYear);
     renderHorizontalDailyTimeline(S.activeTimelineDate);
